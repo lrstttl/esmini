@@ -19,6 +19,7 @@
 #include <sstream>
 #include <locale>
 #include <array>
+#include <unordered_map>
 
 // UDP network includes
 #ifndef _WIN32
@@ -155,6 +156,10 @@ std::string ControlDomain2Str(ControlDomains domains)
     else if (domains == ControlDomains::DOMAIN_LONG)
     {
         return "longitudinal";
+    }
+    else if (domains == ControlDomains::DOMAIN_LIGHT)
+    {
+        return "lights";
     }
 
     return "none";
@@ -597,6 +602,35 @@ void SwapByteOrder(unsigned char* buf, int data_type_size, int buf_size)
         }
         ptr += data_type_size;
     }
+}
+
+bool CheckArrayRange0to1(double array[], int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (array[i] > 0.0 - SMALL_NUMBER && array[i] < 1.0 + SMALL_NUMBER)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+int adjustByOffsetArray(double (&array)[3], double limit)
+{
+    double fraction = 1.0;
+    double max_val  = MAX(array[0], MAX(array[1], array[2]));
+    if (max_val > SMALL_NUMBER)
+    {
+        fraction = limit / max_val;
+    }
+
+    array[0] = fraction * array[0];
+    array[1] = fraction * array[1];
+    array[2] = fraction * array[2];
+
+    return 0;
 }
 
 int strtoi(std::string s)
@@ -1724,6 +1758,21 @@ bool SE_Options::GetOptionSet(std::string opt)
     if (option)
     {
         return option->set_;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool SE_Options::SetOptionSet(std::string opt, bool boo)
+{
+    SE_Option* option = GetOption(opt);
+
+    if (option)
+    {
+        option->set_ = boo;
+        return true;
     }
     else
     {
