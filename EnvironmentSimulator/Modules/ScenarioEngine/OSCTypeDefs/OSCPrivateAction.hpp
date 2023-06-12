@@ -71,7 +71,8 @@ namespace scenarioengine
             ASSIGN_ROUTE,
             FOLLOW_TRAJECTORY,
             Acquire_POSITION,
-            SYNCHRONIZE_ACTION
+            SYNCHRONIZE_ACTION,
+            LIGHT_STATE_ACTION,
         };
 
         enum class DynamicsDimension
@@ -90,6 +91,8 @@ namespace scenarioengine
             STEP,
             SHAPE_UNDEFINED
         };
+
+        std::string LightType2Str(Object::VehicleLightType lightType);
 
         class TransitionDynamics
         {
@@ -159,14 +162,25 @@ namespace scenarioengine
             double rate_;
         };
 
-        ActionType      type_;
-        ControlDomains  domain_;
-        Object*         object_;
-        ScenarioEngine* scenarioEngine_;
+        ActionType               type_;
+        Object::VehicleLightType lightType_;
+        ControlDomains           domain_;
+        Object*                  object_;
+        ScenarioEngine*          scenarioEngine_;
 
         OSCPrivateAction(OSCPrivateAction::ActionType type, ControlDomains domain)
             : OSCAction(OSCAction::BaseType::PRIVATE),
               type_(type),
+              domain_(domain),
+              object_(0),
+              scenarioEngine_(0)
+        {
+        }
+
+        OSCPrivateAction(OSCPrivateAction::ActionType type, Object::VehicleLightType lightType, ControlDomains domain)
+            : OSCAction(OSCAction::BaseType::PRIVATE),
+              type_(type),
+              lightType_(lightType),
               domain_(domain),
               object_(0),
               scenarioEngine_(0)
@@ -194,6 +208,11 @@ namespace scenarioengine
         ControlDomains GetDomain()
         {
             return domain_;
+        }
+
+        Object::VehicleLightType GetLightType()
+        {
+            return lightType_;
         }
 
         virtual void ReplaceObjectRefs(Object*, Object*){};
@@ -1155,6 +1174,52 @@ namespace scenarioengine
 
         void Step(double simTime, double dt);
         void Start(double simTime, double dt);
+    };
+
+    class LightStateAction : public OSCPrivateAction
+    {
+    public:
+        double                    transitionTime_;
+        double                    flashingOffDuration_;
+        double                    flashingOnDuration_;
+        double                    luminousIntensity_;
+        Object::VehicleLightMode  mode_;
+        Object::VehicleLightColor color_;
+        double cmyk_[4];
+        double rgb_[3];
+
+        LightStateAction()
+            : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_ACTION,
+                               Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS,
+                               ControlDomains::DOMAIN_LIGHT),
+              transitionTime_(0.0),
+              flashingOffDuration_(0.5),
+              flashingOnDuration_(0.5),
+              luminousIntensity_(0.0),
+              mode_(Object::VehicleLightMode::OFF),
+              color_(Object::VehicleLightColor::OTHER),
+              cmyk_{0.0, 0.0, 0.0, 0.0},
+              rgb_{0.0, 0.0, 0.0}
+        {
+        }
+
+        double transitionTimer_ = SMALL_NUMBER;
+        double flashingTimer_   = SMALL_NUMBER;
+        double initialValueLum_;
+        double initialValueRbg_[3];
+
+        int  setVehicleLightType(std::string typeObject, Object::VehicleLightActionStatus& lightStatus);
+        void setVehicleLightMode(std::string mode);
+        void setVehicleLightColor(std::string colorType);
+
+        void Step(double simTime, double dt);
+        void Start(double simTime, double dt);
+        void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
+        int  setLightTransistionValues(double value);
+        int  convertCmykToRbgAndCheckError();
+
+    private:
+        Object::VehicleLightActionStatus vehicleLightActionStatusList;
     };
 
     class OverrideControlAction : public OSCPrivateAction

@@ -121,8 +121,61 @@ namespace scenarioengine
             double wheelDiameter;
         } Axle;
 
-        // Allocate vector for all possible override status
+        typedef enum
+        {
+            DAY_TIME_RUNNING_LIGHTS     = 0,
+            LOW_BEAM                    = 1,
+            HIGH_BEAM                   = 2,
+            FOG_LIGHTS                  = 3,
+            FOG_LIGHTS_FRONT            = 4,
+            FOG_LIGHTS_REAR             = 5,
+            BRAKE_LIGHTS                = 6,
+            WARNING_LIGHTS              = 7,
+            INDICATOR_LEFT              = 8,
+            INDICATOR_RIGHT             = 9,
+            REVERSING_LIGHTS            = 10,
+            LICENSE_PLATER_ILLUMINATION = 11,
+            SPECIAL_PURPOSE_LIGHTS      = 12,
+            NUMBER_OF_VEHICLE_LIGHTS    = 13
+        } VehicleLightType;
+
+        enum class VehicleLightMode
+        {
+            OFF          = 0,
+            ON           = 1,
+            FLASHING     = 2,
+            OTHER        = 3,
+            UNKNOWN_MODE = 4
+        };
+
+        enum class VehicleLightColor
+        {
+            OTHER            = 0,
+            RED              = 1,
+            YELLOW           = 2,
+            GREEN            = 3,
+            BLUE             = 4,
+            VIOLET           = 5,
+            ORANGE           = 6,
+            BROWN            = 7,
+            BLACK            = 8,
+            GREY             = 9,
+            WHITE            = 10,
+            NUMBER_OF_COLORS = 11
+        };
+
+        struct VehicleLightActionStatus
+        {
+            int               type              = static_cast<int>(VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS);  // according to VehicleLightType
+            VehicleLightMode  mode              = VehicleLightMode::UNKNOWN_MODE;
+            VehicleLightColor colorName         = VehicleLightColor::OTHER;
+            double            luminousIntensity = 0.0;
+            double            rgb[3]            = {0.0, 0.0, 0.0};  // RGB values
+        };
+
         OverrideActionStatus overrideActionList[OverrideType::OVERRIDE_NR_TYPES];
+
+        VehicleLightActionStatus vehicleLightActionStatusList[VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS];
 
         Type        type_;
         int         id_;
@@ -875,6 +928,7 @@ namespace scenarioengine
         Object* GetObjectByName(std::string name);
         Object* GetObjectById(int id);
         int     GetObjectIdxById(int id);
+        int     GetNumOfVehicleLight(int id);
 
     private:
         int nextId_;  // Is incremented for each new object created

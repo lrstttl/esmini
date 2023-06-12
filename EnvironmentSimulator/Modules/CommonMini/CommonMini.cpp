@@ -156,6 +156,10 @@ std::string ControlDomain2Str(ControlDomains domains)
     {
         return "longitudinal";
     }
+    else if (domains == ControlDomains::DOMAIN_LIGHT)
+    {
+        return "lights";
+    }
 
     return "none";
 }

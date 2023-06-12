@@ -241,6 +241,24 @@ static void CopyRoadInfo(SE_RoadInfo *r_data, roadmanager::RoadProbeInfo *s_data
     }
 }
 
+static int copyVehicleLightStatesListFromScenarioEngine(SE_VehicleLightState *states, Object *obj, int lightIndex)
+{
+    if (obj == 0)
+    {
+        return -1;
+    }
+
+    states->colorName = static_cast<int>(obj->vehicleLightActionStatusList[lightIndex].colorName);
+    states->intensity = obj->vehicleLightActionStatusList[lightIndex].luminousIntensity;
+    states->lightMode = static_cast<int>(obj->vehicleLightActionStatusList[lightIndex].mode);
+    states->lightType = obj->vehicleLightActionStatusList[lightIndex].type;
+    states->rgb[0]    = obj->vehicleLightActionStatusList[lightIndex].rgb[0];
+    states->rgb[1]    = obj->vehicleLightActionStatusList[lightIndex].rgb[1];
+    states->rgb[2]    = obj->vehicleLightActionStatusList[lightIndex].rgb[2];
+
+    return 0;
+}
+
 static int GetRoadInfoAtDistance(int object_id, float lookahead_distance, SE_RoadInfo *r_data, int lookAheadMode)
 {
     roadmanager::RoadProbeInfo s_data;
@@ -1129,7 +1147,8 @@ extern "C"
                                                       0.0,
                                                       0.0,
                                                       0.0,
-                                                      0.0) == 0)
+                                                      0.0,
+                                                      nullptr) == 0)
             {
                 return object_id;
             }
@@ -1233,7 +1252,8 @@ extern "C"
                                               obj->rear_axle_.positionZ,
                                               obj->pos_.GetTrackId(),
                                               t,
-                                              obj->pos_.GetS());
+                                              obj->pos_.GetS(),
+                                              obj->vehicleLightActionStatusList);
 
         return 0;
     }
@@ -1265,7 +1285,8 @@ extern "C"
                                               obj->pos_.GetTrackId(),
                                               obj->pos_.GetLaneId(),
                                               laneOffset,
-                                              obj->pos_.GetS());
+                                              obj->pos_.GetS(),
+                                              obj->vehicleLightActionStatusList);
 
         return 0;
     }
@@ -1442,6 +1463,27 @@ extern "C"
         }
 
         return copyOverrideActionListfromScenarioEngine(list, obj);
+    }
+
+    SE_DLL_API int SE_GetNumberOfVehicleLights(int objectId)
+    {
+        Object *obj = nullptr;
+        if (getObjectById(objectId, obj) == -1)
+        {
+            return -1;
+        }
+        return player->scenarioEngine->entities_.GetNumOfVehicleLight(objectId);
+    }
+
+    SE_DLL_API int SE_GetVehicleLightStatus(int object_id, int lightIndex, SE_VehicleLightState *lightState)
+    {
+        Object *obj = nullptr;
+        if (getObjectById(object_id, obj) == -1)
+        {
+            return -1;
+        }
+
+        return copyVehicleLightStatesListFromScenarioEngine(lightState, obj, lightIndex);
     }
 
     SE_DLL_API const char *SE_GetObjectTypeName(int object_id)
