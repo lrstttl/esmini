@@ -1680,9 +1680,18 @@ namespace roadmanager
     class OutlineCorner
     {
     public:
-        virtual void   GetPos(double &x, double &y, double &z)      = 0;
-        virtual void   GetPosLocal(double &x, double &y, double &z) = 0;
-        virtual double GetHeight()                                  = 0;
+        enum class CornerType
+        {
+            ROAD_CORNER = 0,
+            LOCAL_CORNER = 1,
+        };
+
+        virtual void       GetPos(double &x, double &y, double &z)      = 0;
+        virtual void       GetPosLocal(double &x, double &y, double &z) = 0;
+        virtual double     GetHeight()                                  = 0;
+        virtual int        GetCornerId()                                = 0;
+        virtual CornerType GetCornerType()                              = 0;
+
         virtual ~OutlineCorner()
         {
         }
@@ -1691,33 +1700,84 @@ namespace roadmanager
     class OutlineCornerRoad : public OutlineCorner
     {
     public:
-        OutlineCornerRoad(int roadId, double s, double t, double dz, double height, double center_s, double center_t, double center_heading);
+        OutlineCornerRoad(int    roadId,
+                          double s,
+                          double t,
+                          double dz,
+                          double height,
+                          double center_s,
+                          double center_t,
+                          double center_heading,
+                          int    cornerId);
         void   GetPos(double &x, double &y, double &z) override;
         void   GetPosLocal(double &x, double &y, double &z) override;
         double GetHeight()
         {
             return height_;
         }
+        int GetCornerId()
+        {
+            return cornerId_;
+        }
+        CornerType GetCornerType()
+        {
+            return type_;
+        }
+        double GetS()
+        {
+            return s_;
+        }
+        double GetT()
+        {
+            return t_;
+        }
+        double GetZ()
+        {
+            return dz_;
+        }
 
     private:
-        int    roadId_;
-        double s_, t_, dz_, height_, center_s_, center_t_, center_heading_;
+        int                       roadId_, cornerId_;
+        double                    s_, t_, dz_, height_, center_s_, center_t_, center_heading_;
+        OutlineCorner::CornerType type_ = OutlineCorner::CornerType::ROAD_CORNER;
     };
 
     class OutlineCornerLocal : public OutlineCorner
     {
     public:
-        OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading);
+        OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId);
+        // OutlineCornerLocal operator=(const OutlineCornerLocal&);
         void   GetPos(double &x, double &y, double &z) override;
         void   GetPosLocal(double &x, double &y, double &z) override;
         double GetHeight()
         {
             return height_;
         }
+        int GetCornerId()
+        {
+            return cornerId_;
+        }
+        CornerType GetCornerType()
+        {
+            return type_;
+        }
+        double GetU()
+        {
+            return u_;
+        }
+        double GetV()
+        {
+            return v_;
+        }
+        double GetZ()
+        {
+            return zLocal_;
+        }
 
     private:
-        int    roadId_;
-        double s_, t_, u_, v_, zLocal_, height_, heading_;
+        int                       roadId_, cornerId_;
+        double                    s_, t_, u_, v_, zLocal_, height_, heading_;
+        OutlineCorner::CornerType type_ = OutlineCorner::CornerType::LOCAL_CORNER;
     };
 
     class Outline
@@ -1734,26 +1794,36 @@ namespace roadmanager
             FILL_TYPE_SOIL,
             FILL_TYPE_UNDEFINED
         } FillType;
+        typedef enum
+        {
+            CLOSED,
+            OPEN
+        } AreaType;
 
         int                          id_;
         FillType                     fillType_;
-        bool                         closed_;
+        AreaType                     areaType_;
         std::vector<OutlineCorner *> corner_;
 
-        Outline(int id, FillType fillType, bool closed) : id_(id), fillType_(fillType), closed_(closed)
+        Outline(int id, FillType fillType, AreaType areaType) : id_(id), fillType_(fillType), areaType_(areaType)
         {
         }
 
         ~Outline()
         {
-            for (size_t i = 0; i < corner_.size(); i++)
-                delete (corner_[i]);
-            corner_.clear();
+            // for (size_t i = 0; i < corner_.size(); i++)
+            //     delete (corner_[i]);
+            // corner_.clear();
         }
 
         void AddCorner(OutlineCorner *outlineCorner)
         {
             corner_.push_back(outlineCorner);
+        }
+
+        AreaType GetAreaType()
+        {
+            return areaType_;
         }
     };
 
@@ -1823,6 +1893,7 @@ namespace roadmanager
         double lengthEnd_;
         double radiusStart_;
         double radiusEnd_;
+        double roadLength_;
 
         Repeat(double s,
                double length,
@@ -1832,7 +1903,8 @@ namespace roadmanager
                double heightStart,
                double heightEnd,
                double zOffsetStart,
-               double zOffsetEnd)
+               double zOffsetEnd,
+               double roadLength)
             : s_(s),
               length_(length),
               distance_(distance),
@@ -1847,7 +1919,8 @@ namespace roadmanager
               lengthStart_(0.0),
               lengthEnd_(0.0),
               radiusStart_(0.0),
-              radiusEnd_(0.0)
+              radiusEnd_(0.0),
+              roadLength_(roadLength)
         {
         }
 
@@ -1935,6 +2008,122 @@ namespace roadmanager
         {
             return radiusEnd_;
         }
+
+        struct RepeatScale
+        {
+            double x;
+            double y;
+            double z;
+            double s;
+            double roll;
+            double pitch;
+            double heading;
+            double hOffset;
+            double scale_x;
+            double scale_y;
+            double scale_z;
+        };
+        std::vector<RepeatScale> repeatScales_;
+        struct point
+        {
+            double x;
+            double y;
+            double z;
+            double h;
+        };
+
+        struct LocalCornerScale
+        {
+            double scale_x;
+            double scale_y;
+            double scale_z;
+            double scale_h;
+            double s_;
+            double t_;
+            double objZOffset;
+            double objH;
+            int    roadId_;
+            int    cornerId;
+        };
+        std::vector<LocalCornerScale> localCornerScales;
+
+    };
+
+    class RMObject ; // forward declaration
+    class Marking
+    {
+    private:
+        RoadMarkColor color_  = RoadMarkColor::WHITE;
+        double        width_ = 0.1, z_offset_ = 0.005, spaceLength_= 0.05, lineLength_= 0.2, startOffset_= 0.0, stopOffset_= 0.0;
+        int           roadId_, side_ = 1;  // 0 left , 1 right
+
+    public:
+        Marking(){};
+        Marking(int           roadId,
+                RoadMarkColor color_str,
+                double        width,
+                double        z_offset,
+                double        spaceLength,
+                double        lineLength,
+                double        startOffset,
+                double        stopOffset,
+                int           side)
+            : roadId_(roadId),
+              color_(color_str),
+              width_(width),
+              z_offset_(z_offset),
+              spaceLength_(spaceLength),
+              lineLength_(lineLength),
+              startOffset_(startOffset),
+              stopOffset_(stopOffset),
+              side_(side)
+        {
+        }
+        int GetSide()
+        {
+            return side_;
+        }
+        RoadMarkColor GetColor()
+        {
+            return color_;
+        }
+
+        void GetPos(double s, double t, double dz, double &x, double &y, double &z);
+
+        std::vector<int> cornerReferenceIds;
+        void             GetCorners(std::vector<int> cornerReferenceIds, Outline *outline, std::vector<OutlineCorner *> &cornerReferences);
+
+
+        struct Point2D
+        {
+            double x = 0.0;
+            double y = 0.0;
+
+        };
+
+        struct Point3D : public Point2D
+        {
+            double z = 0.0;
+        };
+        std::vector<std::vector<Point3D>> vertexPoints_;
+        void                              CheckAndFillPointsFromObject(double s, double t, double length, double width, double objHOffset);
+        void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outline);
+        void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
+
+        void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat::RepeatScale> repeatScales);
+        void                              FillPointsFromOutline(Outline *outline);
+
+        void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
+        void                              FillPointsFromLocalCorners(Outline* outline, roadmanager::Repeat::RepeatScale localCornerScales);
+
+        // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
+
+        void FillMarkingPoints(const Point2D& point1, const Point2D& point2, OutlineCorner::CornerType cornerType);
+        void FillPoints(const Point2D& point, OutlineCorner::CornerType cornerType, std::vector<Point3D>& points_);
+
+        ~Marking()
+        {
+        }
     };
 
     class RMObject : public RoadObject
@@ -2007,9 +2196,9 @@ namespace roadmanager
 
         ~RMObject()
         {
-            for (size_t i = 0; i < outlines_.size(); i++)
-                delete (outlines_[i]);
-            outlines_.clear();
+            // for (size_t i = 0; i < outlines_.size(); i++)
+            //     delete (outlines_[i]);
+            // outlines_.clear();
 
             for (size_t i = 0; i < repeats_.size(); i++)
                 delete (repeats_[i]);
@@ -2095,9 +2284,17 @@ namespace roadmanager
         {
             return orientation_;
         }
-        void AddOutline(Outline *outline)
+        void AddOutline(std::shared_ptr<Outline> outline)
         {
             outlines_.push_back(outline);
+        }
+        void AddOutlineCopy(std::shared_ptr<Outline> outline)
+        {
+            outlinesCopies_.push_back(outline);
+        }
+        void AddMarking(Marking marking)
+        {
+            markings_.emplace_back(std::move(marking));
         }
         void SetRepeat(Repeat *repeat);
         void AddRepeat(Repeat *repeat)
@@ -2108,20 +2305,42 @@ namespace roadmanager
         {
             return repeat_;
         }
+        std::vector<Repeat *> GetRepeats()
+        {
+            return repeats_;
+        }
 
         int GetNumberOfOutlines() const
         {
             return (int)outlines_.size();
+        }
+        int GetNumberOfOutlinesCopies() const
+        {
+            return (int)outlinesCopies_.size();
+        }
+        std::vector<std::shared_ptr<Outline>> GetOutlinesCopys() const
+        {
+            return outlinesCopies_;
         }
         int GetNumberOfRepeats() const
         {
             return (int)repeats_.size();
         }
 
-        Outline *GetOutline(int i) const
+        std::vector<std::shared_ptr<Outline>> GetOutlines() const
         {
-            return (0 <= i && i < outlines_.size()) ? outlines_[i] : 0;
+            return outlines_;
         }
+        std::shared_ptr<Outline> GetOutline(size_t i) const
+        {
+            return (i < outlines_.size()) ? outlines_[i] : nullptr;
+        }
+
+        std::shared_ptr<Outline> GetOutlineCopysByIdx(size_t i) const
+        {
+            return (i < outlinesCopies_.size()) ? outlinesCopies_[i] : nullptr;
+        }
+
         Repeat *GetRepeatByIdx(int i) const
         {
             return (0 <= i && i < repeats_.size()) ? repeats_[i] : 0;
@@ -2130,25 +2349,37 @@ namespace roadmanager
         {
             return parking_space_;
         }
+        std::vector<Marking>& GetMarkings()
+        {
+            return markings_;
+        }
+        size_t GetNumberOfMarkings() const
+        {
+            return (size_t)markings_.size();
+        }
+        void CheckAndCreateObjectRepeatScales(int r_id);
 
     private:
-        std::string            name_;
-        ObjectType             type_;
-        int                    id_;
-        double                 s_;
-        double                 t_;
-        double                 z_offset_;
-        Orientation            orientation_;
-        double                 length_;
-        double                 height_;
-        double                 width_;
-        double                 heading_;
-        double                 pitch_;
-        double                 roll_;
-        std::vector<Outline *> outlines_;
-        Repeat                *repeat_;
-        std::vector<Repeat *>  repeats_;
-        ParkingSpace           parking_space_;
+        std::string name_;
+        ObjectType  type_;
+        int         id_;
+        double      s_;
+        double      t_;
+        double      z_offset_;
+        Orientation orientation_;
+        double      length_; // make some default
+        double      height_;
+        double      width_;
+        double      heading_;
+        double      pitch_;
+        double      roll_;
+        // std::vector<Outline *> outlines_;
+        std::vector<std::shared_ptr<Outline>> outlines_;
+        std::vector<std::shared_ptr<Outline>> outlinesCopies_;
+        Repeat                               *repeat_;
+        std::vector<Repeat *>                 repeats_;
+        ParkingSpace                          parking_space_;
+        std::vector<Marking>     markings_;
     };
 
     enum class SpeedUnit
@@ -2316,11 +2547,16 @@ namespace roadmanager
         Elevation     *GetSuperElevation(int idx) const;
         int            GetNumberOfSignals() const;
         Signal        *GetSignal(int idx) const;
+        std::vector<Signal *>   GetSignals() const;
         int            GetNumberOfObjects() const
         {
             return (int)object_.size();
         }
         RMObject *GetRoadObject(int idx) const;
+        std::vector<RMObject *> GetRoadObjects()
+        {
+            return object_;
+        }
         int       GetNumberOfElevations() const
         {
             return (int)elevation_profile_.size();
@@ -2738,6 +2974,10 @@ namespace roadmanager
         int       GetNumOfRoads() const
         {
             return (int)road_.size();
+        }
+        std::vector<Road *> GetRoads()
+        {
+            return road_;
         }
         Junction *GetJunctionById(int id) const;
         Junction *GetJunctionByIdx(int idx) const;
