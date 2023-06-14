@@ -1784,6 +1784,79 @@ namespace roadmanager
         std::string restrictions_;
     };
 
+    class CornerReference
+    {
+    private:
+        std::vector<double> cornerReference_;
+
+    public:
+        CornerReference(double cornerReference) : cornerReference_(cornerReference)
+        {
+        }
+    };
+#if (0)
+    class ParkingSpace
+    {
+    public:
+        std::string access_;
+
+        ParkingSpace(std::string access): access_(access){}
+
+    };
+#endif
+    class Marking
+    {
+    private:
+        RoadMarkColor color_str_;
+        std::string side_;
+        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
+
+    public:
+        Marking(std::string side, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset)
+            : side_(side),
+              color_str_(color_str),
+              width_(width),
+              z_offset_(z_offset),
+              spaceLength_(spaceLength),
+              lineLength_(lineLength),
+              startOffset_(startOffset),
+              stopOffset_(stopOffset)
+        {
+        }
+
+        std::vector<CornerReference *> cornerReference_;
+
+        ~Marking()
+        {
+            for (size_t i = 0; i < cornerReference_.size(); i++)
+                delete (cornerReference_[i]);
+            cornerReference_.clear();
+        }
+
+        void AddCornerReference(CornerReference *cornerReference)
+        {
+            cornerReference_.push_back(cornerReference);
+        }
+    };
+
+    class Markings
+    {
+    public:
+        std::vector<Marking *> marking_;
+
+        ~Markings()
+        {
+            for (size_t i = 0; i < marking_.size(); i++)
+                delete (marking_[i]);
+            marking_.clear();
+        }
+
+        void AddMarking(Marking *Marking)
+        {
+            marking_.push_back(Marking);
+        }
+    };
+
     class Repeat
     {
     public:
@@ -2078,6 +2151,16 @@ namespace roadmanager
         {
             outlines_.push_back(outline);
         }
+#if (0)
+        void AddParkingSpace(ParkingSpace *parkingSpace)
+        {
+            parkingSpaces_.push_back(parkingSpace);
+        }
+#endif
+        void AddMarkings(Markings *markings)
+        {
+            markings_.push_back(markings);
+        }
         void SetRepeat(Repeat *repeat);
         void AddRepeat(Repeat *repeat)
         {
@@ -2128,6 +2211,7 @@ namespace roadmanager
         Repeat                *repeat_;
         std::vector<Repeat *>  repeats_;
         ParkingSpace           parking_space_;
+        std::vector<Markings *> markings_;
     };
 
     enum class SpeedUnit

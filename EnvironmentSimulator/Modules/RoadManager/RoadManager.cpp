@@ -4492,6 +4492,79 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                     obj->SetParkingSpace(roadmanager::ParkingSpace(access, restrictions));
                 }
+#if (0)
+                pugi::xml_node parkingSpace_node = object.child("parkingSpace");
+                if (parkingSpace_node != NULL)
+                {
+                    std::string access = parkingSpace_node.attribute("access").value();
+                    ParkingSpace *parkingSpace = new ParkingSpace(access);
+                    obj->AddParkingSpace(parkingSpace);
+                }
+#endif
+                pugi::xml_node markings_node = object.child("markings");
+                if (markings_node != NULL)
+                {
+                    Markings* markings = new Markings;
+                    for (pugi::xml_node marking_node = markings_node.child("marking"); marking_node; marking_node = marking_node.next_sibling())
+                    {
+                        Marking* marking = 0;
+                        if (!strcmp(marking_node.name(), "marking"))
+                        {
+                            std::string color_str_ = marking_node.attribute("color").value();
+
+                            RoadMarkColor color_str;
+                            if (color_str_ == "blue")
+                            {
+                                color_str = RoadMarkColor::BLUE;
+                            }
+                            else if (color_str_ == "red")
+                            {
+                                color_str = RoadMarkColor::RED;
+                            }
+                            else if (color_str_ == "green")
+                            {
+                                color_str = RoadMarkColor::GREEN;
+                            }
+                            else if (color_str_ == "white")
+                            {
+                                color_str = RoadMarkColor::WHITE;
+                            }
+                            else if (color_str_ == "Yellow")
+                            {
+                                color_str = RoadMarkColor::YELLOW;
+                            }
+                            else if (color_str_ == "standard")
+                            {
+                                color_str = RoadMarkColor::STANDARD_COLOR;
+                            }
+                            else
+                            {
+                                color_str = RoadMarkColor::UNKNOWN;
+                                LOG("Unexpected and unsupported roadmark color %s", color_str_);
+                            }
+
+                            std::string rattr;
+                            std::string side = ((rattr = ReadAttribute(marking_node, "side", true)) == "" ? "none" : std::string(rattr));
+                            double width       = atof(marking_node.attribute("width").value());
+                            double z_offset    = atof(marking_node.attribute("zOffset").value());
+                            double spaceLength = atof(marking_node.attribute("spaceLength").value());
+                            double lineLength  = atof(marking_node.attribute("lineLength").value());
+                            double startOffset = atof(marking_node.attribute("startOffset").value());
+                            double stopOffset  = atof(marking_node.attribute("stopOffset").value());
+                            marking            = (Marking*)new Marking(side, color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset);
+                        }
+
+                        for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
+                             cornerReference_node                = cornerReference_node.next_sibling())
+                        {
+                            double           cornerReference = atof(cornerReference_node.attribute("cornerReference").value());
+                            CornerReference* cornerRef       = new CornerReference(cornerReference);
+                            marking->AddCornerReference(cornerRef);
+                        }
+                        markings->AddMarking(marking);
+                    }
+                    obj->AddMarkings(markings);
+                }
 
                 for (pugi::xml_node validity_node = object.child("validity"); validity_node; validity_node = validity_node.next_sibling("validity"))
                 {
