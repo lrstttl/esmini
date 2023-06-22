@@ -3265,13 +3265,9 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
         }
         else if (actionChild.name() == std::string("AppearanceAction"))
         {
-            std::string lightType_;
-            std::string color_;
-
-            Vehicle *vehicle = 0;
-
-            LightStateAction *lightStateAction      = new LightStateAction();
-            pugi::xml_node    appearanceActionChild = actionChild.first_child();
+            LightStateAction                *lightStateAction = new LightStateAction();
+            Object::VehicleLightActionStatus LightActionStatus;
+            pugi::xml_node                   appearanceActionChild = actionChild.first_child();
 
             if (appearanceActionChild.name() == std::string("LightStateAction"))
             {
@@ -3291,8 +3287,8 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         {
                             if (lightTypeChild.name() == std::string("VehicleLight"))
                             {
-                                std::printf("inside vehicle light");
-                                lightStateAction->vehicleLightType_ = parameters.ReadAttribute(lightTypeChild, "vehicleLightType");
+                                lightStateAction->setVehicleLightType(parameters.ReadAttribute(lightTypeChild, "vehicleLightType"),
+                                                                      LightActionStatus);
                             }
                             else if (lightTypeChild.name() == std::string("UserDefinedLight"))
                             {
@@ -3316,11 +3312,11 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         }
                         if (!parameters.ReadAttribute(LightStateActionChild, "luminousIntensity").empty())
                         {
-                            lightStateAction->luminousIntensity_ = strtod(parameters.ReadAttribute(LightStateActionChild, "luminousIntensity"));
+                            LightActionStatus.luminousIntensity = strtod(parameters.ReadAttribute(LightStateActionChild, "luminousIntensity"));
                         }
                         if (!parameters.ReadAttribute(LightStateActionChild, "mode").empty())
                         {
-                            lightStateAction->mode_ = parameters.ReadAttribute(LightStateActionChild, "mode");
+                            lightStateAction->setVehicleLightMode(parameters.ReadAttribute(LightStateActionChild, "mode"));
                         }
                         else
                         {
@@ -3332,8 +3328,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                             {
                                 if (!parameters.ReadAttribute(colourChild, "colorType").empty())
                                 {
-                                    color_ = parameters.ReadAttribute(colourChild, "colorType");
-                                    lightStateAction->setColourType(color_);
+                                    lightStateAction->setVehicleLightColor(parameters.ReadAttribute(colourChild, "colorType"));
                                 }
                                 else
                                 {
@@ -3344,36 +3339,36 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                 {
                                     if (colourDesChild.name() == std::string("ColorRgb"))
                                     {
-                                        if (!parameters.ReadAttribute(colourChild, "red").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "red").empty())
                                         {
-                                            lightStateAction->colorRgbRed_ = strtod(parameters.ReadAttribute(colourChild, "red"));
+                                            LightActionStatus.colorRgbRed = strtod(parameters.ReadAttribute(colourDesChild, "red"));
                                         }
-                                        if (!parameters.ReadAttribute(colourChild, "blue").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "blue").empty())
                                         {
-                                            lightStateAction->colorRgbBlue_ = strtod(parameters.ReadAttribute(colourChild, "blue"));
+                                            LightActionStatus.colorRgbBlue = strtod(parameters.ReadAttribute(colourDesChild, "blue"));
                                         }
-                                        if (!parameters.ReadAttribute(colourChild, "green").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "green").empty())
                                         {
-                                            lightStateAction->colorRgbGreen_ = strtod(parameters.ReadAttribute(colourChild, "green"));
+                                            LightActionStatus.colorRgbGreen = strtod(parameters.ReadAttribute(colourDesChild, "green"));
                                         }
                                     }
                                     else if (colourDesChild.name() == std::string("ColorCmyk"))
                                     {
-                                        if (!parameters.ReadAttribute(colourChild, "cyan").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "cyan").empty())
                                         {
-                                            lightStateAction->colorCmykCyan_ = strtod(parameters.ReadAttribute(colourChild, "cyan"));
+                                            LightActionStatus.colorCmykCyan = strtod(parameters.ReadAttribute(colourDesChild, "cyan"));
                                         }
-                                        if (!parameters.ReadAttribute(colourChild, "magenta").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "magenta").empty())
                                         {
-                                            lightStateAction->colorCmykMagenta_ = strtod(parameters.ReadAttribute(colourChild, "magenta"));
+                                            LightActionStatus.colorCmykMagenta = strtod(parameters.ReadAttribute(colourDesChild, "magenta"));
                                         }
-                                        if (!parameters.ReadAttribute(colourChild, "yellow").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "yellow").empty())
                                         {
-                                            lightStateAction->colorCmykYellow_ = strtod(parameters.ReadAttribute(colourChild, "yellow"));
+                                            LightActionStatus.colorCmykYellow = strtod(parameters.ReadAttribute(colourDesChild, "yellow"));
                                         }
-                                        if (!parameters.ReadAttribute(colourChild, "key").empty())
+                                        if (!parameters.ReadAttribute(colourDesChild, "key").empty())
                                         {
-                                            lightStateAction->colorCmykKey_ = strtod(parameters.ReadAttribute(colourChild, "key"));
+                                            LightActionStatus.colorCmykKey = strtod(parameters.ReadAttribute(colourDesChild, "key"));
                                         }
                                     }
                                 }
@@ -3385,6 +3380,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         LOG("Exiting, Either LightType or LightState missing in: %s", actionChild.name());
                     }
                 }
+                lightStateAction->AddVehicleLightActionStatus(LightActionStatus);
                 action = lightStateAction;
             }
             else
