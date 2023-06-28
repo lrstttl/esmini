@@ -1217,6 +1217,7 @@ namespace scenarioengine
         Object::VehicleLightMode  mode_;
         Object::VehicleLightColor color_;
         Object::VehicleLightType  lightType_;
+        double                    cmyk_[4];
 
         LightStateAction()
             : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_Action, ControlDomains::DOMAIN_NONE),
@@ -1224,7 +1225,8 @@ namespace scenarioengine
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
               mode_(Object::VehicleLightMode::OFF),
-              color_(Object::VehicleLightColor::OTHER)
+              color_(Object::VehicleLightColor::OTHER),
+              cmyk_{0.0, 0.0, 0.0, 0.0}
         {
         }
 
@@ -1238,6 +1240,7 @@ namespace scenarioengine
         void Start(double simTime, double dt);
         void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
         int  setLightTransistionValues(double value);
+        int  convertCmykToRbgAndCheckError(Object::VehicleLightActionStatus& lightStatus);
 
     private:
         Object::VehicleLightActionStatus vehicleLightActionStatusList;
