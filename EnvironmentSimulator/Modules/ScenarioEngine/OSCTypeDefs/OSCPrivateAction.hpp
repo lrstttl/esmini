@@ -163,11 +163,11 @@ namespace scenarioengine
             double rate_;
         };
 
-        ActionType      type_;
+        ActionType               type_;
         Object::VehicleLightType lightType_;
-        ControlDomains  domain_;
-        Object*         object_;
-        ScenarioEngine* scenarioEngine_;
+        ControlDomains           domain_;
+        Object*                  object_;
+        ScenarioEngine*          scenarioEngine_;
 
         OSCPrivateAction(OSCPrivateAction::ActionType type, ControlDomains domain)
             : OSCAction(OSCAction::BaseType::PRIVATE),
@@ -1068,14 +1068,8 @@ namespace scenarioengine
         Controller::DomainActivation lateral_      = Controller::DomainActivation::OFF;
         Controller::DomainActivation longitudinal_ = Controller::DomainActivation::OFF;
 
-<<<<<<< HEAD
         AssignControllerAction(Controller* controller, Controller::DomainActivation lateral, Controller::DomainActivation longitudinal)
             : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_CONTROLLER, ControlDomains::DOMAIN_NONE),
-=======
-        AssignControllerAction(Controller* controller)
-            : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_CONTROLLER,
-                               controller != nullptr ? controller->GetDomain() : ControlDomains::DOMAIN_NONE),
->>>>>>> abcf6f48 (light domain control v2)
               controller_(controller),
               lateral_(lateral),
               longitudinal_(longitudinal)
@@ -1083,12 +1077,7 @@ namespace scenarioengine
         }
 
         AssignControllerAction(const AssignControllerAction& action)
-<<<<<<< HEAD
             : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_CONTROLLER, ControlDomains::DOMAIN_NONE)
-=======
-            : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_CONTROLLER,
-                               action.controller_ != nullptr ? action.controller_->GetDomain() : ControlDomains::DOMAIN_NONE)
->>>>>>> abcf6f48 (light domain control v2)
         {
             name_         = action.name_;
             controller_   = action.controller_;
@@ -1125,14 +1114,9 @@ namespace scenarioengine
         @param domainMask bitmask according to Controller::Domain type
         */
         ActivateControllerAction()
-<<<<<<< HEAD
             : OSCPrivateAction(OSCPrivateAction::ActionType::ACTIVATE_CONTROLLER, ControlDomains::DOMAIN_BOTH),
               lateral_(Controller::DomainActivation::ON),
               longitudinal_(Controller::DomainActivation::ON)
-=======
-            : OSCPrivateAction(OSCPrivateAction::ActionType::ACTIVATE_CONTROLLER, domainMask_),
-              domainMask_(ControlDomains::DOMAIN_BOTH)
->>>>>>> abcf6f48 (light domain control v2)
         {
         }
 
@@ -1140,16 +1124,10 @@ namespace scenarioengine
         Constructor with domain specification
         @param domainMask bitmask according to Controller::Domain type
         */
-<<<<<<< HEAD
         ActivateControllerAction(Controller::DomainActivation lateral, Controller::DomainActivation longitudinal)
             : OSCPrivateAction(OSCPrivateAction::ActionType::ACTIVATE_CONTROLLER, ControlDomains::DOMAIN_NONE),
               lateral_(lateral),
               longitudinal_(longitudinal)
-=======
-        ActivateControllerAction(ControlDomains domainMask)
-            : OSCPrivateAction(OSCPrivateAction::ActionType::ACTIVATE_CONTROLLER, ControlDomains::DOMAIN_NONE),
-              domainMask_(domainMask)
->>>>>>> abcf6f48 (light domain control v2)
         {
         }
 
@@ -1257,19 +1235,15 @@ namespace scenarioengine
         double                    luminousIntensity_;
         Object::VehicleLightMode  mode_;
         Object::VehicleLightColor color_;
-        // Object::VehicleLightType  C;
-        double                    cmyk_[4];
-        double                    rgb_[3];
+        double cmyk_[4];
+        double rgb_[3];
 
         LightStateAction()
-<<<<<<< HEAD
             : OSCPrivateAction(OSCPrivateAction::ActionType::APPEARANCE_ACTION, ControlDomains::DOMAIN_NONE, Object::VehicleLightType::HIGH_BEAM),
-=======
-            : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_ACTION, Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS, ControlDomains::DOMAIN_LIGHT),
->>>>>>> abcf6f48 (light domain control v2)
               transitionTime_(0.0),
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
+              luminousIntensity_(0.0),
               mode_(Object::VehicleLightMode::OFF),
               color_(Object::VehicleLightColor::OTHER),
               cmyk_{0.0, 0.0, 0.0, 0.0},
@@ -1279,7 +1253,7 @@ namespace scenarioengine
 
         double transitionTimer_ = SMALL_NUMBER;
         double flashingTimer_   = SMALL_NUMBER;
-        double initailValueLum_;
+        double initialValueLum_;
         double initialValueRbg_[3];
 
         int  setVehicleLightType(std::string typeObject, Object::VehicleLightActionStatus& lightStatus);
