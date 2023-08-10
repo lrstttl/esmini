@@ -2133,7 +2133,6 @@ ActivateControllerAction *ScenarioReader::parseActivateControllerAction(pugi::xm
     {
         lateral = Controller::DomainActivation::ON;
     }
-
     if (long_str == "false")
     {
         longitudinal = Controller::DomainActivation::OFF;
