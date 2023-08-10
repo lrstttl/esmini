@@ -2183,7 +2183,7 @@ int OverrideControlAction::AddOverrideStatus(Object::OverrideActionStatus status
 void LightStateAction::AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus)
 {
     vehicleLightActionStatusList = lightStatus;
-    if ( lightStatus.type < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS)
+    if (lightStatus.type < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS)
     {
         lightType_ = static_cast<Object::VehicleLightType>(lightStatus.type);
     }
@@ -2212,7 +2212,7 @@ void LightStateAction::Start(double simTime, double dt)
           lightType_ == Object::VehicleLightType::INDICATOR_RIGHT || lightType_ == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS) &&
         (mode_ == Object::VehicleLightMode::FLASHING))
     {
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode = mode_= Object::VehicleLightMode::ON;
+        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode = mode_ = Object::VehicleLightMode::ON;
         LOG("Setting light mode to ON, Only indicator or special purpose light support flashing");
     }
 

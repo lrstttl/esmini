@@ -3272,7 +3272,9 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         }
                         if (lightStateAction->mode_ == Object::VehicleLightMode::OFF && lightStateAction->luminousIntensity_ > 0.0)
                         {  // In case light mode is off, setting overwriting luminous intensity to 0.
-                            LOG("Ligth type %d is in Off state, Making luminousIntensity to 0 from %.1f.", lightStateAction->lightType_, lightStateAction->luminousIntensity_);
+                            LOG("Ligth type %d is in Off state, Making luminousIntensity to 0 from %.1f.",
+                                lightStateAction->lightType_,
+                                lightStateAction->luminousIntensity_);
                             lightStateAction->luminousIntensity_ = 0.0;
                         }
                         for (pugi::xml_node colourChild = LightStateActionChild.first_child(); colourChild; colourChild = colourChild.next_sibling())
