@@ -1179,14 +1179,11 @@ namespace scenarioengine
     class LightStateAction : public OSCPrivateAction
     {
     public:
-        double                    transitionTime_;
-        double                    flashingOffDuration_;
-        double                    flashingOnDuration_;
-        double                    luminousIntensity_;
-        Object::VehicleLightMode  mode_;
-        Object::VehicleLightColor color_;
-        double cmyk_[4];
+        double transitionTime_;
+        double flashingOffDuration_;
+        double flashingOnDuration_;
         double rgb_[3];
+        double cmyk_[4];
 
         LightStateAction()
             : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_ACTION,
@@ -1195,31 +1192,37 @@ namespace scenarioengine
               transitionTime_(0.0),
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
-              luminousIntensity_(0.0),
-              mode_(Object::VehicleLightMode::OFF),
-              color_(Object::VehicleLightColor::OTHER),
-              cmyk_{0.0, 0.0, 0.0, 0.0},
-              rgb_{0.0, 0.0, 0.0}
+              rgb_{0.0, 0.0, 0.0},
+              cmyk_{0.0, 0.0, 0.0, 0.0}
         {
         }
 
         double transitionTimer_ = SMALL_NUMBER;
         double flashingTimer_   = SMALL_NUMBER;
-        double initialValueLum_;
-        double initialValueRbg_[3];
+        double initialValueRgb_[3];
+        double finalValueRgb[3];
+        bool isUserSetRgb = true;
+
+
 
         int  setVehicleLightType(std::string typeObject, Object::VehicleLightActionStatus& lightStatus);
-        void setVehicleLightMode(std::string mode);
-        void setVehicleLightColor(std::string colorType);
+        int setVehicleLightMode(std::string mode, Object::VehicleLightActionStatus& lightStatus);
+        void setVehicleLightColor(std::string colorType, Object::VehicleLightActionStatus& lightStatus);
 
         void Step(double simTime, double dt);
         void Start(double simTime, double dt);
         void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
-        int  setLightTransistionValues(double value);
-        int  convertCmykToRbgAndCheckError();
+        int  setLightTransistionValues(Object::VehicleLightMode mode);
+
+        int  checkColorError(double* value, int n);
+        void convertColorAndSetRgb(Object::VehicleLightColor colorType);
+        void convertLightTypeAndSetRgb(Object::VehicleLightType lightType);
+
+        int prepareLightStateSetAndRgb(Object::VehicleLightActionStatus& lightStatus);
 
     private:
         Object::VehicleLightActionStatus vehicleLightActionStatusList;
+        std::vector<Object::VehicleLightActionStatus> vehicleLightActionStateList;
     };
 
     class OverrideControlAction : public OSCPrivateAction

@@ -395,6 +395,7 @@ void ScenarioPlayer::ViewerFrame(bool init)
                 {
                     viewer::CarModel* car = static_cast<viewer::CarModel*>(entity);
                     car->UpdateWheels(obj->wheel_angle_, obj->wheel_rot_);
+                    car->UpdateLight(obj->vehicleLightActionStatusList);
                 }
 
                 viewer::MovingModel* mov = static_cast<viewer::MovingModel*>(entity);
@@ -1097,6 +1098,35 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
     else if (obj->IsGhost())
     {
         obj->SetVisibilityMask(obj->visibilityMask_ &= ~(Object::Visibility::SENSORS));
+    }
+
+    for (size_t i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
+    {
+        if (obj->vehicleLightActionStatusList[i].type == Object::VehicleLightType::UNDEFINED)
+        {
+            Object::VehicleLightType lightName = static_cast<Object::VehicleLightType>(i);
+            for (size_t j = 0; j < model->light_material_.size(); j++)
+            {
+                if ( (lightName == Object::VehicleLightType::FOG_LIGHTS))
+                {// fog light is combination of front and back fog lights same for waring and indicator light
+                    lightName = Object::VehicleLightType::FOG_LIGHTS_REAR;
+                }
+                else if (lightName == Object::VehicleLightType::WARNING_LIGHTS)
+                {
+                    lightName = Object::VehicleLightType::INDICATOR_LEFT;
+                }
+                if ( obj->LightType2Str(lightName) + "_m" ==  model->light_material_[j]->getOrCreateStateSet()->getName())
+                {
+                    osg::Material *mat = static_cast<osg::Material*>(model->light_material_[j]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    const osg::Vec4 &dCol = mat->getDiffuseFrontAndBack()?mat->getDiffuse( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );
+                    obj->vehicleLightActionStatusList[i].rgb[0] = dCol.r();
+                    obj->vehicleLightActionStatusList[i].rgb[1] = dCol.g();
+                    obj->vehicleLightActionStatusList[i].rgb[2] = dCol.b();
+                    break;
+                }
+            }
+
+        }
     }
 
     viewer_->entities_.back()->routewaypoints_->SetWayPoints(obj->pos_.GetRoute());

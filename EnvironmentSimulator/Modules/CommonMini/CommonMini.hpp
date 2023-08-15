@@ -57,9 +57,10 @@ typedef int64_t __int64;
 #define IS_IN_SPAN(x, y, z)           ((x) >= (y) && (x) <= (z))
 #define OSI_MAX_LONGITUDINAL_DISTANCE 50
 #define OSI_MAX_LATERAL_DEVIATION     0.05
-#define LOG_FILENAME                  "log.txt"
+#define LOG_FILENAME                  "log.txt" 
 #define DAT_FILENAME                  "sim.dat"
 #define GHOST_TRAIL_SAMPLE_TIME       0.2
+#define MAX_INTESITY_LUM              (1E+4)
 
 #define LOG(...)       Logger::Inst().Log(false, false, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define LOG_TRACE(...) Logger::Inst().Log(false, true, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -125,24 +126,6 @@ enum class ControlDomains
     DOMAIN_BOTH  = 3,  // can also be interpreted as bitwise OR: DIM_LONG | DIM_LAT
     DOMAIN_LIGHT = 4,
 };
-
-// enum class LightDomains
-// {
-//     DAY_TIME_RUNNING_LIGHTS     = 0,
-//     LOW_BEAM                    = 1,
-//     HIGH_BEAM                   = 2,
-//     FOG_LIGHTS                  = 3,
-//     FOG_LIGHTS_FRONT            = 4,
-//     FOG_LIGHTS_REAR             = 5,
-//     BRAKE_LIGHTS                = 6,
-//     WARNING_LIGHTS              = 7,
-//     INDICATOR_LEFT              = 8,
-//     INDICATOR_RIGHT             = 9,
-//     REVERSING_LIGHTS            = 10,
-//     LICENSE_PLATER_ILLUMINATION = 11,
-//     SPECIAL_PURPOSE_LIGHTS      = 12,
-//     NUMBER_OF_VEHICLE_LIGHTS    = 13  // can also be interpreted as bitwise OR: DIM_LONG | DIM_LAT
-// };
 
 enum class EntityScaleMode
 {

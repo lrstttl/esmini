@@ -99,6 +99,41 @@ osg::Vec4 viewer::ODR2OSGColor(roadmanager::RoadMarkColor color)
     return osgc;
 }
 
+class FindNamedGeode : public osg::NodeVisitor
+{
+public:
+    FindNamedGeode(const std::string& name, std::vector<osg::Group*>& nodes)
+        : osg::NodeVisitor(  // Traverse all children.
+              osg::NodeVisitor::TRAVERSE_ALL_CHILDREN),
+          _name(name),
+          _nodes(nodes)
+    {
+    }
+    // This method gets called for every node in the scene graph. Check each node
+    // to see if its name matches out target. If so, save the node's address.
+    using osg::NodeVisitor::apply;
+    void apply(osg::Group& node) override
+    {
+        if (node.getName().find(_name) != std::string::npos)
+        {
+            _nodes.push_back(&node);
+        }
+
+        // Keep traversing the rest of the scene graph.
+        traverse(node);
+    }
+
+    osg::Node* getNode()
+    {
+        return _node.get();
+    }
+
+protected:
+    std::string              _name;
+    std::vector<osg::Group*>& _nodes;
+    osg::ref_ptr<osg::Group> _node;
+};
+
 // Derive a class from NodeVisitor to find a node with a  specific name.
 class FindNamedNode : public osg::NodeVisitor
 {
@@ -1129,10 +1164,53 @@ osg::ref_ptr<osg::PositionAttitudeTransform> CarModel::AddWheel(osg::ref_ptr<osg
             {
                 front_wheel_.push_back(tx_node);
             }
+            else if (std::string(wheelName).find("indicator_left") != std::string::npos)
+            {
+                front_wheel_.push_back(tx_node);
+            }
         }
     }
 
     return tx_node;
+}
+
+void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
+{
+
+    Object *obj = nullptr;
+    for ( int j = 0; j < static_cast<int>(Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS); j++)
+    {
+
+        Object::VehicleLightType lightName = static_cast<Object::VehicleLightType>(j);
+        // if ( (lightName == Object::VehicleLightType::FOG_LIGHTS) | (lightName == Object::VehicleLightType::WARNING_LIGHTS))
+        // {// fog light is combination of front and back fog lights same for waring and indicator light
+        //     continue;
+        // }
+
+        // Find light node
+        std::vector<osg::Group*> nodes;
+        FindNamedGeode           fnn(obj->LightType2Str(lightName), nodes);
+        group->accept(fnn);
+
+        for (size_t i = 0; i < nodes.size(); i++)
+        {
+            group_ = nodes[i];
+            if (group_ != NULL)
+            {
+                group_ = static_cast<osg::Group*>(group_->getChild(0));
+                osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
+                // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                if (geode->getName().c_str() ==  (obj->LightType2Str(lightName) + "_m-material"))
+                { // material name in model is lightType_m
+                    light_material_.push_back(geode);
+                }
+                else
+                {
+                    LOG_ONCE("Missing light node %s in vehicle model %s - ignoring", obj->LightType2Str(lightName).c_str(), group->getName().c_str());
+                }
+            }
+        }
+    }
 }
 
 EntityModel::EntityModel(osgViewer::Viewer*       viewer,
@@ -1223,10 +1301,13 @@ CarModel::CarModel(osgViewer::Viewer*       viewer,
 
     osg::ref_ptr<osg::Group> retval[4];
     osg::ref_ptr<osg::Node>  car_node = txNode_->getChild(0);
+
     retval[0]                         = AddWheel(car_node, "wheel_fl");
     retval[1]                         = AddWheel(car_node, "wheel_fr");
     retval[2]                         = AddWheel(car_node, "wheel_rr");
     retval[3]                         = AddWheel(car_node, "wheel_rl");
+
+    AddLights(group_);
 
     // Print message only if some wheel nodes are missing
     if (retval[0] || retval[1] || retval[2] || retval[3])
@@ -1317,6 +1398,39 @@ void EntityModel::SetRotation(double h, double p, double r)
     );
 
     txNode_->setAttitude(quat_);
+}
+
+void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
+{
+    for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
+    {
+        if (list[i].type != Object::VehicleLightType::UNDEFINED)
+        {
+            const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
+
+            if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
+            {
+                osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_LEFT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_RIGHT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+            }
+            else if ( list[i].type == Object::VehicleLightType::FOG_LIGHTS)
+            {
+                osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_FRONT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_REAR]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+
+            }
+            else
+            {
+                osg::Material *mat = static_cast<osg::Material*>(light_material_[list[i].type]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+            }
+
+        }
+    }
 }
 
 void CarModel::UpdateWheels(double wheel_angle, double wheel_rotation)
@@ -2109,6 +2223,7 @@ int Viewer::AddCustomLightSource(double x, double y, double z, double intensity)
     {
         return -1;
     }
+    // osg::ref_ptr<osg::LightSource> lightSource = new osg::LightSource;
 
     osg::ref_ptr<osg::Light> light = new osg::Light;
     light->setPosition(osg::Vec4(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f));

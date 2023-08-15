@@ -58,7 +58,8 @@ namespace scenarioengine
             ALIGN_MODE_H   = (1 << 11),
             ALIGN_MODE_P   = (1 << 12),
             ALIGN_MODE_R   = (1 << 13),
-            ALIGN_MODE_Z   = (1 << 14)
+            ALIGN_MODE_Z   = (1 << 14),
+            LIGHT_STATE    = (1 << 15)
         } DirtyBit;
 
         typedef enum
@@ -105,6 +106,7 @@ namespace scenarioengine
             int    value_type = 0;                                     // depends on override action type, e.g. OverrideBrakeType, OverrideGearType
         };
 
+        OverrideActionStatus overrideActionList[OverrideType::OVERRIDE_NR_TYPES];
         typedef struct
         {
             double maxAcceleration;
@@ -127,16 +129,16 @@ namespace scenarioengine
             DAY_TIME_RUNNING_LIGHTS     = 0,
             LOW_BEAM                    = 1,
             HIGH_BEAM                   = 2,
-            FOG_LIGHTS                  = 3,
-            FOG_LIGHTS_FRONT            = 4,
-            FOG_LIGHTS_REAR             = 5,
-            BRAKE_LIGHTS                = 6,
-            WARNING_LIGHTS              = 7,
-            INDICATOR_LEFT              = 8,
-            INDICATOR_RIGHT             = 9,
-            REVERSING_LIGHTS            = 10,
-            LICENSE_PLATER_ILLUMINATION = 11,
-            SPECIAL_PURPOSE_LIGHTS      = 12,
+            FOG_LIGHTS_FRONT            = 3,
+            FOG_LIGHTS_REAR             = 4,
+            BRAKE_LIGHTS                = 5,
+            INDICATOR_LEFT              = 6,
+            INDICATOR_RIGHT             = 7,
+            REVERSING_LIGHTS            = 8,
+            LICENSE_PLATER_ILLUMINATION = 9,
+            SPECIAL_PURPOSE_LIGHTS      = 10,
+            FOG_LIGHTS                  = 11,
+            WARNING_LIGHTS              = 12,
             NUMBER_OF_VEHICLE_LIGHTS    = 13
         } VehicleLightType;
 
@@ -151,32 +153,32 @@ namespace scenarioengine
 
         enum class VehicleLightColor
         {
-            OTHER            = 0,
-            RED              = 1,
-            YELLOW           = 2,
-            GREEN            = 3,
-            BLUE             = 4,
-            VIOLET           = 5,
-            ORANGE           = 6,
-            BROWN            = 7,
-            BLACK            = 8,
-            GREY             = 9,
-            WHITE            = 10,
-            NUMBER_OF_COLORS = 11
+            OTHER  = 0,
+            RED    = 1,
+            YELLOW = 2,
+            GREEN  = 3,
+            BLUE   = 4,
+            VIOLET = 5,
+            ORANGE = 6,
+            BROWN  = 7,
+            BLACK  = 8,
+            GREY   = 9,
+            WHITE  = 10,
+            UNKNOWN = 11 // Denotes color node itself missing
+
         };
 
         struct VehicleLightActionStatus
         {
-            int               type              = static_cast<int>(VehicleLightType::UNDEFINED);  // according to VehicleLightType
+            VehicleLightType  type              = VehicleLightType::UNDEFINED;  // according to VehicleLightType
             VehicleLightMode  mode              = VehicleLightMode::UNKNOWN_MODE;
-            VehicleLightColor colorName         = VehicleLightColor::OTHER;
+            VehicleLightColor colorName         = VehicleLightColor::UNKNOWN;
             double            luminousIntensity = 0.0;
             double            rgb[3]            = {0.0, 0.0, 0.0};  // RGB values
         };
 
-        OverrideActionStatus overrideActionList[OverrideType::OVERRIDE_NR_TYPES];
-
         VehicleLightActionStatus vehicleLightActionStatusList[VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS];
+        std::string LightType2Str(Object::VehicleLightType lightType);
 
         Type        type_;
         int         id_;

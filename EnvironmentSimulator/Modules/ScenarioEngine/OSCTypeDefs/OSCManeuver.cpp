@@ -66,7 +66,7 @@ void Event::Start(double simTime, double dt)
                                             LOG("Stopping object %s %s on conflicting %s light(s)",
                                                 obj->name_.c_str(),
                                                 pa2->name_.c_str(),
-                                                pa2->LightType2Str(pa2->GetLightType()).c_str());
+                                                obj->LightType2Str(pa2->GetLightType()).c_str());
                                             pa2->End(simTime);
                                         }
                                     }

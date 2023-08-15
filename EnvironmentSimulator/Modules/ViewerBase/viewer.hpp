@@ -387,6 +387,8 @@ namespace viewer
     public:
         std::vector<osg::ref_ptr<osg::PositionAttitudeTransform>> front_wheel_;
         std::vector<osg::ref_ptr<osg::PositionAttitudeTransform>> rear_wheel_;
+        // std::vector<osg::ref_ptr<osg::Material>>                  light_material_;
+        std::vector<osg::ref_ptr<osg::Geode>>                     light_material_;
         double                                                    wheel_angle_;
         double                                                    wheel_rot_;
         static const EntityType                                   entity_type_ = EntityType::VEHICLE;
@@ -408,6 +410,9 @@ namespace viewer
         osg::ref_ptr<osg::PositionAttitudeTransform> AddWheel(osg::ref_ptr<osg::Node> carNode, const char* wheelName);
         void                                         UpdateWheels(double wheel_angle, double wheel_rotation);
         void                                         UpdateWheelsDelta(double wheel_angle, double wheel_rotation_delta);
+        void                                         AddLights(osg::ref_ptr<osg::Group> group);
+        void                                         UpdateLight(Object::VehicleLightActionStatus* list);
+
     };
 
     class VisibilityCallback : public osg::NodeCallback
