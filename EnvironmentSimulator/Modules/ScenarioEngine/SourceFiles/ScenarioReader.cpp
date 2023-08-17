@@ -3284,7 +3284,8 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         {
                             if (lightTypeChild.name() == std::string("VehicleLight"))
                             {
-                                lightStateAction->setVehicleLightType(parameters.ReadAttribute(lightTypeChild, "vehicleLightType"), LightActionStatus);
+                                lightStateAction->setVehicleLightType(parameters.ReadAttribute(lightTypeChild, "vehicleLightType"),
+                                                                      LightActionStatus);
                             }
                             else if (lightTypeChild.name() == std::string("UserDefinedLight"))
                             {
@@ -3349,7 +3350,6 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                         {
                                             LOG("Any of RBG values missing, Anyway setting it as Zero");
                                         }
-
                                     }
                                     else if (colourDesChild.name() == std::string("ColorCmyk"))
                                     {
@@ -3387,7 +3387,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         LOG("Exiting, Either LightType or LightState missing in: %s", actionChild.name());
                     }
                 }
-                 lightStateAction->AddVehicleLightActionStatus(LightActionStatus);
+                lightStateAction->AddVehicleLightActionStatus(LightActionStatus);
                 action = lightStateAction;
             }
             else

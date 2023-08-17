@@ -1229,12 +1229,11 @@ namespace scenarioengine
     class LightStateAction : public OSCPrivateAction
     {
     public:
-        double                    transitionTime_;
-        double                    flashingOffDuration_;
-        double                    flashingOnDuration_;
-        double                    luminousIntensity_;
-        double                    cmyk_[4];
-
+        double transitionTime_;
+        double flashingOffDuration_;
+        double flashingOnDuration_;
+        double luminousIntensity_;
+        double cmyk_[4];
 
         LightStateAction()
             : OSCPrivateAction(OSCPrivateAction::ActionType::APPEARANCE_ACTION, ControlDomains::DOMAIN_NONE, Object::VehicleLightType::HIGH_BEAM),
@@ -1259,7 +1258,7 @@ namespace scenarioengine
         void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
         int  setLightTransistionValues(double value);
         int  checkColorType(Object::VehicleLightActionStatus& lightStatus);
-        int  checkColorError(double *value, int n, Object::VehicleLightType type);
+        int  checkColorError(double* value, int n, Object::VehicleLightType type);
         void convertColorToRbg(Object::VehicleLightColor colorType, Object::VehicleLightActionStatus& lightStatus);
 
     private:
