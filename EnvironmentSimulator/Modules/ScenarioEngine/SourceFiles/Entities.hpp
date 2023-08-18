@@ -58,8 +58,7 @@ namespace scenarioengine
             ALIGN_MODE_H   = (1 << 11),
             ALIGN_MODE_P   = (1 << 12),
             ALIGN_MODE_R   = (1 << 13),
-            ALIGN_MODE_Z   = (1 << 14),
-            LIGHT_STATE    = (1 << 15)
+            ALIGN_MODE_Z   = (1 << 14)
         } DirtyBit;
 
         typedef enum

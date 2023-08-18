@@ -76,12 +76,12 @@ ObjectState::ObjectState(int                               id,
     {
         if (light_state[i].type != Object::VehicleLightType::UNDEFINED)
         {
-            state_.info.light_state[i] = light_state[i];
+            state_.info.light_state[state_.info.light_state[i].type] = light_state[i];
         }
     }
 
     dirty_ = Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL | Object::DirtyBit::SPEED | Object::DirtyBit::WHEEL_ANGLE |
-             Object::DirtyBit::WHEEL_ROTATION | Object::DirtyBit::LIGHT_STATE;
+             Object::DirtyBit::WHEEL_ROTATION;
 }
 
 ObjectState::ObjectState(int                               id,
@@ -130,12 +130,12 @@ ObjectState::ObjectState(int                               id,
     {
         if (light_state[i].type != Object::VehicleLightType::UNDEFINED)
         {
-            state_.info.light_state[i] = light_state[i];
+            state_.info.light_state[state_.info.light_state[i].type] = light_state[i];
         }
     }
 
     dirty_ = Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL | Object::DirtyBit::SPEED | Object::DirtyBit::WHEEL_ANGLE |
-             Object::DirtyBit::WHEEL_ROTATION | Object::DirtyBit::LIGHT_STATE;
+             Object::DirtyBit::WHEEL_ROTATION;
 }
 
 ObjectState::ObjectState(int                               id,
@@ -180,12 +180,12 @@ ObjectState::ObjectState(int                               id,
     {
         if (light_state[i].type != Object::VehicleLightType::UNDEFINED)
         {
-            state_.info.light_state[i] = light_state[i];
+            state_.info.light_state[state_.info.light_state[i].type] = light_state[i];
         }
     }
 
     dirty_ = Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL | Object::DirtyBit::SPEED | Object::DirtyBit::WHEEL_ANGLE |
-             Object::DirtyBit::WHEEL_ROTATION | Object::DirtyBit::LIGHT_STATE;
+             Object::DirtyBit::WHEEL_ROTATION;
 }
 
 ObjectState::ObjectState(int                               id,
@@ -228,11 +228,11 @@ ObjectState::ObjectState(int                               id,
     {
         if (light_state[i].type != Object::VehicleLightType::UNDEFINED)
         {
-            state_.info.light_state[i] = light_state[i];
+            state_.info.light_state[state_.info.light_state[i].type] = light_state[i];
         }
     }
     dirty_ = Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL | Object::DirtyBit::SPEED | Object::DirtyBit::WHEEL_ANGLE |
-             Object::DirtyBit::WHEEL_ROTATION | Object::DirtyBit::LIGHT_STATE;
+             Object::DirtyBit::WHEEL_ROTATION;
 }
 
 void ObjectState::Print()
@@ -304,13 +304,12 @@ int ScenarioGateway::getObjectStateById(int id, ObjectState& objectState)
     return -1;
 }
 
-int ScenarioGateway::updateObjectInfo(ObjectState*                      obj_state,
-                                      double                            timestamp,
-                                      int                               visibilityMask,
-                                      double                            speed,
-                                      double                            wheel_angle,
-                                      double                            wheel_rot,
-                                      Object::VehicleLightActionStatus* light_state)
+int ScenarioGateway::updateObjectInfo(ObjectState* obj_state,
+                                      double       timestamp,
+                                      int          visibilityMask,
+                                      double       speed,
+                                      double       wheel_angle,
+                                      double       wheel_rot)
 {
     if (!obj_state)
     {
@@ -322,15 +321,8 @@ int ScenarioGateway::updateObjectInfo(ObjectState*                      obj_stat
     obj_state->state_.info.wheel_angle    = wheel_angle;
     obj_state->state_.info.wheel_rot      = wheel_rot;
     obj_state->state_.info.visibilityMask = visibilityMask;
-    for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
-    {
-        if (light_state[i].type != Object::VehicleLightType::UNDEFINED)
-        {
-            obj_state->state_.info.light_state[i] = light_state[i];
-        }
-    }
 
-    obj_state->dirty_ |= Object::DirtyBit::SPEED | Object::DirtyBit::WHEEL_ANGLE | Object::DirtyBit::WHEEL_ROTATION | Object::DirtyBit::LIGHT_STATE;
+    obj_state->dirty_ |= Object::DirtyBit::SPEED | Object::DirtyBit::WHEEL_ANGLE | Object::DirtyBit::WHEEL_ROTATION;
 
     return 0;
 }
@@ -403,7 +395,7 @@ int ScenarioGateway::reportObject(int                               id,
         obj_state->state_.pos = *pos;
         obj_state->dirty_ |= Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL;
 
-        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot, light_state);
+        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot);
     }
 
     return 0;
@@ -470,7 +462,7 @@ int ScenarioGateway::reportObject(int                               id,
         obj_state->state_.pos.SetInertiaPos(x, y, z, h, p, r);
         obj_state->dirty_ |= Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL;
 
-        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot, light_state);
+        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot);
     }
 
     return 0;
@@ -534,7 +526,7 @@ int ScenarioGateway::reportObject(int                               id,
         obj_state->state_.pos.SetInertiaPos(x, y, h);
         obj_state->dirty_ |= Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL;
 
-        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot, light_state);
+        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot);
     }
 
     return 0;
@@ -597,7 +589,7 @@ int ScenarioGateway::reportObject(int                               id,
         obj_state->state_.pos.SetLanePos(roadId, laneId, s, laneOffset);
         obj_state->dirty_ |= Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL;
 
-        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot, light_state);
+        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot);
     }
 
     return 0;
@@ -658,7 +650,7 @@ int ScenarioGateway::reportObject(int                               id,
         obj_state->state_.pos.SetTrackPos(roadId, s, lateralOffset);
         obj_state->dirty_ |= Object::DirtyBit::LONGITUDINAL | Object::DirtyBit::LATERAL;
 
-        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot, light_state);
+        updateObjectInfo(obj_state, timestamp, visibilityMask, speed, wheel_angle, wheel_rot);
     }
 
     return 0;
@@ -901,28 +893,6 @@ int ScenarioGateway::updateObjectVisibilityMask(int id, int visibilityMask)
     return 0;
 }
 
-int ScenarioGateway::updateObjectLightState(int id, Object::VehicleLightActionStatus* light_state)
-{
-    ObjectState* obj_state = getObjectStatePtrById(id);
-
-    if (obj_state == nullptr)
-    {
-        LOG_ONCE("Can't set visibility mask for object %d yet. Please register object using reportObject() first.", id);
-        return -1;
-    }
-
-    for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
-    {
-        if (light_state[i].type != Object::VehicleLightType::UNDEFINED)
-        {
-            obj_state->state_.info.light_state[i] = light_state[i];
-        }
-    }
-    obj_state->dirty_ |= Object::DirtyBit::LIGHT_STATE;
-
-    return 0;
-}
-
 int ScenarioGateway::setObjectAlignMode(int id, int mode)
 {
     ObjectState* obj_state = getObjectStatePtrById(id);
@@ -1070,13 +1040,6 @@ void ScenarioGateway::WriteStatesToFile()
             datState.info.visibilityMask = objectState_[i]->state_.info.visibilityMask;
             datState.info.wheel_angle    = static_cast<float>(objectState_[i]->state_.info.wheel_angle);
             datState.info.wheel_rot      = static_cast<float>(objectState_[i]->state_.info.wheel_rot);
-            for (int j = 0; j < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; j++)
-            {
-                if (objectState_[i]->state_.info.light_state[i].type != Object::VehicleLightType::UNDEFINED)
-                {
-                    datState.info.light_state[datState.info.light_state[i].type] = objectState_[i]->state_.info.light_state[i];
-                }
-            }
 
             datState.pos.x      = static_cast<float>(objectState_[i]->state_.pos.GetX());
             datState.pos.y      = static_cast<float>(objectState_[i]->state_.pos.GetY());

@@ -636,10 +636,6 @@ int ScenarioEngine::step(double deltaSimTime)
             {
                 scenarioGateway.updateObjectVisibilityMask(obj->id_, obj->visibilityMask_);
             }
-            if (obj->CheckDirtyBits(Object::DirtyBit::LIGHT_STATE))
-            {
-                scenarioGateway.updateObjectLightState(obj->id_, obj->vehicleLightActionStatusList);
-            }
         }
         else
         {

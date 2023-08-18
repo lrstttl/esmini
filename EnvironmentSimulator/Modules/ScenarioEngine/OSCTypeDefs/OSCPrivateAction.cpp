@@ -2214,7 +2214,7 @@ void LightStateAction::Step(double simTime, double dt)
         transitionTimer_ += dt;
     }
 
-    object_->SetDirtyBits(Object::DirtyBit::LIGHT_STATE);
+    // object_->SetDirtyBits(Object::DirtyBit::LIGHT_STATE);
 }
 
 int LightStateAction::setLightTransistionValues(double value)
