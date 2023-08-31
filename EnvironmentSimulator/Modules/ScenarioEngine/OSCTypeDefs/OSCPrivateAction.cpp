@@ -2232,7 +2232,7 @@ void LightStateAction::Start(double simTime, double dt)
     }
     if ((vehicleLightActionStatusList.mode == Object::VehicleLightMode::OFF) && (luminousIntensity_ > 0.0))
     {  // In case light mode is off, setting overwriting luminous intensity to 0.
-        LOG("Light type %s is in Off state, Making luminousIntensity to 0 from %.1f.", LightType2Str(lightType_).c_str(), luminousIntensity_);
+        LOG("Light type %s is in Off state, Making luminousIntensity to 0 from %.1f.", object_->LightType2Str(lightType_).c_str(), luminousIntensity_);
         luminousIntensity_ = 0.0;
     }
 
@@ -2287,7 +2287,7 @@ int LightStateAction::checkColorType(Object::VehicleLightActionStatus& lightStat
     if (CheckArrayNonZero(cmyk_, 4) && CheckArrayNonZero(lightStatus.rgb, 3))
     {
         checkColorError(lightStatus.rgb, sizeof(lightStatus.rgb) / sizeof(lightStatus.rgb[0]), lightStatus.type);
-        LOG("cmyk and rbg values provided for % s light color description, Accepting only rbg values", LightType2Str(lightType_).c_str());
+        LOG("cmyk and rbg values provided for % s light color description, Accepting only rbg values", object_->LightType2Str(lightType_).c_str());
     }
     else if (CheckArrayNonZero(cmyk_, 4))
     {
@@ -2318,7 +2318,7 @@ int LightStateAction::checkColorType(Object::VehicleLightActionStatus& lightStat
             convertColorToRbg(Object::VehicleLightColor::WHITE, lightStatus);
         }
         LOG("Either rbg nor cmyk values are not provided for %s light type, Setting it as rbg red:%.f blue:%.f green:%.f",
-            LightType2Str(lightType_).c_str(),
+            object_->LightType2Str(lightType_).c_str(),
             lightStatus.rgb[0],
             lightStatus.rgb[1],
             lightStatus.rgb[2]);
@@ -2352,7 +2352,7 @@ int LightStateAction::checkColorError(double* value, int n, Object::VehicleLight
         if (value[i] > 1)
         {
             value[i] = MAX(0, MIN(value[i], 1));
-            LOG("cmyk or rbg value is not within range and is changed to %.1f for %s light type.", value[i], LightType2Str(type).c_str());
+            LOG("cmyk or rbg value is not within range and is changed to %.1f for %s light type.", value[i], object_->LightType2Str(type).c_str());
         }
     }
     return 0;
@@ -2560,67 +2560,6 @@ void LightStateAction::setVehicleLightColor(std::string colorType, Object::Vehic
         LOG("Colour type %s not supported, set to default (other)", colorType.c_str());
         lightStatus.colorName = Object::VehicleLightColor::OTHER;
     }
-}
-
-std::string OSCPrivateAction::LightType2Str(Object::VehicleLightType lightType)
-{
-    if (lightType == Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS)
-    {
-        return "day time running light";
-    }
-    else if (lightType == Object::VehicleLightType::BRAKE_LIGHTS)
-    {
-        return "brake light";
-    }
-    else if (lightType == Object::VehicleLightType::FOG_LIGHTS)
-    {
-        return "fog light";
-    }
-    else if (lightType == Object::VehicleLightType::FOG_LIGHTS_FRONT)
-    {
-        return "fog light front";
-    }
-    else if (lightType == Object::VehicleLightType::FOG_LIGHTS_REAR)
-    {
-        return "for light rear";
-    }
-    else if (lightType == Object::VehicleLightType::HIGH_BEAM)
-    {
-        return "high beam";
-    }
-    else if (lightType == Object::VehicleLightType::INDICATOR_LEFT)
-    {
-        return "indicator left";
-    }
-    else if (lightType == Object::VehicleLightType::INDICATOR_RIGHT)
-    {
-        return "indicator right";
-    }
-    else if (lightType == Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION)
-    {
-        return "license plate illumination";
-    }
-    else if (lightType == Object::VehicleLightType::LOW_BEAM)
-    {
-        return "low beam";
-    }
-    else if (lightType == Object::VehicleLightType::REVERSING_LIGHTS)
-    {
-        return "reversing light";
-    }
-    else if (lightType == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
-    {
-        return "special purpose light";
-    }
-    else if (lightType == Object::VehicleLightType::WARNING_LIGHTS)
-    {
-        return "warning lights";
-    }
-    else if (lightType == Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS)
-    {
-        return "Unknown light";
-    }
-    return "none";
 }
 
 int OverrideControlAction::AddOverrideStatus(Object::OverrideActionStatus status)

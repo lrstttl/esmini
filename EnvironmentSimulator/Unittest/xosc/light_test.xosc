@@ -64,11 +64,11 @@
                      <Action name="HighBeamOnAction">
                         <PrivateAction>
                            <AppearanceAction>
-                                <LightStateAction transitionTime="1.5">
+                                <LightStateAction transitionTime="7">
                                     <LightType>
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
-                                    <LightState mode= "on" luminousIntensity="10" flashingOffDuration="2" flashingOnDuration="4">
+                                    <LightState mode= "on" luminousIntensity="1" flashingOffDuration="2" flashingOnDuration="4">
                                        <Color colorType="white">
                                           <ColorCmyk cyan="0.1" key="0.0" magenta="0.1" yellow="0.1"/>
                                        </Color>
@@ -97,7 +97,7 @@
                                     <LightType>
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
-                                    <LightState mode= "off" luminousIntensity="10" flashingOffDuration="2" flashingOnDuration="4">
+                                    <LightState mode= "off" luminousIntensity="1" flashingOffDuration="2" flashingOnDuration="4">
                                        <Color colorType="white">
                                           <ColorRgb red="1.0" blue="1.0" green="1.0"/>
                                        </Color>
@@ -110,7 +110,7 @@
                         <ConditionGroup>
                            <Condition name="HighBeamOffActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
-                                 <SimulationTimeCondition value="4" rule="greaterThan"/>
+                                 <SimulationTimeCondition value="10" rule="greaterThan"/>
                               </ByValueCondition>
                            </Condition>
                         </ConditionGroup>

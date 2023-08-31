@@ -1770,3 +1770,64 @@ std::string MiscObject::Category2String(int category)
             return "Unknown";
     }
 }
+
+std::string Object::LightType2Str(Object::VehicleLightType lightType)
+{
+    if (lightType == Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS)
+    {
+        return "daytime_running_light";
+    }
+    else if (lightType == Object::VehicleLightType::BRAKE_LIGHTS)
+    {
+        return "brake_light";
+    }
+    else if (lightType == Object::VehicleLightType::FOG_LIGHTS)
+    {
+        return "fog_light";
+    }
+    else if (lightType == Object::VehicleLightType::FOG_LIGHTS_FRONT)
+    {
+        return "fog_light_front";
+    }
+    else if (lightType == Object::VehicleLightType::FOG_LIGHTS_REAR)
+    {
+        return "fog_light_rear";
+    }
+    else if (lightType == Object::VehicleLightType::HIGH_BEAM)
+    {
+        return "high_beam";
+    }
+    else if (lightType == Object::VehicleLightType::INDICATOR_LEFT)
+    {
+        return "indicator_left";
+    }
+    else if (lightType == Object::VehicleLightType::INDICATOR_RIGHT)
+    {
+        return "indicator_right";
+    }
+    else if (lightType == Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION)
+    {
+        return "license_plate_illumination";
+    }
+    else if (lightType == Object::VehicleLightType::LOW_BEAM)
+    {
+        return "low_beam";
+    }
+    else if (lightType == Object::VehicleLightType::REVERSING_LIGHTS)
+    {
+        return "reversing_light";
+    }
+    else if (lightType == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
+    {
+        return "special_purpose_light";
+    }
+    else if (lightType == Object::VehicleLightType::WARNING_LIGHTS)
+    {
+        return "warning_lights";
+    }
+    else if (lightType == Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS)
+    {
+        return "Unknown_light";
+    }
+    return "none";
+}

@@ -109,7 +109,6 @@ public:
           _nodes(nodes)
     {
     }
-
     // This method gets called for every node in the scene graph. Check each node
     // to see if its name matches out target. If so, save the node's address.
     using osg::NodeVisitor::apply;
@@ -1175,37 +1174,41 @@ osg::ref_ptr<osg::PositionAttitudeTransform> CarModel::AddWheel(osg::ref_ptr<osg
     return tx_node;
 }
 
-void CarModel::AddLight(osg::ref_ptr<osg::Group> group, const char* lightName)
+void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
 {
-    // Find light node
-    std::vector<osg::Group*> nodes;
-    FindNamedGeode          fnn(lightName, nodes);
-    group->accept(fnn);
 
-    for (size_t i = 0; i < nodes.size(); i++)
+    Object *obj = nullptr;
+    for ( int j = 0; j < static_cast<int>(Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS); j++)
     {
-        group = nodes[i];
-        if (group != NULL)
-        {
-            group = static_cast<osg::Group*>(group->getChild(0));
-            osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group->getChild(0));
-            printf("group name: %s\n", group->getName().c_str());
-            printf("geode name: %s\n", geode->getName().c_str());
-            printf("state name: %s\n", geode->getOrCreateStateSet()->getName().c_str());
-            osg::Material *osgmat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-            const osg::Vec4 &dCol = osgmat->getDiffuseFrontAndBack()?osgmat->getDiffuse( osg::Material::FRONT_AND_BACK ):osgmat->getDiffuse( osg::Material::FRONT );
-            osgmat->setAlpha(osg::Material::FRONT_AND_BACK, 1.0);
-            osgmat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(0.0, 1.0, 0.0, 1.0));
-            const osg::Vec4 &dCol1 = osgmat->getDiffuseFrontAndBack()?osgmat->getDiffuse( osg::Material::FRONT_AND_BACK ):osgmat->getDiffuse( osg::Material::FRONT );
-            geode->getOrCreateStateSet()->setAttributeAndModes(osgmat);
-            group->addChild(geode.get());
 
-            osg::ref_ptr<osg::Group> parent = group->getParent(0);
-            parent->addChild(group);
-            // printf("red value: %f\n", static_cast<float>(dCol.r()));
-            // printf("green value: %f\n", static_cast<float>(dCol.g()));
-            // printf("blue value: %f\n", static_cast<float>(dCol.b()));
-            // printf("alpha value: %f\n", static_cast<float>(dCol.a()));
+        Object::VehicleLightType lightName = static_cast<Object::VehicleLightType>(j);
+        if ( (lightName == Object::VehicleLightType::FOG_LIGHTS) | (lightName == Object::VehicleLightType::WARNING_LIGHTS))
+        {// fog light is combination of front and back fog lights same for waring and indicator light
+            continue;
+        }
+
+        // Find light node
+        std::vector<osg::Group*> nodes;
+        FindNamedGeode           fnn(obj->LightType2Str(lightName), nodes);
+        group->accept(fnn);
+
+        for (size_t i = 0; i < nodes.size(); i++)
+        {
+            group_ = nodes[i];
+            if (group_ != NULL)
+            {
+                group_ = static_cast<osg::Group*>(group_->getChild(0));
+                osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
+                osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                if (geode->getName().c_str() ==  (obj->LightType2Str(lightName) + "_m-material"))
+                { // material name in model is lightType_m
+                    light_material_.push_back(mat);
+                }
+                else
+                {
+                    LOG_ONCE("Missing light node %s in vehicle model %s - ignoring", obj->LightType2Str(lightName).c_str(), group->getName().c_str());
+                }
+            }
         }
     }
 }
@@ -1304,7 +1307,7 @@ CarModel::CarModel(osgViewer::Viewer*       viewer,
     retval[2]                         = AddWheel(car_node, "wheel_rr");
     retval[3]                         = AddWheel(car_node, "wheel_rl");
 
-    // AddLight(group_, "highbeam");
+    AddLights(group_);
 
     // Print message only if some wheel nodes are missing
     if (retval[0] || retval[1] || retval[2] || retval[3])
@@ -1399,16 +1402,28 @@ void EntityModel::SetRotation(double h, double p, double r)
 
 void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
 {
-    Object::VehicleLightActionStatus light_state[Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS];
     for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
     {
         if (list[i].type != Object::VehicleLightType::UNDEFINED)
         {
-            light_state[i] = list[i];
-            AddLight(group_, "brake_light");
+            const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
+            if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
+            {
+                light_material_[Object::VehicleLightType::INDICATOR_LEFT]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                light_material_[Object::VehicleLightType::INDICATOR_RIGHT]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+            }
+            else if ( list[i].type == Object::VehicleLightType::FOG_LIGHTS)
+            {
+                light_material_[Object::VehicleLightType::FOG_LIGHTS_FRONT]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                light_material_[Object::VehicleLightType::FOG_LIGHTS_REAR]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+            }
+            else
+            {
+                light_material_[list[i].type]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+            }
+
         }
     }
-
 }
 
 void CarModel::UpdateWheels(double wheel_angle, double wheel_rotation)
