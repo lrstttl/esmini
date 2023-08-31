@@ -395,6 +395,7 @@ void ScenarioPlayer::ViewerFrame(bool init)
                 {
                     viewer::CarModel* car = static_cast<viewer::CarModel*>(entity);
                     car->UpdateWheels(obj->wheel_angle_, obj->wheel_rot_);
+                    car->UpdateLight(obj->vehicleLightActionStatusList);
                 }
 
                 viewer::MovingModel* mov = static_cast<viewer::MovingModel*>(entity);

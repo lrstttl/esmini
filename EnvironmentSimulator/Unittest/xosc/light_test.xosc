@@ -20,7 +20,7 @@
    </RoadNetwork>
    <Entities>
         <ScenarioObject name="Ego">
-            <CatalogReference catalogName="VehicleCatalog" entryName="car_white"/>
+            <CatalogReference catalogName="VehicleCatalog" entryName="vehicle_light"/>
         </ScenarioObject>
         <ScenarioObject name="Dummy0">
             <CatalogReference catalogName="VehicleCatalog" entryName="van_red"/>
@@ -66,7 +66,7 @@
                            <AppearanceAction>
                                 <LightStateAction transitionTime="1.5">
                                     <LightType>
-                                       <VehicleLight vehicleLightType= "highBeam"/>
+                                       <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "on" luminousIntensity="10" flashingOffDuration="2" flashingOnDuration="4">
                                        <Color colorType="white">
@@ -95,7 +95,7 @@
                            <AppearanceAction>
                                 <LightStateAction transitionTime="2">
                                     <LightType>
-                                       <VehicleLight vehicleLightType= "highBeam"/>
+                                       <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "off" luminousIntensity="10" flashingOffDuration="2" flashingOnDuration="4">
                                        <Color colorType="white">
