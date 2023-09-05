@@ -57,9 +57,10 @@ typedef int64_t __int64;
 #define IS_IN_SPAN(x, y, z)           ((x) >= (y) && (x) <= (z))
 #define OSI_MAX_LONGITUDINAL_DISTANCE 50
 #define OSI_MAX_LATERAL_DEVIATION     0.05
-#define LOG_FILENAME                  "log.txt"
+#define LOG_FILENAME                  "log.txt" 
 #define DAT_FILENAME                  "sim.dat"
 #define GHOST_TRAIL_SAMPLE_TIME       0.2
+#define MAX_INTESITY_LUM              (1E+4)
 
 #define LOG(...)       Logger::Inst().Log(false, false, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define LOG_TRACE(...) Logger::Inst().Log(false, true, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)

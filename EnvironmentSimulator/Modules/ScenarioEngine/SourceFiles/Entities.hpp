@@ -163,14 +163,16 @@ namespace scenarioengine
             BROWN  = 7,
             BLACK  = 8,
             GREY   = 9,
-            WHITE  = 10
+            WHITE  = 10,
+            UNKNOWN = 11 // Denotes color node itself missing
+
         };
 
         struct VehicleLightActionStatus
         {
             VehicleLightType  type              = VehicleLightType::UNDEFINED;  // according to VehicleLightType
             VehicleLightMode  mode              = VehicleLightMode::UNKNOWN_MODE;
-            VehicleLightColor colorName         = VehicleLightColor::OTHER;
+            VehicleLightColor colorName         = VehicleLightColor::UNKNOWN;
             double            luminousIntensity = 0.0;
             double            rgb[3]            = {0.0, 0.0, 0.0};  // RGB values
         };

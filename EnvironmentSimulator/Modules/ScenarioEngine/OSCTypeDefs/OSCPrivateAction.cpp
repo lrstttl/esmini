@@ -2279,55 +2279,92 @@ int LightStateAction::setLightTransistionValues(double value)
     // initialValue + (proportion * (finalValue - initialValue))
     object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].luminousIntensity =
         initialValueLum_ + ((transitionTimer_ / transitionTime_) * (luminousIntensity_ - initialValueLum_)) * value;
+
     return 0;
 }
 
-int LightStateAction::checkColorType(Object::VehicleLightActionStatus& lightStatus)
+int LightStateAction::setRbg(Object::VehicleLightActionStatus& lightStatus)
 {
-    if (CheckArrayNonZero(cmyk_, 4) && CheckArrayNonZero(lightStatus.rgb, 3))
+
+    double lum_default = 0.5;
+    double lum_max = 0.8;
+    if (luminousIntensity_ > 0.0)
     {
-        checkColorError(lightStatus.rgb, sizeof(lightStatus.rgb) / sizeof(lightStatus.rgb[0]), lightStatus.type);
-        LOG("cmyk and rbg values provided for % s light color description, Accepting only rbg values", object_->LightType2Str(lightType_).c_str());
-    }
-    else if (CheckArrayNonZero(cmyk_, 4))
-    {
-        checkColorError(cmyk_, sizeof(cmyk_) / sizeof(cmyk_[0]), lightStatus.type);
-        // convert cmyk to rbg values
-        lightStatus.rgb[0] = (1 - cmyk_[0]) * (1 - cmyk_[3]);
-        lightStatus.rgb[1] = (1 - cmyk_[1]) * (1 - cmyk_[3]);
-        lightStatus.rgb[2] = (1 - cmyk_[2]) * (1 - cmyk_[3]);
-    }
-    else if (CheckArrayNonZero(lightStatus.rgb, 3))
-    {
-        checkColorError(lightStatus.rgb, sizeof(lightStatus.rgb) / sizeof(lightStatus.rgb[0]), lightStatus.type);
-    }
-    else if (lightStatus.colorName == Object::VehicleLightColor::OTHER)
-    {  // set rbg(red for brake, orange for indicator, white for remaining) in case no rbg values provided for other light type, other also mean no
-       // light type provided in scenario
-        if (lightStatus.type == Object::VehicleLightType::BRAKE_LIGHTS)
-        {
-            convertColorToRbg(Object::VehicleLightColor::RED, lightStatus);
-        }
-        else if ((lightStatus.type == Object::VehicleLightType::INDICATOR_LEFT) || (lightStatus.type == Object::VehicleLightType::INDICATOR_RIGHT) ||
-                 (lightStatus.type == Object::VehicleLightType::WARNING_LIGHTS))
-        {
-            convertColorToRbg(Object::VehicleLightColor::ORANGE, lightStatus);
-        }
-        else
-        {
-            convertColorToRbg(Object::VehicleLightColor::WHITE, lightStatus);
-        }
-        LOG("Either rbg nor cmyk values are not provided for %s light type, Setting it as rbg red:%.f blue:%.f green:%.f",
-            object_->LightType2Str(lightType_).c_str(),
-            lightStatus.rgb[0],
-            lightStatus.rgb[1],
-            lightStatus.rgb[2]);
+        lum_max = (((luminousIntensity_/ MAX_INTESITY_LUM) * 100) > lum_max? lum_max: ((luminousIntensity_/ MAX_INTESITY_LUM) * 100));
     }
 
-    else
-    {  // convert color to rbg values, Only when color type provided without rbg or cmk
-        convertColorToRbg(lightStatus.colorName, lightStatus);
+    if ( lightStatus.colorName == Object::VehicleLightColor::UNKNOWN)
+    { // use default rgb according to light type, color name UNKNOWN denote color node itself missing
+        setDefaultValueRbg(lightStatus.type, lightStatus);
+        maxValueRGB[0] = lightStatus.rgb[0];
+        maxValueRGB[1] = lightStatus.rgb[0];
+        maxValueRGB[2] = lightStatus.rgb[0];
+
+        lightStatus.rgb[0] = lightStatus.rgb[0] * lum_max;
+        lightStatus.rgb[0] = lightStatus.rgb[1] * lum_max;
+        lightStatus.rgb[0] = lightStatus.rgb[2] * lum_max;
+
     }
+    else
+    {
+        if (CheckArrayNonZero(cmyk_, 4) && CheckArrayNonZero(lightStatus.rgb, 3))
+        {
+            checkColorError(lightStatus.rgb, sizeof(lightStatus.rgb) / sizeof(lightStatus.rgb[0]), lightStatus.type);
+            LOG("cmyk and rbg values provided for % s light color description, Accepting only rbg values", object_->LightType2Str(lightType_).c_str());
+            maxValueRGB[0] = lightStatus.rgb[0];
+            maxValueRGB[1] = lightStatus.rgb[0];
+            maxValueRGB[2] = lightStatus.rgb[0];
+
+            lightStatus.rgb[0] = lightStatus.rgb[0] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[1] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[2] / lum_max;
+        }
+        else if (CheckArrayNonZero(cmyk_, 4))
+        {
+            checkColorError(cmyk_, sizeof(cmyk_) / sizeof(cmyk_[0]), lightStatus.type);
+            // convert cmyk to rbg values
+            maxValueRGB[0] = (1 - cmyk_[0]) * (1 - cmyk_[3]);
+            maxValueRGB[1] = (1 - cmyk_[1]) * (1 - cmyk_[3]);
+            maxValueRGB[2] = (1 - cmyk_[2]) * (1 - cmyk_[3]);
+
+            lightStatus.rgb[0] = lightStatus.rgb[0] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[1] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[2] / lum_max;
+        }
+        else if (CheckArrayNonZero(lightStatus.rgb, 3))
+        {
+            checkColorError(lightStatus.rgb, sizeof(lightStatus.rgb) / sizeof(lightStatus.rgb[0]), lightStatus.type);
+            maxValueRGB[0] = lightStatus.rgb[0];
+            maxValueRGB[1] = lightStatus.rgb[0];
+            maxValueRGB[2] = lightStatus.rgb[0];
+
+            lightStatus.rgb[0] = lightStatus.rgb[0] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[1] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[2] / lum_max;
+        }
+        else if (lightStatus.colorName == Object::VehicleLightColor::OTHER)
+        {  // use default rgb according to light type for other color type
+            setDefaultValueRbg(lightStatus.type, lightStatus);
+            maxValueRGB[0] = lightStatus.rgb[0];
+            maxValueRGB[1] = lightStatus.rgb[0];
+            maxValueRGB[2] = lightStatus.rgb[0];
+
+            lightStatus.rgb[0] = lightStatus.rgb[0] * lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[1] * lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[2] * lum_max;
+        }
+
+        else
+        {  // convert color to rbg values, Only when color type provided without rbg or cmk
+            convertColorToRbg(lightStatus.colorName);
+            lightStatus.rgb[0] = lightStatus.rgb[0] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[1] / lum_max;
+            lightStatus.rgb[0] = lightStatus.rgb[2] / lum_max;
+
+        }
+    }
+
+
 
     if (lightStatus.type == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
     {
@@ -2357,71 +2394,110 @@ int LightStateAction::checkColorError(double* value, int n, Object::VehicleLight
     }
     return 0;
 }
-void LightStateAction::convertColorToRbg(Object::VehicleLightColor colorType, Object::VehicleLightActionStatus& lightStatus)
+void LightStateAction::convertColorToRbg(Object::VehicleLightColor colorType)
 {
     if (colorType == Object::VehicleLightColor::RED)
     {
-        lightStatus.rgb[0] = 0;
-        lightStatus.rgb[1] = 0;
-        lightStatus.rgb[2] = 1;
-    }
-    else if (colorType == Object::VehicleLightColor::YELLOW)
-    {
-        lightStatus.rgb[0] = 1;
-        lightStatus.rgb[1] = 1;
-        lightStatus.rgb[2] = 0;
+        maxValueRGB[0] = 1;
+        maxValueRGB[1] = 0.0;
+        maxValueRGB[2] = 0.0;
     }
     else if (colorType == Object::VehicleLightColor::GREEN)
     {
-        lightStatus.rgb[0] = 0;
-        lightStatus.rgb[1] = 0.5;
-        lightStatus.rgb[2] = 0;
+        maxValueRGB[0] = 0;
+        maxValueRGB[1] = 1;
+        maxValueRGB[2] = 0;
     }
     else if (colorType == Object::VehicleLightColor::BLUE)
     {
-        lightStatus.rgb[0] = 0;
-        lightStatus.rgb[1] = 0;
-        lightStatus.rgb[2] = 1;
+        maxValueRGB[0] = 0;
+        maxValueRGB[1] = 0;
+        maxValueRGB[2] = 1;
+    }
+    else if (colorType == Object::VehicleLightColor::YELLOW)
+    {
+        maxValueRGB[0] = 0.8;
+        maxValueRGB[1] = 0.8;
+        maxValueRGB[2] = 0.8;
     }
     else if (colorType == Object::VehicleLightColor::VIOLET)
     {
-        lightStatus.rgb[0] = 0.93;
-        lightStatus.rgb[1] = 0.51;
-        lightStatus.rgb[2] = 0.93;
+        maxValueRGB[0] = 0.93;
+        maxValueRGB[1] = 0.51;
+        maxValueRGB[2] = 0.93;
     }
     else if (colorType == Object::VehicleLightColor::ORANGE)
     {
-        lightStatus.rgb[0] = 1;
-        lightStatus.rgb[1] = 0.65;
-        lightStatus.rgb[2] = 0;
+        maxValueRGB[0] = 1;
+        maxValueRGB[1] = 0.70;
+        maxValueRGB[2] = 0.28;
     }
     else if (colorType == Object::VehicleLightColor::BROWN)
     {
-        lightStatus.rgb[0] = 0.65;
-        lightStatus.rgb[1] = 0.16;
-        lightStatus.rgb[2] = 0.16;
+        maxValueRGB[0] = 0.65;
+        maxValueRGB[1] = 0.16;
+        maxValueRGB[2] = 0.16;
     }
     else if (colorType == Object::VehicleLightColor::BLACK)
     {
-        lightStatus.rgb[0] = 0;
-        lightStatus.rgb[1] = 0;
-        lightStatus.rgb[2] = 0;
+        maxValueRGB[0] = 0;
+        maxValueRGB[1] = 0;
+        maxValueRGB[2] = 0;
     }
     else if (colorType == Object::VehicleLightColor::GREY)
+    {
+        maxValueRGB[0] = 0.5;
+        maxValueRGB[1] = 0.5;
+        maxValueRGB[2] = 0.5;
+    }
+    else if (colorType == Object::VehicleLightColor::WHITE)
+    {
+        maxValueRGB[0] = 1;
+        maxValueRGB[1] = 1;
+        maxValueRGB[2] = 1;
+    }
+}
+
+void LightStateAction::setDefaultValueRbg( Object::VehicleLightType lightType, Object::VehicleLightActionStatus& lightStatus)
+{
+    if (lightType == Object::VehicleLightType::BRAKE_LIGHTS)
+    {
+        lightStatus.rgb[0] = 0.1;
+        lightStatus.rgb[1] = 0.0;
+        lightStatus.rgb[2] = 0.0;
+    }
+    else if (lightType == Object::VehicleLightType::FOG_LIGHTS ||
+             lightType == Object::VehicleLightType::FOG_LIGHTS_FRONT ||
+             lightType == Object::VehicleLightType::FOG_LIGHTS_REAR)
+    {
+        lightStatus.rgb[0] = 0.8;
+        lightStatus.rgb[1] = 0.8;
+        lightStatus.rgb[2] = 0.7;
+    }
+    else if (lightType == Object::VehicleLightType::HIGH_BEAM ||
+             lightType == Object::VehicleLightType::LOW_BEAM ||
+             lightType == Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS ||
+             lightType == Object::VehicleLightType::REVERSING_LIGHTS)
     {
         lightStatus.rgb[0] = 0.5;
         lightStatus.rgb[1] = 0.5;
         lightStatus.rgb[2] = 0.5;
     }
-    else if (colorType == Object::VehicleLightColor::WHITE)
+    else if (lightType == Object::VehicleLightType::INDICATOR_LEFT ||
+             lightType == Object::VehicleLightType::INDICATOR_RIGHT ||
+             lightType == Object::VehicleLightType::WARNING_LIGHTS ||
+             lightType == Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION)
     {
-        lightStatus.rgb[0] = 1;
-        lightStatus.rgb[1] = 1;
-        lightStatus.rgb[2] = 1;
+        lightStatus.rgb[0] = 1.0;
+        lightStatus.rgb[1] = 0.7;
+        lightStatus.rgb[2] = 0.28;
     }
-    else
+
+    else if (lightType == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
     {
-        LOG("Colour type not supported, set to default (other)");
+        lightStatus.rgb[0] = 0.5005465;
+        lightStatus.rgb[1] = 0.5020614;
+        lightStatus.rgb[2] = 0.6;
     }
 }
 
@@ -2488,7 +2564,7 @@ int LightStateAction::setVehicleLightType(std::string light_type, Object::Vehicl
     return 0;
 }
 
-void LightStateAction::setVehicleLightMode(std::string mode, Object::VehicleLightActionStatus& lightStatus)
+int LightStateAction::setVehicleLightMode(std::string mode, Object::VehicleLightActionStatus& lightStatus)
 {
     if (mode == "on")
     {
@@ -2504,8 +2580,9 @@ void LightStateAction::setVehicleLightMode(std::string mode, Object::VehicleLigh
     }
     else
     {
-        LOG("VehicleLight Mode %s not supported", mode.c_str());
+        LOG("Exiting, VehicleLight Mode %s not supported", mode.c_str());
         lightStatus.mode = Object::VehicleLightMode::UNKNOWN_MODE;
+        return -1;
     }
 }
 

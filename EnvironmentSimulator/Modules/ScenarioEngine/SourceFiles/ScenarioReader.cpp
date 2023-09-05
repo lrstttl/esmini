@@ -2910,7 +2910,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         }
                         else
                         {
-                            LOG("Unexpected AssignControllerAction subelement: %s", controllerDefNode.name());
+                            LOG("Quitting-Unexpected AssignControllerAction subelement: %s", controllerDefNode.name());
                             return 0;
                         }
 
@@ -3289,11 +3289,15 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                             }
                             else if (lightTypeChild.name() == std::string("UserDefinedLight"))
                             {
-                                LOG("UserDefinedLight not supported yet, ignoring");
+                                LOG("Exiting,UserDefinedLight not supported yet");
+                                delete lightStateAction;
+                                return 0;
                             }
                             else
-                            {
-                                LOG("VehicleLight mandatory field, Setting it to none");
+                            { // shall be stoped
+                                LOG("Exiting, VehicleLight mandatory field in %s", lightTypeChild.name());
+                                delete lightStateAction;
+                                return 0;
                             }
                         }
                     }
@@ -3316,8 +3320,8 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                             lightStateAction->setVehicleLightMode(parameters.ReadAttribute(LightStateActionChild, "mode"), LightActionStatus);
                         }
                         else
-                        {
-                            LOG("mode in LightState is mandatory field, Anyway setting it to Off");
+                        { // shall be stoped
+                            LOG("Exiting, Mode in LightState is mandatory field in %s", LightStateActionChild.name());
                         }
                         for (pugi::xml_node colourChild = LightStateActionChild.first_child(); colourChild; colourChild = colourChild.next_sibling())
                         {
@@ -3347,8 +3351,10 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                         if (parameters.ReadAttribute(colourDesChild, "red").empty() ||
                                             parameters.ReadAttribute(colourDesChild, "green").empty() ||
                                             parameters.ReadAttribute(colourDesChild, "blue").empty())
-                                        {
-                                            LOG("Any of RBG values missing, Anyway setting it as Zero");
+                                        { //shall be stoped
+                                            LOG("Exiting, Any of RBG values missing in %s", colourDesChild.name());
+                                            delete lightStateAction;
+                                            return 0;
                                         }
                                     }
                                     else if (colourDesChild.name() == std::string("ColorCmyk"))
@@ -3373,18 +3379,22 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                             parameters.ReadAttribute(colourDesChild, "magenta").empty() ||
                                             parameters.ReadAttribute(colourDesChild, "yellow").empty() ||
                                             parameters.ReadAttribute(colourDesChild, "key").empty())
-                                        {
-                                            LOG("Any of CMYK values missing, Anyway setting it as Zero");
+                                        {// shall be stoped
+                                            LOG("Exiting,Any of CMYK values missing %s", colourDesChild.name());
+                                            delete lightStateAction;
+                                            return 0;
                                         }
                                     }
                                 }
                             }
                         }
-                        lightStateAction->checkColorType(LightActionStatus);
+                        lightStateAction->setRbg(LightActionStatus);
                     }
                     else
                     {
                         LOG("Exiting, Either LightType or LightState missing in: %s", actionChild.name());
+                        delete lightStateAction;
+                        return 0;
                     }
                 }
                 lightStateAction->AddVehicleLightActionStatus(LightActionStatus);
