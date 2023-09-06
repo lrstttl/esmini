@@ -55,13 +55,13 @@
             <ParameterDeclaration parameterType="string" name="owner" value="Ego"/>
          </ParameterDeclarations>
          <Act name="LightStateActionAct">
-            <ManeuverGroup maximumExecutionCount="1" name="HighBeamOnActionSequence">
+            <ManeuverGroup maximumExecutionCount="1" name="brakeLightsOnActionSequence">
                <Actors selectTriggeringEntities="false">
                   <EntityRef entityRef="Ego"/>
                </Actors>
-               <Maneuver name="HighBeamOnActionManeuver">
-                  <Event name="HighBeamOnActionEvent" priority="skip" maximumExecutionCount="1" >
-                     <Action name="HighBeamOnAction">
+               <Maneuver name="brakeLightsOnActionManeuver">
+                  <Event name="brakeLightsOnActionEvent" priority="skip" maximumExecutionCount="1" >
+                     <Action name="brakeLightsOnAction">
                         <PrivateAction>
                            <AppearanceAction>
                                 <LightStateAction transitionTime="7">
@@ -69,8 +69,7 @@
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "on" luminousIntensity="1" flashingOffDuration="2" flashingOnDuration="4">
-                                       <Color colorType="white">
-                                          <ColorCmyk cyan="0.1" key="0.0" magenta="0.1" yellow="0.1"/>
+                                       <Color colorType="red">
                                        </Color>
                                     </LightState>
                                 </LightStateAction>
@@ -79,7 +78,7 @@
                      </Action>
                      <StartTrigger>
                         <ConditionGroup>
-                           <Condition name="HighBeamOnActionCondition" delay="0" conditionEdge="rising">
+                           <Condition name="brakeLightsOnActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
                                  <SimulationTimeCondition value="2" rule="greaterThan"/>
                               </ByValueCondition>
@@ -88,9 +87,9 @@
                      </StartTrigger>
                   </Event>
                </Maneuver>
-               <Maneuver name="HighBeamOffActionManeuver">
-                  <Event name="HighBeamOffActionEvent" priority="override" maximumExecutionCount="1" >
-                     <Action name="HighBeamOffAction">
+               <Maneuver name="brakeLightsOffActionManeuver">
+                  <Event name="brakeLightsOffActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="brakeLightsOffAction">
                         <PrivateAction>
                            <AppearanceAction>
                                 <LightStateAction transitionTime="2">
@@ -98,8 +97,7 @@
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "off" luminousIntensity="1" flashingOffDuration="2" flashingOnDuration="4">
-                                       <Color colorType="white">
-                                          <ColorRgb red="1.0" blue="1.0" green="1.0"/>
+                                       <Color colorType="red">
                                        </Color>
                                     </LightState>
                                 </LightStateAction>
@@ -108,7 +106,7 @@
                      </Action>
                      <StartTrigger>
                         <ConditionGroup>
-                           <Condition name="HighBeamOffActionCondition" delay="0" conditionEdge="rising">
+                           <Condition name="brakeLightsOffActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
                                  <SimulationTimeCondition value="10" rule="greaterThan"/>
                               </ByValueCondition>

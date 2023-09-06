@@ -3313,7 +3313,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         }
                         if (!parameters.ReadAttribute(LightStateActionChild, "luminousIntensity").empty())
                         {
-                            lightStateAction->luminousIntensity_ = strtod(parameters.ReadAttribute(LightStateActionChild, "luminousIntensity"));
+                            LightActionStatus.luminousIntensity = strtod(parameters.ReadAttribute(LightStateActionChild, "luminousIntensity"));
                         }
                         if (!parameters.ReadAttribute(LightStateActionChild, "mode").empty())
                         {
@@ -3322,6 +3322,8 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         else
                         { // shall be stoped
                             LOG("Exiting, Mode in LightState is mandatory field in %s", LightStateActionChild.name());
+                            delete lightStateAction;
+                            return 0;
                         }
                         for (pugi::xml_node colourChild = LightStateActionChild.first_child(); colourChild; colourChild = colourChild.next_sibling())
                         {
@@ -3352,7 +3354,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                             parameters.ReadAttribute(colourDesChild, "green").empty() ||
                                             parameters.ReadAttribute(colourDesChild, "blue").empty())
                                         { //shall be stoped
-                                            LOG("Exiting, Any of RBG values missing in %s", colourDesChild.name());
+                                            LOG("Exiting, Any of Rgb values missing in %s", colourDesChild.name());
                                             delete lightStateAction;
                                             return 0;
                                         }
@@ -3388,7 +3390,6 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                 }
                             }
                         }
-                        lightStateAction->setRbg(LightActionStatus);
                     }
                     else
                     {
