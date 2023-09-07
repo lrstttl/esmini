@@ -1108,6 +1108,32 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
     {
         obj->SetVisibilityMask(obj->visibilityMask_ &= ~(Object::Visibility::SENSORS));
     }
+    // for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
+    // {
+    //     if (obj->vehicleLightActionStatusList[i].type == Object::VehicleLightType::UNDEFINED)
+    //     {
+    //         const osg::Vec4 &dCol = model->light_material_[0]->getDiffuseFrontAndBack()?model->light_material_[0]->getDiffuse( osg::Material::FRONT_AND_BACK ):model->light_material_[0]->getDiffuse( osg::Material::FRONT );
+
+    //         const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
+    //         if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
+    //         {
+    //             light_material_[Object::VehicleLightType::INDICATOR_LEFT]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+    //             light_material_[Object::VehicleLightType::INDICATOR_RIGHT]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+    //         }
+    //         else if ( list[i].type == Object::VehicleLightType::FOG_LIGHTS)
+    //         {
+    //             light_material_[Object::VehicleLightType::FOG_LIGHTS_FRONT]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+    //             light_material_[Object::VehicleLightType::FOG_LIGHTS_REAR]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+    //         }
+    //         else
+    //         {
+    //             light_material_[list[i].type]->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+    //         }
+
+    //     }
+    // }
+
+
 
     viewer_->entities_.back()->routewaypoints_->SetWayPoints(obj->pos_.GetRoute());
 }

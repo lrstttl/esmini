@@ -3340,15 +3340,15 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                     {
                                         if (!parameters.ReadAttribute(colourDesChild, "red").empty())
                                         {
-                                            LightActionStatus.rgb[0] = strtod(parameters.ReadAttribute(colourDesChild, "red"));
+                                            lightStateAction->rgb_[0] = strtod(parameters.ReadAttribute(colourDesChild, "red"));
                                         }
                                         if (!parameters.ReadAttribute(colourDesChild, "green").empty())
                                         {
-                                            LightActionStatus.rgb[1] = strtod(parameters.ReadAttribute(colourDesChild, "green"));
+                                            lightStateAction->rgb_[1] = strtod(parameters.ReadAttribute(colourDesChild, "green"));
                                         }
                                         if (!parameters.ReadAttribute(colourDesChild, "blue").empty())
                                         {
-                                            LightActionStatus.rgb[2] = strtod(parameters.ReadAttribute(colourDesChild, "blue"));
+                                            lightStateAction->rgb_[2] = strtod(parameters.ReadAttribute(colourDesChild, "blue"));
                                         }
                                         if (parameters.ReadAttribute(colourDesChild, "red").empty() ||
                                             parameters.ReadAttribute(colourDesChild, "green").empty() ||
