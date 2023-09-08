@@ -59,7 +59,7 @@
                <Actors selectTriggeringEntities="false">
                   <EntityRef entityRef="Ego"/>
                </Actors>
-               <!-- <Maneuver name="brakeLightsOnActionManeuver">
+               <Maneuver name="brakeLightsOnActionManeuver">
                   <Event name="brakeLightsOnActionEvent" priority="skip" maximumExecutionCount="1" >
                      <Action name="brakeLightsOnAction">
                         <PrivateAction>
@@ -68,7 +68,7 @@
                                     <LightType>
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
-                                    <LightState mode= "on" luminousIntensity="1" flashingOffDuration="2" flashingOnDuration="4">
+                                    <LightState mode= "on" luminousIntensity="12000" flashingOffDuration="2" flashingOnDuration="4">
                                        <Color colorType="red">
                                        </Color>
                                     </LightState>
@@ -96,7 +96,7 @@
                                     <LightType>
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
-                                    <LightState mode= "off" luminousIntensity="1" flashingOffDuration="2" flashingOnDuration="4">
+                                    <LightState mode= "off" luminousIntensity="12000" flashingOffDuration="2" flashingOnDuration="4">
                                        <Color colorType="red">
                                        </Color>
                                     </LightState>
@@ -114,7 +114,7 @@
                         </ConditionGroup>
                      </StartTrigger>
                   </Event>
-               </Maneuver> -->
+               </Maneuver>
                <Maneuver name="WarningLightOnActionManeuver">
                   <Event name="WarningLightOnActionEvent" priority="override" maximumExecutionCount="1" >
                      <Action name="WarningLightOnAction">

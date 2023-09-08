@@ -1248,7 +1248,8 @@ namespace scenarioengine
         double transitionTimer_ = SMALL_NUMBER;
         double flashingTimer_   = SMALL_NUMBER;
         double initialValueRgb_[3];
-        double maxValueRGB[3];
+        double finalValueRgb[3];
+        bool isUserSetRgb = true;
 
 
 
@@ -1262,8 +1263,10 @@ namespace scenarioengine
         int  setLightTransistionValues(Object::VehicleLightMode mode);
 
         int  checkColorError(double* value, int n);
-        void setAndConvertColorToRgb(Object::VehicleLightColor colorType);
-        void setDefaultValueRgb(Object::VehicleLightType lightType, Object::VehicleLightActionStatus& lightStatus);
+        void convertColorAndSetRgb(Object::VehicleLightColor colorType);
+        void convertLightTypeAndSetRgb(Object::VehicleLightType lightType);
+
+        int prepareLightStateSetAndRgb(Object::VehicleLightActionStatus& lightStatus);
 
     private:
         Object::VehicleLightActionStatus vehicleLightActionStatusList;

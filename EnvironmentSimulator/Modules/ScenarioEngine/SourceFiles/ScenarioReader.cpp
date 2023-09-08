@@ -3390,6 +3390,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                 }
                             }
                         }
+                        lightStateAction->prepareLightStateSetAndRgb(LightActionStatus);
                     }
                     else
                     {
