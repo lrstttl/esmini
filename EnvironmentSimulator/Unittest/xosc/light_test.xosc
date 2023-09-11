@@ -64,13 +64,11 @@
                      <Action name="brakeLightsOnAction">
                         <PrivateAction>
                            <AppearanceAction>
-                                <LightStateAction transitionTime="7">
+                                <LightStateAction>
                                     <LightType>
-                                       <VehicleLight vehicleLightType= "brakeLights"/>
+                                       <VehicleLight vehicleLightType= "highBeam"/>
                                     </LightType>
-                                    <LightState mode= "on" luminousIntensity="12000" flashingOffDuration="2" flashingOnDuration="4">
-                                       <Color colorType="red">
-                                       </Color>
+                                    <LightState mode= "on">
                                     </LightState>
                                 </LightStateAction>
                            </AppearanceAction>
@@ -92,70 +90,13 @@
                      <Action name="brakeLightsOffAction">
                         <PrivateAction>
                            <AppearanceAction>
-                                <LightStateAction transitionTime="7">
+                                 <LightStateAction>
                                     <LightType>
-                                       <VehicleLight vehicleLightType= "brakeLights"/>
-                                    </LightType>
-                                    <LightState mode= "off" luminousIntensity="12000" flashingOffDuration="2" flashingOnDuration="4">
-                                       <Color colorType="red">
-                                       </Color>
-                                    </LightState>
-                                </LightStateAction>
-                           </AppearanceAction>
-                        </PrivateAction>
-                     </Action>
-                     <StartTrigger>
-                        <ConditionGroup>
-                           <Condition name="brakeLightsOffActionCondition" delay="0" conditionEdge="rising">
-                              <ByValueCondition>
-                                 <SimulationTimeCondition value="10" rule="greaterThan"/>
-                              </ByValueCondition>
-                           </Condition>
-                        </ConditionGroup>
-                     </StartTrigger>
-                  </Event>
-               </Maneuver>
-               <Maneuver name="WarningLightOnActionManeuver">
-                  <Event name="WarningLightOnActionEvent" priority="override" maximumExecutionCount="1" >
-                     <Action name="WarningLightOnAction">
-                        <PrivateAction>
-                           <AppearanceAction>
-                                <LightStateAction>
-                                    <LightType>
-                                       <VehicleLight vehicleLightType= "warningLights"/>
-                                    </LightType>
-                                    <LightState mode= "flashing" luminousIntensity="10" flashingOffDuration="0.5" flashingOnDuration="0.5">
-                                       <Color colorType="orange">
-                                          <!-- <ColorCmyk cyan="0.0" key="0.0" magenta="0.35" yellow="1.0"/> -->
-                                       </Color>
-                                    </LightState>
-                                </LightStateAction>
-                           </AppearanceAction>
-                        </PrivateAction>
-                     </Action>
-                     <StartTrigger>
-                        <ConditionGroup>
-                           <Condition name="WarningLightOnActionCondition" delay="0" conditionEdge="rising">
-                              <ByValueCondition>
-                                 <SimulationTimeCondition value="2" rule="greaterThan"/>
-                              </ByValueCondition>
-                           </Condition>
-                        </ConditionGroup>
-                     </StartTrigger>
-                  </Event>
-               </Maneuver>
-                  <!-- <Maneuver name="brakeLightsOffActionManeuver">
-                  <Event name="brakeLightsOffActionEvent" priority="override" maximumExecutionCount="1" >
-                     <Action name="brakeLightsOffAction">
-                        <PrivateAction>
-                           <AppearanceAction>
-                                <LightStateAction transitionTime="2">
-                                    <LightType>
-                                       <VehicleLight vehicleLightType= "brakeLights"/>
+                                       <VehicleLight vehicleLightType= "highBeam"/>
                                     </LightType>
                                     <LightState mode= "off">
                                     </LightState>
-                                </LightStateAction>
+                                 </LightStateAction>
                            </AppearanceAction>
                         </PrivateAction>
                      </Action>
@@ -163,41 +104,13 @@
                         <ConditionGroup>
                            <Condition name="brakeLightsOffActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
-                                 <SimulationTimeCondition value="15" rule="greaterThan"/>
+                                 <SimulationTimeCondition value="9" rule="greaterThan"/>
                               </ByValueCondition>
                            </Condition>
                         </ConditionGroup>
                      </StartTrigger>
                   </Event>
                </Maneuver>
-                  <Maneuver name="brakeLightsOnActionManeuver">
-                  <Event name="brakeLightsOnActionEvent" priority="override" maximumExecutionCount="1" >
-                     <Action name="brakeLightsOnAction">
-                        <PrivateAction>
-                           <AppearanceAction>
-                                <LightStateAction transitionTime="2">
-                                    <LightType>
-                                       <VehicleLight vehicleLightType= "brakeLights"/>
-                                    </LightType>
-                                    <LightState mode= "on">
-                                       <Color colorType="red">
-                                       </Color>
-                                    </LightState>
-                                </LightStateAction>
-                           </AppearanceAction>
-                        </PrivateAction>
-                     </Action>
-                     <StartTrigger>
-                        <ConditionGroup>
-                           <Condition name="brakeLightsOnActionCondition" delay="0" conditionEdge="rising">
-                              <ByValueCondition>
-                                 <SimulationTimeCondition value="18" rule="greaterThan"/>
-                              </ByValueCondition>
-                           </Condition>
-                        </ConditionGroup>
-                     </StartTrigger>
-                  </Event>
-               </Maneuver> -->
             </ManeuverGroup>
             <StartTrigger>
                <ConditionGroup>

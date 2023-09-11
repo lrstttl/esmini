@@ -1270,6 +1270,7 @@ namespace scenarioengine
 
     private:
         Object::VehicleLightActionStatus vehicleLightActionStatusList;
+        std::vector<Object::VehicleLightActionStatus> vehicleLightActionStateList;
     };
 
     class OverrideControlAction : public OSCPrivateAction
