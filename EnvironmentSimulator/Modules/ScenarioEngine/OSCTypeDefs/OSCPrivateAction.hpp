@@ -93,7 +93,6 @@ namespace scenarioengine
             SHAPE_UNDEFINED
         };
 
-        std::string LightType2Str(Object::VehicleLightType lightType);
 
         class TransitionDynamics
         {

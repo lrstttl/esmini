@@ -1174,6 +1174,44 @@ osg::ref_ptr<osg::PositionAttitudeTransform> CarModel::AddWheel(osg::ref_ptr<osg
     return tx_node;
 }
 
+std::string LightTypeInd2Str(int index)
+{
+    switch(index)
+    {
+        case Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS:
+            return "daytime_running_light";
+        case Object::VehicleLightType::BRAKE_LIGHTS:
+            return "brake_light";
+        case Object::VehicleLightType::FOG_LIGHTS:
+            return "fog_light";
+        case Object::VehicleLightType::FOG_LIGHTS_FRONT:
+           return "fog_light_front";
+        case Object::VehicleLightType::FOG_LIGHTS_REAR:
+           return "fog_light_rear";
+        case Object::VehicleLightType::HIGH_BEAM:
+            return "high_beam";
+        case Object::VehicleLightType::INDICATOR_LEFT:
+           return "indicator_left";
+        case Object::VehicleLightType::INDICATOR_RIGHT:
+           return "indicator_right";
+        case Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION:
+           return "license_plate_illumination";
+        case Object::VehicleLightType::LOW_BEAM:
+          return "low_beam";
+        case Object::VehicleLightType::REVERSING_LIGHTS:
+           return "reversing_light";
+        case Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS:
+           return "special_purpose_light";
+        case Object::VehicleLightType::WARNING_LIGHTS:
+           return "warning_lights";
+        case Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS:
+           return "Unknown_light";
+        default:
+            return  "none";
+    }
+
+}
+
 void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
 {
 
@@ -1181,15 +1219,11 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
     for ( int j = 0; j < static_cast<int>(Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS); j++)
     {
 
-        Object::VehicleLightType lightName = static_cast<Object::VehicleLightType>(j);
-        // if ( (lightName == Object::VehicleLightType::FOG_LIGHTS) | (lightName == Object::VehicleLightType::WARNING_LIGHTS))
-        // {// fog light is combination of front and back fog lights same for waring and indicator light
-        //     continue;
-        // }
+        std::string lightName = LightTypeInd2Str(j);
 
         // Find light node
         std::vector<osg::Group*> nodes;
-        FindNamedGeode           fnn(obj->LightType2Str(lightName), nodes);
+        FindNamedGeode           fnn(lightName, nodes);
         group->accept(fnn);
 
         for (size_t i = 0; i < nodes.size(); i++)
@@ -1200,13 +1234,13 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
                 group_ = static_cast<osg::Group*>(group_->getChild(0));
                 osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
                 // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                if (geode->getName().c_str() ==  (obj->LightType2Str(lightName) + "_m-material"))
+                if (geode->getName().c_str() ==  (lightName + "_m-material"))
                 { // material name in model is lightType_m
                     light_material_.push_back(geode);
                 }
                 else
                 {
-                    LOG_ONCE("Missing light node %s in vehicle model %s - ignoring", obj->LightType2Str(lightName).c_str(), group->getName().c_str());
+                    LOG_ONCE("Missing light node %s in vehicle model %s - ignoring", lightName, group->getName().c_str());
                 }
             }
         }
