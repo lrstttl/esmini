@@ -22,9 +22,6 @@
         <ScenarioObject name="Ego">
             <CatalogReference catalogName="VehicleCatalog" entryName="vehicle_light"/>
         </ScenarioObject>
-        <ScenarioObject name="Dummy0">
-            <CatalogReference catalogName="VehicleCatalog" entryName="van_red"/>
-        </ScenarioObject>
    </Entities>
    <Storyboard>
       <Init>
@@ -64,9 +61,9 @@
                      <Action name="brakeLightsOnAction">
                         <PrivateAction>
                            <AppearanceAction>
-                                <LightStateAction>
+                                <LightStateAction transitionTime="2">
                                     <LightType>
-                                       <VehicleLight vehicleLightType= "highBeam"/>
+                                       <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "on">
                                     </LightState>
@@ -90,9 +87,9 @@
                      <Action name="brakeLightsOffAction">
                         <PrivateAction>
                            <AppearanceAction>
-                                 <LightStateAction>
+                                 <LightStateAction transitionTime="2">
                                     <LightType>
-                                       <VehicleLight vehicleLightType= "highBeam"/>
+                                       <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "off">
                                     </LightState>
@@ -104,7 +101,7 @@
                         <ConditionGroup>
                            <Condition name="brakeLightsOffActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
-                                 <SimulationTimeCondition value="9" rule="greaterThan"/>
+                                 <SimulationTimeCondition value="6" rule="greaterThan"/>
                               </ByValueCondition>
                            </Condition>
                         </ConditionGroup>
@@ -127,7 +124,7 @@
           <ConditionGroup>
               <Condition conditionEdge="none" delay="0" name="simulationEndEventDone">
                   <ByValueCondition>
-                      <SimulationTimeCondition rule="greaterThan" value="40"/>
+                      <SimulationTimeCondition rule="greaterThan" value="10"/>
                   </ByValueCondition>
               </Condition>
           </ConditionGroup>

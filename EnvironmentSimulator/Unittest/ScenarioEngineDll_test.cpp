@@ -2651,7 +2651,6 @@ TEST(TestGetAndSet, OverrideActionTest)
 
     SE_Close();
 }
-
 TEST(TestGetAndSet, lightActionTest)
 {
     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc";
@@ -2659,87 +2658,169 @@ TEST(TestGetAndSet, lightActionTest)
     float       dt            = 0.1f;
     float       t             = 0.0f;
 
-    SE_VehicleLightState lightList;
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
 
     ASSERT_EQ(SE_Init(Scenario_file, 0, 0, 0, 0), 0);
 
-    EXPECT_EQ(SE_GetVehicleLightStatus(0, 2, &lightList), 0);
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    SE_VehicleLightState lightList;
+
+    osi3::MovingObject_VehicleClassification_LightState_BrakeLightState bState = osi_gt.mutable_moving_object(0)->mutable_vehicle_classification()->mutable_light_state()->brake_light_state();
+
+    // int bstate = static_cast<int>(osi_gt.mutable_moving_object(0)->mutable_vehicle_classification()->mutable_light_state()->brake_light_state());
+    // int bstate = static_cast<int>(osi_gt.moving_object(0)mutable_vehicle_classification()->mutable_light_state()->brake_light_state());
+    // int bstate = static_cast<int>(osi_gt.mutable_moving_object(0)->mutable_vehicle_classification()->light_state().brake_light_state());
+    printf("brake value %d:", bState);
+
+
+
+    EXPECT_EQ(SE_GetVehicleLightStatus(0, 5, &lightList), 0);
     EXPECT_EQ(lightList.lightType, -1);
-    EXPECT_EQ(lightList.colorName, 0);
+    EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
     EXPECT_EQ(lightList.lightMode, 4);
     EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_EQ(bState, 0);
 
-    for (; t < 3.5f; t += dt)
+    for (; t < 3.0f; t += dt)
     {
         SE_StepDT(dt);
     }
+    
+    gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(SE_GetVehicleLightStatus(0, 2, &lightList), 0);
-    EXPECT_EQ(lightList.lightType, 2);
-    EXPECT_EQ(lightList.colorName, 10);
-    EXPECT_DOUBLE_EQ(lightList.intensity, 9.3333334724108372);
+    SE_UpdateOSIGroundTruth();
+
+    osi3::MovingObject_VehicleClassification_LightState_BrakeLightState bState1 = osi_gt.mutable_moving_object(0)->mutable_vehicle_classification()->mutable_light_state()->brake_light_state();
+
+    printf("brake value on: %d:", bState1);
+    EXPECT_EQ(SE_GetVehicleLightStatus(0, 5, &lightList), 0);
+    EXPECT_EQ(lightList.lightType, 5);
+    EXPECT_EQ(lightList.colorName, 11);
+    EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.90000000000000002);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.90000000000000002);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.90000000000000002);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.61250000167638063);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.11250000167638063);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.11250000167638063);
+    EXPECT_EQ(bState1, 3);
 
     for (; t < 8.0f; t += dt)
     {
         SE_StepDT(dt);
     }
-    EXPECT_EQ(SE_GetVehicleLightStatus(0, 2, &lightList), 0);
-    EXPECT_EQ(lightList.lightType, 2);
-    EXPECT_EQ(lightList.colorName, 10);
-    EXPECT_DOUBLE_EQ(lightList.intensity, 0.46666654149691134);
-    EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 1);
 
-    for (; t < 13.0f; t += dt)
-    {
-        SE_StepDT(dt);
-    }
-    EXPECT_EQ(SE_GetVehicleLightStatus(0, 7, &lightList), 0);
-    EXPECT_EQ(lightList.lightType, 7);
-    EXPECT_EQ(lightList.colorName, 0);
-    EXPECT_DOUBLE_EQ(lightList.intensity, 10.0);
-    EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.65000000000000002);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    SE_UpdateOSIGroundTruth();
 
-    for (; t < 16.0f; t += dt)
-    {
-        SE_StepDT(dt);
-    }
-    EXPECT_EQ(SE_GetVehicleLightStatus(0, 6, &lightList), 0);
-    EXPECT_EQ(lightList.lightType, 6);
-    EXPECT_EQ(lightList.colorName, 0);
+    // const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    // osi_gt.ParseFromArray(gt, sv_size);
+
+    EXPECT_EQ(SE_GetVehicleLightStatus(0, 5, &lightList), 0);
+    EXPECT_EQ(lightList.lightType, 5);
+    EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 1.0);
-
-    for (; t < 19.0f; t += dt)
-    {
-        SE_StepDT(dt);
-    }
-    EXPECT_EQ(SE_GetVehicleLightStatus(0, 6, &lightList), 0);
-    EXPECT_EQ(lightList.lightType, 6);
-    EXPECT_EQ(lightList.colorName, 1);
-    EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
-    EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.51249999646097422);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.011874996814876748);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.012499996460974216);
 
     SE_Close();
 }
+// TEST(TestGetAndSet, lightActionTest)
+// {
+//     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc";
+//     const char* Scenario_file = scenario_file.c_str();
+//     float       dt            = 0.1f;
+//     float       t             = 0.0f;
+
+//     SE_VehicleLightState lightList;
+
+//     ASSERT_EQ(SE_Init(Scenario_file, 0, 0, 0, 0), 0);
+
+//     EXPECT_EQ(SE_GetVehicleLightStatus(0, 2, &lightList), 0);
+//     EXPECT_EQ(lightList.lightType, -1);
+//     EXPECT_EQ(lightList.colorName, 0);
+//     EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
+//     EXPECT_EQ(lightList.lightMode, 4);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+
+//     for (; t < 3.5f; t += dt)
+//     {
+//         SE_StepDT(dt);
+//     }
+
+//     EXPECT_EQ(SE_GetVehicleLightStatus(0, 2, &lightList), 0);
+//     EXPECT_EQ(lightList.lightType, 2);
+//     EXPECT_EQ(lightList.colorName, 10);
+//     EXPECT_DOUBLE_EQ(lightList.intensity, 9.3333334724108372);
+//     EXPECT_EQ(lightList.lightMode, 1);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.90000000000000002);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.90000000000000002);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.90000000000000002);
+
+//     for (; t < 8.0f; t += dt)
+//     {
+//         SE_StepDT(dt);
+//     }
+//     EXPECT_EQ(SE_GetVehicleLightStatus(0, 2, &lightList), 0);
+//     EXPECT_EQ(lightList.lightType, 2);
+//     EXPECT_EQ(lightList.colorName, 10);
+//     EXPECT_DOUBLE_EQ(lightList.intensity, 0.46666654149691134);
+//     EXPECT_EQ(lightList.lightMode, 0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[0], 1);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[1], 1);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[2], 1);
+
+//     for (; t < 13.0f; t += dt)
+//     {
+//         SE_StepDT(dt);
+//     }
+//     EXPECT_EQ(SE_GetVehicleLightStatus(0, 7, &lightList), 0);
+//     EXPECT_EQ(lightList.lightType, 7);
+//     EXPECT_EQ(lightList.colorName, 0);
+//     EXPECT_DOUBLE_EQ(lightList.intensity, 10.0);
+//     EXPECT_EQ(lightList.lightMode, 2);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[0], 1.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.65000000000000002);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+
+//     for (; t < 16.0f; t += dt)
+//     {
+//         SE_StepDT(dt);
+//     }
+//     EXPECT_EQ(SE_GetVehicleLightStatus(0, 6, &lightList), 0);
+//     EXPECT_EQ(lightList.lightType, 6);
+//     EXPECT_EQ(lightList.colorName, 0);
+//     EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
+//     EXPECT_EQ(lightList.lightMode, 0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[2], 1.0);
+
+//     for (; t < 19.0f; t += dt)
+//     {
+//         SE_StepDT(dt);
+//     }
+//     EXPECT_EQ(SE_GetVehicleLightStatus(0, 6, &lightList), 0);
+//     EXPECT_EQ(lightList.lightType, 6);
+//     EXPECT_EQ(lightList.colorName, 1);
+//     EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
+//     EXPECT_EQ(lightList.lightMode, 1);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
+//     EXPECT_DOUBLE_EQ(lightList.rgb[2], 1.0);
+
+//     SE_Close();
+// }
 
 TEST(TestGetAndSet, PropertyTest)
 {

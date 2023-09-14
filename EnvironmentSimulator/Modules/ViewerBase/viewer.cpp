@@ -1215,7 +1215,6 @@ std::string LightTypeInd2Str(int index)
 void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
 {
 
-    Object *obj = nullptr;
     for ( int j = 0; j < static_cast<int>(Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS); j++)
     {
 
