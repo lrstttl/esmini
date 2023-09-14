@@ -1249,6 +1249,7 @@ namespace scenarioengine
         double initialValueRgb_[3];
         double finalValueRgb[3];
         bool isUserSetRgb = true;
+        double lum_max = 0.9;
 
 
 
