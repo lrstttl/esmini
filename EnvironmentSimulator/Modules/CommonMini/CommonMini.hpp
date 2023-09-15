@@ -57,10 +57,10 @@ typedef int64_t __int64;
 #define IS_IN_SPAN(x, y, z)           ((x) >= (y) && (x) <= (z))
 #define OSI_MAX_LONGITUDINAL_DISTANCE 50
 #define OSI_MAX_LATERAL_DEVIATION     0.05
-#define LOG_FILENAME                  "log.txt" 
+#define LOG_FILENAME                  "log.txt"
 #define DAT_FILENAME                  "sim.dat"
 #define GHOST_TRAIL_SAMPLE_TIME       0.2
-#define MAX_INTESITY_LUM              (1E+4)
+#define MAX_INTENSITY_LUM              (1E+4)
 
 #define LOG(...)       Logger::Inst().Log(false, false, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define LOG_TRACE(...) Logger::Inst().Log(false, true, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)
@@ -555,6 +555,8 @@ void SwapByteOrder(unsigned char* buf, int data_type_size, int buf_size);
 */
 bool CheckArrayNonZero(double array[], int size);
 bool CheckArrayNonZero(int array[], int size);
+double findMinIncrementArray( double array[], double limit, double percent);
+
 
 #if (defined WINVER && WINVER == _WIN32_WINNT_WIN7)
 #else

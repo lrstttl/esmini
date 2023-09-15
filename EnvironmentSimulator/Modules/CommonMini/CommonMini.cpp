@@ -774,6 +774,25 @@ bool CheckArrayNonZero(int array[], int size)
     return false;
 }
 
+double findMinIncrementArray( double array[], double limit, double percent)
+{
+    double value = 0;
+
+    if (((limit - array[0]) * percent) <= ((limit - array[1]) * percent) && ((limit - array[0]) * percent) <= ((limit - array[2]) * percent))
+    {
+        value = ((limit - array[0]) * percent);
+    }
+    else if (((limit - array[1]) * percent) <= ((limit - array[0]) * percent) && ((limit - array[1]) * percent) <= ((limit - array[2]) * percent))
+    {
+        value = ((limit - array[1]) * percent);
+    }
+    else
+    {
+        value = ((limit - array[2]) * percent);
+    }
+    return value;
+}
+
 int strtoi(std::string s)
 {
     return atoi(s.c_str());

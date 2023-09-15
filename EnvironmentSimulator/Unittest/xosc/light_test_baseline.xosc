@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- scnario with different lights on, off and flash mode -->
+<OpenSCENARIO>
+   <FileHeader revMajor="1"
+               revMinor="2"
+               date="2017-06-09T10:00:00"
+               description="Another variant of cut-in"
+               author="esmini-team"/>
+   <ParameterDeclarations>
+      <ParameterDeclaration name="HeadwayTime_LaneChange" parameterType="double" value="0.4"/>
+      <ParameterDeclaration name="HeadwayTime_Brake" parameterType="double" value="1.0"/>
+   </ParameterDeclarations>
+   <CatalogLocations>
+      <VehicleCatalog>
+         <Directory path="../../../resources/xosc/Catalogs/Vehicles"/>
+      </VehicleCatalog>
+   </CatalogLocations>
+   <RoadNetwork>
+      <LogicFile filepath="../xodr/straight_road.xodr"/>
+   </RoadNetwork>
+   <Entities>
+        <ScenarioObject name="Ego">
+            <CatalogReference catalogName="VehicleCatalog" entryName="vehicle_light"/>
+        </ScenarioObject>
+   </Entities>
+   <Storyboard>
+      <Init>
+         <Actions>
+            <Private entityRef="Ego">
+               <PrivateAction>
+                  <LongitudinalAction>
+                        <SpeedAction>
+                           <SpeedActionDynamics dynamicsShape="step" value="1.0" dynamicsDimension="time"/>
+                           <SpeedActionTarget>
+                              <AbsoluteTargetSpeed value="20.0"/>
+                           </SpeedActionTarget>
+                        </SpeedAction>
+                  </LongitudinalAction>
+               </PrivateAction>
+               <PrivateAction>
+                  <TeleportAction>
+                        <Position>
+                           <LanePosition roadId="1" laneId="-2" s="5.0" offset="0.0"/>
+                        </Position>
+                  </TeleportAction>
+               </PrivateAction>
+            </Private>
+         </Actions>
+      </Init>
+      <Story name="LightStateActionStory">
+         <ParameterDeclarations>
+            <ParameterDeclaration parameterType="string" name="owner" value="Ego"/>
+         </ParameterDeclarations>
+         <Act name="LightStateActionAct">
+            <ManeuverGroup maximumExecutionCount="1" name="warningLightsOnActionSequence">
+               <Actors selectTriggeringEntities="false">
+                  <EntityRef entityRef="Ego"/>
+               </Actors>
+               <Maneuver name="warningLightsOnActionManeuver">
+                  <Event name="warningLightsOnActionEvent" priority="skip" maximumExecutionCount="1" >
+                     <Action name="warningLightsOnAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                <LightStateAction transitionTime="2">
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "warningLights"/>
+                                    </LightType>
+                                    <LightState mode= "on">
+                                    </LightState>
+                                </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="warningLightsOnActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="2" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="warningLightsOffActionManeuver">
+                  <Event name="warningLightsOffActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="warningLightsOffAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction transitionTime="2">
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "warningLights"/>
+                                    </LightType>
+                                    <LightState mode= "off">
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="warningLightsOffActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="6" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="warningLightsflashingActionManeuver">
+                  <Event name="warningLightsflashingActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="warningLightsflashingAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction transitionTime="2">
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "warningLights"/>
+                                    </LightType>
+                                    <LightState mode= "flashing">
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="warningLightsflashingActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="10" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="warningLightsSecondONActionManeuver">
+                  <Event name="warningLightsSecondONActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="warningLightsSecondONAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction transitionTime="2">
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "warningLights"/>
+                                    </LightType>
+                                    <LightState mode= "on">
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="warningLightsSecondONActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="16" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="warningLightsSecondFlashingActionManeuver">
+                  <Event name="warningLightsSecondFlashingActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="warningLightsSecondFlashingAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction transitionTime="2">
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "warningLights"/>
+                                    </LightType>
+                                    <LightState mode= "flashing">
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="warningLightsSecondFlashingActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="20" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="warningLightsSecondOffActionManeuver">
+                  <Event name="warningLightsSecondOffFActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="warningLightsofFAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction transitionTime="2">
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "warningLights"/>
+                                    </LightType>
+                                    <LightState mode= "off">
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="warningLightsSecondOffFActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="26" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+            </ManeuverGroup>
+            <StartTrigger>
+               <ConditionGroup>
+                  <Condition name="LightStateActionActStart" delay="0" conditionEdge="rising">
+                     <ByValueCondition>
+                        <SimulationTimeCondition value="0" rule="greaterThan"/>
+                     </ByValueCondition>
+                  </Condition>
+               </ConditionGroup>
+            </StartTrigger>
+         </Act>
+      </Story>
+      <StopTrigger>
+          <ConditionGroup>
+              <Condition conditionEdge="none" delay="0" name="simulationEndEventDone">
+                  <ByValueCondition>
+                      <SimulationTimeCondition rule="greaterThan" value="30"/>
+                  </ByValueCondition>
+              </Condition>
+          </ConditionGroup>
+      </StopTrigger>
+   </Storyboard>
+</OpenSCENARIO>

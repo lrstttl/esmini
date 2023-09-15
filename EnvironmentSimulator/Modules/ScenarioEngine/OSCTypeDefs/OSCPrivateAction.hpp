@@ -1250,6 +1250,16 @@ namespace scenarioengine
         double finalValueRgb[3];
         bool isUserSetRgb = true;
         double lum_max = 0.9;
+        double lum_default = 0.5;
+        Object::VehicleLightMode perviousMode;
+
+        enum class flashingStatus
+        {
+            LOW = 1,
+            HIGH = 2,
+            UNDEFINED = 3
+        };
+        flashingStatus flashStatus;
 
 
 
