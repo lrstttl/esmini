@@ -793,6 +793,18 @@ double findMinIncrementArray( double array[], double limit, double percent)
     return value;
 }
 
+double* findMinPercentIncrementFromArray( double array[], double percent, double max)
+{
+
+    static double tempArray[3];
+
+    tempArray[0] = ((max - array[0]) * percent);
+    tempArray[1] = ((max - array[1]) * percent);
+    tempArray[2] = ((max - array[2]) * percent);
+
+    return tempArray;
+}
+
 int strtoi(std::string s)
 {
     return atoi(s.c_str());

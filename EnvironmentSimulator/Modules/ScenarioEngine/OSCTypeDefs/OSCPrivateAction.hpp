@@ -1272,7 +1272,7 @@ namespace scenarioengine
         void Step(double simTime, double dt);
         void Start(double simTime, double dt);
         void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
-        int  setLightTransistionValues();
+        int  setLightTransistionValues(Object::VehicleLightMode mode);
 
         int  checkColorError(double* value, int n);
         void convertColorAndSetRgb(Object::VehicleLightColor colorType);

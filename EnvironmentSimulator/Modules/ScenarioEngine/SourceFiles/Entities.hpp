@@ -173,7 +173,7 @@ namespace scenarioengine
             VehicleLightType  type              = VehicleLightType::UNDEFINED;  // according to VehicleLightType
             VehicleLightMode  mode              = VehicleLightMode::UNKNOWN_MODE;
             VehicleLightColor colorName         = VehicleLightColor::UNKNOWN;
-            double            luminousIntensity = 0.0;
+            double            luminousIntensity = -1.0; // -1 denotes missing from sceanrio
             double            rgb[3]            = {0.0, 0.0, 0.0};  // current rbg
             double            baseRgb[3]        = {0.0, 0.0, 0.0};  // base rbg
         };
