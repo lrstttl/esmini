@@ -60,7 +60,7 @@ typedef int64_t __int64;
 #define LOG_FILENAME                  "log.txt"
 #define DAT_FILENAME                  "sim.dat"
 #define GHOST_TRAIL_SAMPLE_TIME       0.2
-#define MAX_INTENSITY_LUM              (1E+4)
+#define MAX_INTENSITY_LUM              (12E+3)
 
 #define LOG(...)       Logger::Inst().Log(false, false, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define LOG_TRACE(...) Logger::Inst().Log(false, true, __FILENAME__, __FUNCTION__, __LINE__, __VA_ARGS__)

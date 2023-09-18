@@ -1252,6 +1252,8 @@ namespace scenarioengine
         double lum_max = 0.9;
         double lum_default = 0.5;
         Object::VehicleLightMode perviousMode;
+        double perviousIntensity;
+        double baseRgb[3];
 
         enum class flashingStatus
         {
@@ -1270,7 +1272,7 @@ namespace scenarioengine
         void Step(double simTime, double dt);
         void Start(double simTime, double dt);
         void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
-        int  setLightTransistionValues(Object::VehicleLightMode mode);
+        int  setLightTransistionValues();
 
         int  checkColorError(double* value, int n);
         void convertColorAndSetRgb(Object::VehicleLightColor colorType);

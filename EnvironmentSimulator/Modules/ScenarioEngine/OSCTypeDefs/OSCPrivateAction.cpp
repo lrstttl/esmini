@@ -2222,11 +2222,15 @@ void LightStateAction::Start(double simTime, double dt)
     transitionTimer_ = 0.0;
     flashingTimer_   = 0.0;
     perviousMode = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode;
+    perviousIntensity = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].luminousIntensity;
+
+    double maxIncrement[3];
 
     // find required illumination
-    double final_lum_percent = (((vehicleLightActionStatusList.luminousIntensity / MAX_INTENSITY_LUM) * 100) > 1
+    double onOffIncrement = 0;
+    double final_lum_percent = (vehicleLightActionStatusList.luminousIntensity / MAX_INTENSITY_LUM) > 1
                             ? 1
-                            : ((vehicleLightActionStatusList.luminousIntensity / MAX_INTENSITY_LUM) * 100));
+                            : (vehicleLightActionStatusList.luminousIntensity / MAX_INTENSITY_LUM);
 
     bool useModelRbg = false;
 
@@ -2241,45 +2245,65 @@ void LightStateAction::Start(double simTime, double dt)
         object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2]     = rgb_[2];
     }
 
+    baseRgb[0] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[0];
+    baseRgb[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[1];
+    baseRgb[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[2];
+
     // find final rbg value
     if (isUserSetRgb)
     {
     }
     else
     {
+
         //find Initial rbg
+        initialValueRgb_[0] = baseRgb[0];
+        initialValueRgb_[1] = baseRgb[1];
+        initialValueRgb_[2] = baseRgb[2];
         if (perviousMode == Object::VehicleLightMode::ON)
-        {
+        { // pervious state ON - use pervious value
             initialValueRgb_[0] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0];
             initialValueRgb_[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1];
             initialValueRgb_[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2];
         }
-        else
-        {
-            initialValueRgb_[0] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[0];
-            initialValueRgb_[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[1];
-            initialValueRgb_[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[2];
-        }
 
         //find final rbg
-        if  (vehicleLightActionStatusList.mode == Object::VehicleLightMode::ON ||
+        if (vehicleLightActionStatusList.mode == Object::VehicleLightMode::ON &&
+             perviousMode == Object::VehicleLightMode::ON)
+        {
+            // find min value to be incremented
+            onOffIncrement = findMinIncrementArray(baseRgb, lum_max, lum_default);
+            maxIncrement[0] = onOffIncrement + ((lum_max - (baseRgb[0] + onOffIncrement)) * final_lum_percent);
+            maxIncrement[1] = onOffIncrement + ((lum_max - (baseRgb[1] + onOffIncrement)) * final_lum_percent);
+            maxIncrement[2] = onOffIncrement + ((lum_max - (baseRgb[2] + onOffIncrement)) * final_lum_percent);
+
+            // new rbg
+            finalValueRgb[0] = baseRgb[0] + maxIncrement[0];
+            finalValueRgb[1] = baseRgb[1] + maxIncrement[1];
+            finalValueRgb[2] = baseRgb[2] + maxIncrement[2];
+        }
+        else if  (vehicleLightActionStatusList.mode == Object::VehicleLightMode::ON ||
             (vehicleLightActionStatusList.mode == Object::VehicleLightMode::FLASHING &&
             perviousMode == Object::VehicleLightMode::OFF))
         {
-            // find max value to be incremented
-            double onOffIncrement = findMinIncrementArray(initialValueRgb_, lum_max, lum_default);
+            // find min value to be incremented
+            onOffIncrement = findMinIncrementArray(initialValueRgb_, lum_max, lum_default);
+            maxIncrement[0] = onOffIncrement + ((lum_max - (initialValueRgb_[0] + onOffIncrement)) * final_lum_percent);
+            maxIncrement[1] = onOffIncrement + ((lum_max - (initialValueRgb_[1] + onOffIncrement)) * final_lum_percent);
+            maxIncrement[2] = onOffIncrement + ((lum_max - (initialValueRgb_[2] + onOffIncrement)) * final_lum_percent);
+
             // increase to new rbg
-            finalValueRgb[0] = initialValueRgb_[0] + onOffIncrement;
-            finalValueRgb[1] = initialValueRgb_[1] + onOffIncrement;
-            finalValueRgb[2] = initialValueRgb_[2] + onOffIncrement;
+            finalValueRgb[0] = initialValueRgb_[0] + maxIncrement[0];
+            finalValueRgb[1] = initialValueRgb_[1] + maxIncrement[1];
+            finalValueRgb[2] = initialValueRgb_[2] + maxIncrement[2];
         }
         else if (vehicleLightActionStatusList.mode == Object::VehicleLightMode::OFF ||
                 (vehicleLightActionStatusList.mode == Object::VehicleLightMode::FLASHING &&
                 perviousMode == Object::VehicleLightMode::ON))
         {  // set to base rbg
-            finalValueRgb[0] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[0];
-            finalValueRgb[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[1];
-            finalValueRgb[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].baseRgb[2];
+            finalValueRgb[0] = baseRgb[0];
+            finalValueRgb[1] = baseRgb[1];
+            finalValueRgb[2] = baseRgb[2];
         }
 
     object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode = vehicleLightActionStatusList.mode;
@@ -2303,13 +2327,13 @@ void LightStateAction::Step(double simTime, double dt)
             if (flashingOnDuration_ > flashingTimer_)
             {  // flash on time
                 flashStatus = flashingStatus::HIGH;
-                setLightTransistionValues(Object::VehicleLightMode::FLASHING);
+                setLightTransistionValues();
                 flashingTimer_ += dt;
             }
             else if (flashingOnDuration_ + flashingOffDuration_ > flashingTimer_)
             { // flash off time
                 flashStatus = flashingStatus::LOW;
-                setLightTransistionValues(Object::VehicleLightMode::FLASHING);
+                setLightTransistionValues();
                 flashingTimer_ += dt;
             }
             else
@@ -2320,7 +2344,7 @@ void LightStateAction::Step(double simTime, double dt)
         else
         {  // action stopped immediately once transistion time expires.
             object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] = finalValueRgb[0];
-            object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = finalValueRgb[1];
+            object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] = finalValueRgb[1];
             object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = finalValueRgb[2];
             OSCAction::End(simTime);
         }
@@ -2333,53 +2357,34 @@ void LightStateAction::Step(double simTime, double dt)
         else if (object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode == Object::VehicleLightMode::FLASHING &&
             perviousMode == Object::VehicleLightMode::ON)
         {
-            setLightTransistionValues(Object::VehicleLightMode::OFF);
+            setLightTransistionValues();
         }
         else
         {
-            setLightTransistionValues(object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode);
+            setLightTransistionValues();
         }
         transitionTimer_ += dt;
     }
     object_->SetDirtyBits(Object::DirtyBit::LIGHT_STATE);
 }
 
-int LightStateAction::setLightTransistionValues(Object::VehicleLightMode mode)
+int LightStateAction::setLightTransistionValues()
 {
-    if (mode == Object::VehicleLightMode::ON)
-    {  // to increase the rgb
-        // initialValue + (proportion * (finalValue - initialValue))
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] =
-            initialValueRgb_[0] + ((transitionTimer_ / transitionTime_) * (finalValueRgb[0] - initialValueRgb_[0]));
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] =
-            initialValueRgb_[1] + ((transitionTimer_ / transitionTime_) * (finalValueRgb[1] - initialValueRgb_[1]));
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] =
-            initialValueRgb_[2] + ((transitionTimer_ / transitionTime_) * (finalValueRgb[2] - initialValueRgb_[2]));
-    }
-    else if (mode == Object::VehicleLightMode::OFF)
-    {  // to decrease the rbg
-        // initialValue - (proportion * (finalValue - initialValue))
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] =
-            initialValueRgb_[0] - ((transitionTimer_ / transitionTime_) * (initialValueRgb_[0] - finalValueRgb[0]));
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] =
-            initialValueRgb_[1] - ((transitionTimer_ / transitionTime_) * (initialValueRgb_[1] - finalValueRgb[1]));
-        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] =
-            initialValueRgb_[2] - ((transitionTimer_ / transitionTime_) * (initialValueRgb_[2] - finalValueRgb[2]));
-    }
-    else if ( mode == Object::VehicleLightMode::FLASHING)
+
+    if ( object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].mode == Object::VehicleLightMode::FLASHING)
     {
         if (flashStatus == flashingStatus::HIGH)
         {// set biggest value between initial and final value
             if (perviousMode == Object::VehicleLightMode::OFF)
             {
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] = finalValueRgb[0];
-                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = finalValueRgb[1];
+                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] = finalValueRgb[1];
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = finalValueRgb[2];
             }
             else
             {
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] = initialValueRgb_[0];
-                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = initialValueRgb_[1];
+                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] = initialValueRgb_[1];
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = initialValueRgb_[2];
             }
         }
@@ -2388,20 +2393,27 @@ int LightStateAction::setLightTransistionValues(Object::VehicleLightMode mode)
             if (perviousMode == Object::VehicleLightMode::ON)
             {
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] = finalValueRgb[0];
-                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = finalValueRgb[1];
+                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] = finalValueRgb[1];
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = finalValueRgb[2];
             }
             else
             {
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] = initialValueRgb_[0];
-                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = initialValueRgb_[1];
+                object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] = initialValueRgb_[1];
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] = initialValueRgb_[2];
             }
         }
     }
     else
     {
-        return -1;
+        // to increase the rgb
+        // initialValue + (proportion * (finalValue - initialValue))
+        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] =
+            initialValueRgb_[0] + ((transitionTimer_ / transitionTime_) * (finalValueRgb[0] - initialValueRgb_[0]));
+        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] =
+            initialValueRgb_[1] + ((transitionTimer_ / transitionTime_) * (finalValueRgb[1] - initialValueRgb_[1]));
+        object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[2] =
+            initialValueRgb_[2] + ((transitionTimer_ / transitionTime_) * (finalValueRgb[2] - initialValueRgb_[2]));
     }
 
     return 0;
