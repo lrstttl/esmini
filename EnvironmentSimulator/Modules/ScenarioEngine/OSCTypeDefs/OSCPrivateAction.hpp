@@ -1231,7 +1231,6 @@ namespace scenarioengine
         double transitionTime_;
         double flashingOffDuration_;
         double flashingOnDuration_;
-        double rgb_[3];
         double cmyk_[4];
 
         LightStateAction()
@@ -1239,7 +1238,6 @@ namespace scenarioengine
               transitionTime_(0.0),
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
-              rgb_{0.0, 0.0, 0.0},
               cmyk_{0.0, 0.0, 0.0, 0.0}
         {
         }
@@ -1267,7 +1265,7 @@ namespace scenarioengine
 
         int  setVehicleLightType(std::string typeObject, Object::VehicleLightActionStatus& lightStatus);
         int setVehicleLightMode(std::string mode, Object::VehicleLightActionStatus& lightStatus);
-        void setVehicleLightColor(std::string colorType, Object::VehicleLightActionStatus& lightStatus);
+        int setVehicleLightColor(std::string colorType, Object::VehicleLightActionStatus& lightStatus);
 
         void Step(double simTime, double dt);
         void Start(double simTime, double dt);
@@ -1275,14 +1273,13 @@ namespace scenarioengine
         int  setLightTransistionValues(Object::VehicleLightMode mode);
 
         int  checkColorError(double* value, int n);
-        void convertColorAndSetRgb(Object::VehicleLightColor colorType);
-        void convertLightTypeAndSetRgb(Object::VehicleLightType lightType);
+        void convertColorAndSetRgb(Object::VehicleLightActionStatus& lightStatus);
+        void convertLightTypeAndSetRgb(Object::VehicleLightActionStatus& lightStatus);
 
         int prepareLightStateSetAndRgb(Object::VehicleLightActionStatus& lightStatus);
 
     private:
         Object::VehicleLightActionStatus vehicleLightActionStatusList;
-        std::vector<Object::VehicleLightActionStatus> vehicleLightActionStateList;
     };
 
     class OverrideControlAction : public OSCPrivateAction

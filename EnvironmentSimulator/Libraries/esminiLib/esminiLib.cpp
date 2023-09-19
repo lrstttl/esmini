@@ -255,7 +255,9 @@ static int copyVehicleLightStatesListFromScenarioEngine(SE_VehicleLightState *st
     states->rgb[0]    = obj->vehicleLightActionStatusList[lightIndex].rgb[0];
     states->rgb[1]    = obj->vehicleLightActionStatusList[lightIndex].rgb[1];
     states->rgb[2]    = obj->vehicleLightActionStatusList[lightIndex].rgb[2];
-
+    states->baseRgb[0]    = obj->vehicleLightActionStatusList[lightIndex].baseRgb[0];
+    states->baseRgb[1]    = obj->vehicleLightActionStatusList[lightIndex].baseRgb[1];
+    states->baseRgb[2]    = obj->vehicleLightActionStatusList[lightIndex].baseRgb[2];
     return 0;
 }
 

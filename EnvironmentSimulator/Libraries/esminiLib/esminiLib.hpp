@@ -183,6 +183,7 @@ typedef struct
     int    colorName;  // according to Entities.hpp::VehicleLightColor
     double intensity;
     double rgb[3];
+    double baseRgb[3];
 } SE_VehicleLightState;
 
 typedef struct
