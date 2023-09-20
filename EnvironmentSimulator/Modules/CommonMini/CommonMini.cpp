@@ -774,25 +774,6 @@ bool CheckArrayNonZero(int array[], int size)
     return false;
 }
 
-double findMinIncrementArray( double array[], double limit, double percent)
-{
-    double value = 0;
-
-    if (((limit - array[0]) * percent) <= ((limit - array[1]) * percent) && ((limit - array[0]) * percent) <= ((limit - array[2]) * percent))
-    {
-        value = ((limit - array[0]) * percent);
-    }
-    else if (((limit - array[1]) * percent) <= ((limit - array[0]) * percent) && ((limit - array[1]) * percent) <= ((limit - array[2]) * percent))
-    {
-        value = ((limit - array[1]) * percent);
-    }
-    else
-    {
-        value = ((limit - array[2]) * percent);
-    }
-    return value;
-}
-
 int adjustByOffsetArray(double (&array)[3], double limit)
 {
     double fraction = 1.0;
@@ -807,18 +788,6 @@ int adjustByOffsetArray(double (&array)[3], double limit)
     array[2] = fraction * array[2];
 
     return 0;
-}
-
-double* findMinPercentIncrementFromArray( double array[3], double percent, double max)
-{
-
-    static double tempArray[3];
-
-    tempArray[0] = ((max - array[0]) * percent);
-    tempArray[1] = ((max - array[1]) * percent);
-    tempArray[2] = ((max - array[2]) * percent);
-
-    return tempArray;
 }
 
 int strtoi(std::string s)

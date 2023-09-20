@@ -66,7 +66,9 @@
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "on">
-                                       <Color colorType="green"/>
+                                       <Color>
+                                          <ColorRgb red="0" green="0.5" blue="0"/>
+                                       </Color>
                                     </LightState>
                                 </LightStateAction>
                            </AppearanceAction>
@@ -77,32 +79,6 @@
                            <Condition name="brakeLightsOnActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
                                  <SimulationTimeCondition value="2" rule="greaterThan"/>
-                              </ByValueCondition>
-                           </Condition>
-                        </ConditionGroup>
-                     </StartTrigger>
-                  </Event>
-               </Maneuver>
-               <Maneuver name="brakeLightsSecoundOnActionManeuver">
-                  <Event name="brakeLightsSecoundOnActionEvent" priority="override" maximumExecutionCount="1" >
-                     <Action name="brakeLightsSecoundOnAction">
-                        <PrivateAction>
-                           <AppearanceAction>
-                                 <LightStateAction transitionTime="2">
-                                    <LightType>
-                                       <VehicleLight vehicleLightType= "brakeLights"/>
-                                    </LightType>
-                                    <LightState mode= "on" luminousIntensity="10000">
-                                    </LightState>
-                                 </LightStateAction>
-                           </AppearanceAction>
-                        </PrivateAction>
-                     </Action>
-                     <StartTrigger>
-                        <ConditionGroup>
-                           <Condition name="brakeLightsSecoundOnActionCondition" delay="0" conditionEdge="rising">
-                              <ByValueCondition>
-                                 <SimulationTimeCondition value="6" rule="greaterThan"/>
                               </ByValueCondition>
                            </Condition>
                         </ConditionGroup>
@@ -128,6 +104,35 @@
                         <ConditionGroup>
                            <Condition name="brakeLightsOffActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
+                                 <SimulationTimeCondition value="6" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="brakeLightsSecoundOnActionManeuver">
+                  <Event name="brakeLightsSecoundOnActionEvent" priority="skip" maximumExecutionCount="1" >
+                     <Action name="brakeLightsSecoundOnAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                <LightStateAction>
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "brakeLights"/>
+                                    </LightType>
+                                    <LightState mode= "on">
+                                       <Color colorType="brown">
+                                          <ColorRgb red="0" green="0.0" blue="0.5"/>
+                                       </Color>
+                                    </LightState>
+                                </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="brakeLightsSecoundOnActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
                                  <SimulationTimeCondition value="10" rule="greaterThan"/>
                               </ByValueCondition>
                            </Condition>
@@ -135,45 +140,18 @@
                      </StartTrigger>
                   </Event>
                </Maneuver>
-               <Maneuver name="brakeLightsThirdONActionManeuver">
-                  <Event name="brakeLightsThirdONActionEvent" priority="override" maximumExecutionCount="1" >
-                     <Action name="brakeLightsThirdONAction">
-                        <PrivateAction>
-                           <AppearanceAction>
-                                 <LightStateAction transitionTime="2">
-                                    <LightType>
-                                       <VehicleLight vehicleLightType= "brakeLights"/>
-                                    </LightType>
-                                    <LightState mode= "on">
-                                       <Color colorType="blue"/>
-                                    </LightState>
-                                 </LightStateAction>
-                           </AppearanceAction>
-                        </PrivateAction>
-                     </Action>
-                     <StartTrigger>
-                        <ConditionGroup>
-                           <Condition name="brakeLightsThirdONActionCondition" delay="0" conditionEdge="rising">
-                              <ByValueCondition>
-                                 <SimulationTimeCondition value="14" rule="greaterThan"/>
-                              </ByValueCondition>
-                           </Condition>
-                        </ConditionGroup>
-                     </StartTrigger>
-                  </Event>
-               </Maneuver>
                <Maneuver name="brakeLightsSecoundOffActionManeuver">
-                  <Event name="brakeLightsSecoundOffActionEvent" priority="override" maximumExecutionCount="1" >
+                  <Event name="brakeLightsSecoundOffActionEvent" priority="skip" maximumExecutionCount="1" >
                      <Action name="brakeLightsSecoundOffAction">
                         <PrivateAction>
                            <AppearanceAction>
-                                 <LightStateAction transitionTime="2">
+                                <LightStateAction>
                                     <LightType>
                                        <VehicleLight vehicleLightType= "brakeLights"/>
                                     </LightType>
                                     <LightState mode= "off">
                                     </LightState>
-                                 </LightStateAction>
+                                </LightStateAction>
                            </AppearanceAction>
                         </PrivateAction>
                      </Action>
@@ -181,7 +159,7 @@
                         <ConditionGroup>
                            <Condition name="brakeLightsSecoundOffActionCondition" delay="0" conditionEdge="rising">
                               <ByValueCondition>
-                                 <SimulationTimeCondition value="18" rule="greaterThan"/>
+                                 <SimulationTimeCondition value="14" rule="greaterThan"/>
                               </ByValueCondition>
                            </Condition>
                         </ConditionGroup>
@@ -204,7 +182,7 @@
           <ConditionGroup>
               <Condition conditionEdge="none" delay="0" name="simulationEndEventDone">
                   <ByValueCondition>
-                      <SimulationTimeCondition rule="greaterThan" value="22"/>
+                      <SimulationTimeCondition rule="greaterThan" value="20"/>
                   </ByValueCondition>
               </Condition>
           </ConditionGroup>

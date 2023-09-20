@@ -556,8 +556,6 @@ void SwapByteOrder(unsigned char* buf, int data_type_size, int buf_size);
 bool CheckArrayNonZero(double array[], int size);
 bool CheckArrayNonZero(int array[], int size);
 double findMinIncrementArray( double array[], double limit, double percent);
-double* findMinPercentIncrementFromArray( double array[], double percent, double max);
-//int adjustByOffsetArray(const double (&array)[3], double limit, double (&updated_array)[3]);
 int adjustByOffsetArray(double (&array)[3], double limit);
 
 

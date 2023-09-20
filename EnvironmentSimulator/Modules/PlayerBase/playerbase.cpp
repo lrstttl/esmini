@@ -1131,9 +1131,6 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
                     obj->vehicleLightActionStatusList[i].baseRgb[0] = dCol.r();
                     obj->vehicleLightActionStatusList[i].baseRgb[1] = dCol.g();
                     obj->vehicleLightActionStatusList[i].baseRgb[2] = dCol.b();
-                    obj->vehicleLightActionStatusList[i].rgb[0] = dCol.r();
-                    obj->vehicleLightActionStatusList[i].rgb[1] = dCol.g();
-                    obj->vehicleLightActionStatusList[i].rgb[2] = dCol.b();
                     break;
                 }
             }
