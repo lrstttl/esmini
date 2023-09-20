@@ -3328,10 +3328,14 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         for (pugi::xml_node colourChild = LightStateActionChild.first_child(); colourChild; colourChild = colourChild.next_sibling())
                         {
                             if (colourChild.name() == std::string("Color"))
-                            {
+                            { // set to Unkown if color node missing-default
                                 if (!parameters.ReadAttribute(colourChild, "colorType").empty())
                                 {
                                     lightStateAction->setVehicleLightColor(parameters.ReadAttribute(colourChild, "colorType"), LightActionStatus);
+                                }
+                                else
+                                { // set to other if colorType missing
+                                    lightStateAction->setVehicleLightColor("other", LightActionStatus);
                                 }
                                 for (pugi::xml_node colourDesChild = colourChild.first_child(); colourDesChild;
                                      colourDesChild                = colourDesChild.next_sibling())

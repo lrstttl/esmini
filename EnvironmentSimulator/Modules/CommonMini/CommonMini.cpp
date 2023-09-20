@@ -793,7 +793,23 @@ double findMinIncrementArray( double array[], double limit, double percent)
     return value;
 }
 
-double* findMinPercentIncrementFromArray( double array[], double percent, double max)
+int adjustByOffsetArray(double (&array)[3], double limit)
+{
+    double fraction = 1.0;
+    double max_val = MAX(array[0], MAX(array[1], array[2]));
+    if (max_val > SMALL_NUMBER)
+    {
+        fraction = limit / max_val;
+    }
+
+    array[0] = fraction * array[0];
+    array[1] = fraction * array[1];
+    array[2] = fraction * array[2];
+
+    return 0;
+}
+
+double* findMinPercentIncrementFromArray( double array[3], double percent, double max)
 {
 
     static double tempArray[3];
