@@ -52,7 +52,7 @@
             <ParameterDeclaration parameterType="string" name="owner" value="Ego"/>
          </ParameterDeclarations>
          <Act name="LightStateActionAct">
-            <ManeuverGroup maximumExecutionCount="1" name="brakeLightsOnActionSequence">
+            <ManeuverGroup maximumExecutionCount="1" name="brakeLightsActionSequence">
                <Actors selectTriggeringEntities="false">
                   <EntityRef entityRef="Ego"/>
                </Actors>
