@@ -2288,7 +2288,7 @@ void LightStateAction::Start(double simTime, double dt)
     //find final rbg
     if  (vehicleLightActionStatusList.mode == Object::VehicleLightMode::ON ||
         (vehicleLightActionStatusList.mode == Object::VehicleLightMode::FLASHING &&
-        perviousMode == Object::VehicleLightMode::OFF))
+        (perviousMode == Object::VehicleLightMode::OFF || perviousMode == Object::VehicleLightMode::UNKNOWN_MODE)))
     {
         // increase to new rbg
         // initial value + (initial value * percentage to be increased)
@@ -2366,7 +2366,7 @@ int LightStateAction::setLightTransistionValues(Object::VehicleLightMode mode)
     {
         if (flashStatus == flashingStatus::HIGH)
         {// set biggest value between initial and final value
-            if (perviousMode == Object::VehicleLightMode::OFF)
+            if (perviousMode == Object::VehicleLightMode::OFF || perviousMode == Object::VehicleLightMode::UNKNOWN_MODE)
             {
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[0] = finalValueRgb[0];
                 object_->vehicleLightActionStatusList[vehicleLightActionStatusList.type].rgb[1] = finalValueRgb[1];
@@ -2420,7 +2420,7 @@ int LightStateAction::prepareLightStateSetAndRgb(Object::VehicleLightActionStatu
         (lightStatus.mode == Object::VehicleLightMode::FLASHING))
     {
         lightStatus.mode = Object::VehicleLightMode::ON;
-        LOG("Setting light mode to ON, Only indicator or special purpose light support flashing");
+        LOG("Setting % s mode to ON, Only indicator or special purpose light support flashing", object_->LightType2Str(lightType_).c_str());
     }
 
     if (lightStatus.type == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
@@ -2712,7 +2712,7 @@ int LightStateAction::setVehicleLightColor(std::string colorType, Object::Vehicl
     {
         lightStatus.colorName = Object::VehicleLightColor::BLACK;
     }
-    else if (colorType == "gray")
+    else if (colorType == "grey")
     {
         lightStatus.colorName = Object::VehicleLightColor::GREY;
     }

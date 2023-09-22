@@ -1180,28 +1180,28 @@ std::string LightTypeInd2Str(int index)
     {
         case Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS:
             return "daytime_running_light";
-        case Object::VehicleLightType::BRAKE_LIGHTS:
-            return "brake_light";
-        case Object::VehicleLightType::FOG_LIGHTS:
-            return "fog_light";
+        case Object::VehicleLightType::LOW_BEAM:
+          return "low_beam";
+        case Object::VehicleLightType::HIGH_BEAM:
+            return "high_beam";
         case Object::VehicleLightType::FOG_LIGHTS_FRONT:
            return "fog_light_front";
         case Object::VehicleLightType::FOG_LIGHTS_REAR:
            return "fog_light_rear";
-        case Object::VehicleLightType::HIGH_BEAM:
-            return "high_beam";
+        case Object::VehicleLightType::BRAKE_LIGHTS:
+            return "brake_light";
         case Object::VehicleLightType::INDICATOR_LEFT:
            return "indicator_left";
         case Object::VehicleLightType::INDICATOR_RIGHT:
            return "indicator_right";
-        case Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION:
-           return "license_plate_illumination";
-        case Object::VehicleLightType::LOW_BEAM:
-          return "low_beam";
         case Object::VehicleLightType::REVERSING_LIGHTS:
            return "reversing_light";
+        case Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION:
+           return "license_plate_illumination";
         case Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS:
            return "special_purpose_light";
+        case Object::VehicleLightType::FOG_LIGHTS:
+            return "fog_light";
         case Object::VehicleLightType::WARNING_LIGHTS:
            return "warning_lights";
         case Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS:
@@ -1439,7 +1439,7 @@ void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
     {
         if (list[i].type != Object::VehicleLightType::UNDEFINED)
         {
-            const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
+             const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
 
             if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
             {
