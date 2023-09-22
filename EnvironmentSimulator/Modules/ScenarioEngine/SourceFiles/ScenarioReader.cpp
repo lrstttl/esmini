@@ -3394,7 +3394,6 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                 }
                             }
                         }
-                        lightStateAction->prepareLightStateSetAndRgb(LightActionStatus);
                     }
                     else
                     {
@@ -3403,6 +3402,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         return 0;
                     }
                 }
+                lightStateAction->prepareLightStateSetAndRgb(LightActionStatus);
                 lightStateAction->AddVehicleLightActionStatus(LightActionStatus);
                 action = lightStateAction;
             }

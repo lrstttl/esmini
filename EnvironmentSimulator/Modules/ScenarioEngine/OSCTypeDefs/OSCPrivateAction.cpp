@@ -2420,7 +2420,7 @@ int LightStateAction::prepareLightStateSetAndRgb(Object::VehicleLightActionStatu
         (lightStatus.mode == Object::VehicleLightMode::FLASHING))
     {
         lightStatus.mode = Object::VehicleLightMode::ON;
-        LOG("Setting % s mode to ON, Only indicator or special purpose light support flashing", object_->LightType2Str(lightType_).c_str());
+        LOG("Setting % s mode to ON, Only indicator or special purpose light support flashing", object_->LightType2Str(lightStatus.type).c_str());
     }
 
     if (lightStatus.type == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
@@ -2440,7 +2440,7 @@ int LightStateAction::prepareLightStateSetAndRgb(Object::VehicleLightActionStatu
 
     if (CheckArrayNonZero(cmyk_, 4) && CheckArrayNonZero(lightStatus.baseRgb, 3))
     {  // both rgb and cmyk value are provided
-        LOG("cmyk and Rgb values provided for % s light color description, Accepting only Rgb values", object_->LightType2Str(lightType_).c_str());
+        LOG("cmyk and Rgb values provided for % s light color description, Accepting only Rgb values", object_->LightType2Str(lightStatus.type).c_str());
     }
     else if (CheckArrayNonZero(cmyk_, 4))
     {

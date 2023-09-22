@@ -1215,8 +1215,8 @@ std::string LightTypeInd2Str(int index)
 void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
 {
 
-    for ( int j = 0; j < static_cast<int>(Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS); j++)
-    {
+    for ( int j = 0; j < 10; j++)
+    {// total 10 lights.
 
         std::string lightName = LightTypeInd2Str(j);
 
@@ -1435,7 +1435,7 @@ void EntityModel::SetRotation(double h, double p, double r)
 
 void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
 {
-    for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
+    for (int i = 0; i < 10; i++)
     {
         if (list[i].type != Object::VehicleLightType::UNDEFINED)
         {
