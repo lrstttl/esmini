@@ -748,24 +748,11 @@ void SwapByteOrder(unsigned char* buf, int data_type_size, int buf_size)
     }
 }
 
-bool CheckArrayNonZero(double array[], int size)
+bool CheckArrayRange0to1(double array[], int size)
 {
     for (int i = 0; i < size; i++)
     {
-        if (!NEAR_ZERO(array[i]))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool CheckArrayNonZero(int array[], int size)
-{
-    for (int i = 0; i < size; i++)
-    {
-        if (array[i] != 0)
+        if (array[i] > 0.0 - SMALL_NUMBER && array[i] < 1.0 + SMALL_NUMBER)
         {
             return true;
         }

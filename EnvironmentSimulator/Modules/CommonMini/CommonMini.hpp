@@ -553,8 +553,7 @@ void SwapByteOrder(unsigned char* buf, int data_type_size, int buf_size);
 /**
         Check whether array contains at least one non-zero element
 */
-bool CheckArrayNonZero(double array[], int size);
-bool CheckArrayNonZero(int array[], int size);
+bool CheckArrayRange0to1(double array[], int size);
 double findMinIncrementArray( double array[], double limit, double percent);
 int adjustByOffsetArray(double (&array)[3], double limit);
 

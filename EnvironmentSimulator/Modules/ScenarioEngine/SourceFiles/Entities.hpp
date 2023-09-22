@@ -174,8 +174,8 @@ namespace scenarioengine
             VehicleLightMode  mode              = VehicleLightMode::UNKNOWN_MODE;
             VehicleLightColor colorName         = VehicleLightColor::UNKNOWN;
             double            luminousIntensity = -1.0; // -1 denotes missing from scenario
-            double            rgb[3]            = {0.0, 0.0, 0.0};  // current rbg
-            double            baseRgb[3]        = {0.0, 0.0, 0.0};  // base rbg
+            double            rgb[3]            = {-1.0, -1.0, -1.0};  // current rbg
+            double            baseRgb[3]        = {-1.0, -1.0, -1.0};  // base rbg
         };
 
         VehicleLightActionStatus vehicleLightActionStatusList[VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS];

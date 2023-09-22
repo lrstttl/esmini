@@ -163,7 +163,6 @@ namespace scenarioengine
         };
 
         ActionType               type_;
-        Object::VehicleLightType lightType_;
         ControlDomains           domain_;
         Object*                  object_;
         ScenarioEngine*          scenarioEngine_;
@@ -171,16 +170,6 @@ namespace scenarioengine
         OSCPrivateAction(OSCPrivateAction::ActionType type, ControlDomains domain)
             : OSCAction(OSCAction::BaseType::PRIVATE),
               type_(type),
-              domain_(domain),
-              object_(0),
-              scenarioEngine_(0)
-        {
-        }
-
-        OSCPrivateAction(OSCPrivateAction::ActionType type, Object::VehicleLightType lightType, ControlDomains domain)
-            : OSCAction(OSCAction::BaseType::PRIVATE),
-              type_(type),
-              lightType_(lightType),
               domain_(domain),
               object_(0),
               scenarioEngine_(0)
@@ -208,11 +197,6 @@ namespace scenarioengine
         ControlDomains GetDomain()
         {
             return domain_;
-        }
-
-        Object::VehicleLightType GetLightType()
-        {
-            return lightType_;
         }
 
         virtual void ReplaceObjectRefs(Object*, Object*){};
@@ -1238,7 +1222,7 @@ namespace scenarioengine
               transitionTime_(0.0),
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
-              cmyk_{0.0, 0.0, 0.0, 0.0}
+              cmyk_{-1.0, -1.0, -1.0, -1.0}
         {
         }
 
@@ -1263,9 +1247,9 @@ namespace scenarioengine
 
 
 
-        int  setVehicleLightType(std::string typeObject, Object::VehicleLightActionStatus& lightStatus);
-        int setVehicleLightMode(std::string mode, Object::VehicleLightActionStatus& lightStatus);
-        int setVehicleLightColor(std::string colorType, Object::VehicleLightActionStatus& lightStatus);
+        int parseVehicleLightType(std::string typeObject, Object::VehicleLightActionStatus& lightStatus);
+        int parseVehicleLightMode(std::string mode, Object::VehicleLightActionStatus& lightStatus);
+        int parseVehicleLightColor(std::string colorType, Object::VehicleLightActionStatus& lightStatus);
 
         void Step(double simTime, double dt);
         void Start(double simTime, double dt);
@@ -1273,13 +1257,18 @@ namespace scenarioengine
         int  setLightTransistionValues(Object::VehicleLightMode mode);
 
         int  checkColorError(double* value, int n);
-        void convertColorAndSetRgb(Object::VehicleLightActionStatus& lightStatus);
-        void convertLightTypeAndSetRgb(Object::VehicleLightActionStatus& lightStatus);
+        void convertColorAndSetBaseRgb(Object::VehicleLightActionStatus& lightStatus);
+        void convertLightTypeAndSetBaseRgb(Object::VehicleLightActionStatus& lightStatus);
 
-        int prepareLightStateSetAndRgb(Object::VehicleLightActionStatus& lightStatus);
+        int setbaseRgbAndPrepare(Object::VehicleLightActionStatus& lightStatus);
+
+        Object::VehicleLightType GetLightType()
+        {
+            return vehicleLightActionStatus.type;
+        }
 
     private:
-        Object::VehicleLightActionStatus vehicleLightActionStatusList;
+        Object::VehicleLightActionStatus vehicleLightActionStatus;
     };
 
     class OverrideControlAction : public OSCPrivateAction

@@ -60,14 +60,19 @@ void Event::Start(double simTime, double dt)
                                 {
                                     if (static_cast<int>(pa2->GetDomain()) == (static_cast<int>(ControlDomains::DOMAIN_LIGHT)))
                                     {
-                                        if (static_cast<int>(pa2->GetLightType()) == static_cast<int>(pa->GetLightType()))
+                                        if (pa2->type_ == OSCPrivateAction::ActionType::LIGHT_STATE_ACTION &&
+                                            pa->type_ == OSCPrivateAction::ActionType::LIGHT_STATE_ACTION)
                                         {
-                                            // LightType overlap, at least one light type in common. Terminate old action.
-                                            LOG("Stopping object %s %s on conflicting %s light(s)",
-                                                obj->name_.c_str(),
-                                                pa2->name_.c_str(),
-                                                obj->LightType2Str(pa2->GetLightType()).c_str());
-                                            pa2->End(simTime);
+                                            LightStateAction *action2 = static_cast<LightStateAction*>(pa2);
+                                            if (action2->GetLightType() == (static_cast<LightStateAction*>(pa))->GetLightType())
+                                            {
+                                                // LightType overlap, at least one light type in common. Terminate old action.
+                                                LOG("Stopping object %s %s on conflicting %s light(s)",
+                                                    obj->name_.c_str(),
+                                                    action2->name_.c_str(),
+                                                    obj->LightType2Str(action2->GetLightType()).c_str());
+                                                action2->End(simTime);
+                                            }
                                         }
                                     }
                                     else

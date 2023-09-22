@@ -2679,9 +2679,9 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -2761,9 +2761,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
     EXPECT_EQ(indState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -2941,9 +2941,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -3098,9 +3098,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 5.0f; t += dt)
@@ -3256,9 +3256,9 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 5.0f; t += dt)
@@ -3389,9 +3389,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
     EXPECT_EQ(indState, 0);
 
     for (; t < 2.5f; t += dt)
