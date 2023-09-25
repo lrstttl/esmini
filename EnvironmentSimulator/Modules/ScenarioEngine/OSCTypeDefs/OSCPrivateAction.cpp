@@ -2252,10 +2252,16 @@ void LightStateAction::Start(double simTime, double dt)
                             ? 1
                             : (vehicleLightActionStatus.luminousIntensity / MAX_INTENSITY_LUM);
 
-    bool useModelRbg = false;
 
-    if (!useModelRbg && !keepBaseColor)
-    {  // take base color from scenario
+    if (!CheckArrayRange0to1(object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb, 3))
+    {  // use base color from scenario if no bse color from models-only once
+        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[0] = vehicleLightActionStatus.baseRgb[0];
+        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[1] = vehicleLightActionStatus.baseRgb[1];
+        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[2] = vehicleLightActionStatus.baseRgb[2];
+    }
+
+    if (!keepBaseColor)
+    {  // use pervious state base color
         object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[0] = vehicleLightActionStatus.baseRgb[0];
         object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[1] = vehicleLightActionStatus.baseRgb[1];
         object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[2] = vehicleLightActionStatus.baseRgb[2];

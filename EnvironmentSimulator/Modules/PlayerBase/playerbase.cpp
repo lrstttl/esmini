@@ -1124,7 +1124,9 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
                 {
                     lightName = Object::VehicleLightType::INDICATOR_LEFT;
                 }
-                if ( obj->LightType2Str(lightName) + "_m" ==  model->light_material_[j]->getOrCreateStateSet()->getName())
+                LOG("light name: %s", obj->LightType2Str(lightName).c_str());
+                LOG("material name: %s", model->light_material_[j]->getOrCreateStateSet()->getName().c_str());
+                if ( obj->LightType2Str(lightName) + "_m" ==  model->light_material_[j]->getOrCreateStateSet()->getName().c_str())
                 {
                     osg::Material *mat = static_cast<osg::Material*>(model->light_material_[j]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
                     const osg::Vec4 &dCol = mat->getDiffuseFrontAndBack()?mat->getDiffuse( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );

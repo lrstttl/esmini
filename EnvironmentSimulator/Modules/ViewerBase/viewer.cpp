@@ -1215,10 +1215,15 @@ std::string LightTypeInd2Str(int index)
 void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
 {
 
-    for ( int j = 0; j < 10; j++)
+    for ( int j = 0; j < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; j++)
     {// total 10 lights.
 
         std::string lightName = LightTypeInd2Str(j);
+        if (lightName == LightTypeInd2Str(Object::VehicleLightType::FOG_LIGHTS) ||
+            lightName == LightTypeInd2Str(Object::VehicleLightType::WARNING_LIGHTS))
+        {// fog light is combination of front and back fog lights same for waring and indicator light
+            break;
+        }
 
         // Find light node
         std::vector<osg::Group*> nodes;
@@ -1435,7 +1440,7 @@ void EntityModel::SetRotation(double h, double p, double r)
 
 void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
     {
         if (list[i].type != Object::VehicleLightType::UNDEFINED)
         {
