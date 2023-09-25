@@ -186,6 +186,60 @@
                      </StartTrigger>
                   </Event>
                </Maneuver>
+               <Maneuver name="specialPurposeLightsRedActionManeuver">
+                  <Event name="specialPurposeLightsRedActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="specialPurposeLightsRedAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction>
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "specialPurposeLights"/>
+                                    </LightType>
+                                    <LightState mode= "flashing">
+                                       <Color colorType="red"/>
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="specialPurposeLightsRedActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="22" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
+               <Maneuver name="specialPurposeLightsBrownActionManeuver">
+                  <Event name="specialPurposeLightsBrownActionEvent" priority="override" maximumExecutionCount="1" >
+                     <Action name="specialPurposeLightsBrownAction">
+                        <PrivateAction>
+                           <AppearanceAction>
+                                 <LightStateAction>
+                                    <LightType>
+                                       <VehicleLight vehicleLightType= "specialPurposeLights"/>
+                                    </LightType>
+                                    <LightState mode= "flashing">
+                                       <Color colorType="green"/>
+                                    </LightState>
+                                 </LightStateAction>
+                           </AppearanceAction>
+                        </PrivateAction>
+                     </Action>
+                     <StartTrigger>
+                        <ConditionGroup>
+                           <Condition name="specialPurposeLightsBrownActionCondition" delay="0" conditionEdge="rising">
+                              <ByValueCondition>
+                                 <SimulationTimeCondition value="24" rule="greaterThan"/>
+                              </ByValueCondition>
+                           </Condition>
+                        </ConditionGroup>
+                     </StartTrigger>
+                  </Event>
+               </Maneuver>
             </ManeuverGroup>
             <StartTrigger>
                <ConditionGroup>
@@ -202,7 +256,7 @@
           <ConditionGroup>
               <Condition conditionEdge="none" delay="0" name="simulationEndEventDone">
                   <ByValueCondition>
-                      <SimulationTimeCondition rule="greaterThan" value="22"/>
+                      <SimulationTimeCondition rule="greaterThan" value="26"/>
                   </ByValueCondition>
               </Condition>
           </ConditionGroup>

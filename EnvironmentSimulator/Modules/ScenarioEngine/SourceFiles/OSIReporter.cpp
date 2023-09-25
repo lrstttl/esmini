@@ -967,7 +967,7 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode == Object::VehicleLightMode::ON)
         {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
+            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
         }
         else if ((objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode ==
@@ -975,7 +975,7 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
                  (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].colorName ==
                   Object::VehicleLightColor::BLUE))
         {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
+            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_FLASHING_BLUE);
         }
         else if ((objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode ==
@@ -983,19 +983,19 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
                  (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].colorName ==
                   Object::VehicleLightColor::ORANGE))
         {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
+            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_FLASHING_AMBER);
         }
 
         else if (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode == Object::VehicleLightMode::OTHER)
         {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
+            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode ==
                  Object::VehicleLightMode::UNKNOWN_MODE)
         {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
+            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_UNKNOWN);
         }
 

@@ -3541,6 +3541,54 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
     EXPECT_EQ(indState, 5);
 
+    for (; t < 23.0f; t += dt)
+    {
+        SE_StepDT(dt);
+    }
+    SE_UpdateOSIGroundTruth();
+
+    gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    osi3::MovingObject_VehicleClassification_LightState_GenericLightState genState = osi_gt.mutable_moving_object(0)->mutable_vehicle_classification()->mutable_light_state()->emergency_vehicle_illumination();
+
+    EXPECT_EQ(SE_GetVehicleLightStatus(0, 10, &lightList), 0);
+    EXPECT_EQ(lightList.lightType, 10);
+    EXPECT_EQ(lightList.colorName, 6);
+    EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
+    EXPECT_EQ(lightList.lightMode, 2);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.14999999999999999);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.14999999999999999);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
+    EXPECT_EQ(genState, 6);
+
+    for (; t < 25.5f; t += dt)
+    {
+        SE_StepDT(dt);
+    }
+    SE_UpdateOSIGroundTruth();
+
+    gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    genState = osi_gt.mutable_moving_object(0)->mutable_vehicle_classification()->mutable_light_state()->emergency_vehicle_illumination();
+
+    EXPECT_EQ(SE_GetVehicleLightStatus(0, 10, &lightList), 0);
+    EXPECT_EQ(lightList.lightType, 10);
+    EXPECT_EQ(lightList.colorName, 4);
+    EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
+    EXPECT_EQ(lightList.lightMode, 2);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.14999999999999999);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.5);
+    EXPECT_EQ(genState, 4);
+
     SE_Close();
 }
 

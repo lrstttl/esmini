@@ -2280,7 +2280,9 @@ void LightStateAction::Start(double simTime, double dt)
     //find final rbg
     if  (vehicleLightActionStatus.mode == Object::VehicleLightMode::ON ||
         (vehicleLightActionStatus.mode == Object::VehicleLightMode::FLASHING &&
-        (perviousMode == Object::VehicleLightMode::OFF || perviousMode == Object::VehicleLightMode::UNKNOWN_MODE)))
+        (perviousMode == Object::VehicleLightMode::OFF ||
+        perviousMode == Object::VehicleLightMode::UNKNOWN_MODE ||
+        perviousMode == Object::VehicleLightMode::FLASHING)))
     {
         // increase to new rbg
         // initial value + (initial value * percentage to be increased)
@@ -2451,6 +2453,8 @@ int LightStateAction::setbaseRgbAndPrepare(Object::VehicleLightActionStatus& lig
         {
             lightStatus.colorName = Object::VehicleLightColor::BLUE;
         }
+        // set base rgb
+        convertColorAndSetBaseRgb(lightStatus);
     }
 
     return 0;
@@ -2503,7 +2507,7 @@ void LightStateAction::convertColorAndSetBaseRgb(Object::VehicleLightActionStatu
     {
         lightStatus.baseRgb[0] = 0.5;
         lightStatus.baseRgb[1] = 0.15;
-        lightStatus.baseRgb[2] = 0;
+        lightStatus.baseRgb[2] = 0.0;
     }
     else if (lightStatus.colorName == Object::VehicleLightColor::BROWN)
     {
@@ -2513,9 +2517,9 @@ void LightStateAction::convertColorAndSetBaseRgb(Object::VehicleLightActionStatu
     }
     else if (lightStatus.colorName == Object::VehicleLightColor::BLACK)
     {
-        lightStatus.baseRgb[0] = 0;
-        lightStatus.baseRgb[1] = 0;
-        lightStatus.baseRgb[2] = 0;
+        lightStatus.baseRgb[0] = 0.0;
+        lightStatus.baseRgb[1] = 0.0;
+        lightStatus.baseRgb[2] = 0.0;
     }
     else if (lightStatus.colorName == Object::VehicleLightColor::GREY)
     {
