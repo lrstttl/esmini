@@ -1708,6 +1708,21 @@ bool SE_Options::GetOptionSet(std::string opt)
     }
 }
 
+bool SE_Options::SetOptionSet(std::string opt, bool boo)
+{
+    SE_Option* option = GetOption(opt);
+
+    if (option)
+    {
+        option->set_ = boo;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool SE_Options::IsOptionArgumentSet(std::string opt)
 {
     return GetOption(opt)->set_;

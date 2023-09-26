@@ -915,7 +915,7 @@ int ScenarioEngine::parseScenario()
             (static_cast<Vehicle*>(obj)->AlignTrailers());
         }
     }
-
+    this->isLightActionActive = scenarioReader->lightStatus;
     return 0;
 }
 

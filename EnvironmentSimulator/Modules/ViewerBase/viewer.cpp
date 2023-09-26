@@ -1241,6 +1241,7 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
                 if (geode->getName().c_str() ==  (lightName + "_m-material"))
                 { // material name in model is lightType_m
                     light_material_.push_back(geode);
+                    geode->setNodeMask(NodeMask::NODE_MASK_LIGHTS_STATE);
                 }
                 else
                 {
@@ -1344,6 +1345,7 @@ CarModel::CarModel(osgViewer::Viewer*       viewer,
     retval[1]                         = AddWheel(car_node, "wheel_fr");
     retval[2]                         = AddWheel(car_node, "wheel_rr");
     retval[3]                         = AddWheel(car_node, "wheel_rl");
+
 
     AddLights(group_);
 
@@ -1835,6 +1837,11 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager,
     SetNodeMaskBits(NodeMask::NODE_MASK_INFO);
     SetNodeMaskBits(NodeMask::NODE_MASK_TRAJECTORY_LINES);
     SetNodeMaskBits(NodeMask::NODE_MASK_ROUTE_WAYPOINTS);
+
+    if (!opt->GetOptionSet("lights"))
+    {
+        ClearNodeMaskBits(NodeMask::NODE_MASK_LIGHTS_STATE);
+    }
 
     roadSensors_ = new osg::Group;
     roadSensors_->setNodeMask(NodeMask::NODE_MASK_ODR_FEATURES);
@@ -3979,6 +3986,14 @@ bool ViewerEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActi
             if (ea.getEventType() & osgGA::GUIEventAdapter::KEYDOWN)
             {
                 viewer_->ToggleNodeMaskBits(viewer::NodeMask::NODE_MASK_OSI_POINTS);
+            }
+        }
+        break;
+        case (osgGA::GUIEventAdapter::KEY_L):
+        {
+            if (ea.getEventType() & osgGA::GUIEventAdapter::KEYDOWN)
+            {
+                viewer_->ToggleNodeMaskBits(viewer::NodeMask::NODE_MASK_LIGHTS_STATE);
             }
         }
         break;

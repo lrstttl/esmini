@@ -823,6 +823,7 @@ public:
     void                      PrintUsage();
     void                      PrintUnknownArgs(std::string message = "Unrecognized arguments:");
     bool                      GetOptionSet(std::string opt);
+    bool                      SetOptionSet(std::string opt, bool boo);
     bool                      IsOptionArgumentSet(std::string opt);
     std::string               GetOptionArg(std::string opt, int index = 0);
     int                       ParseArgs(int argc, const char* const argv[]);

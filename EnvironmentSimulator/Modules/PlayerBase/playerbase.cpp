@@ -633,6 +633,7 @@ int ScenarioPlayer::InitViewer()
     int                arg_count = static_cast<int>(args.size());
 
     // Create viewer
+    opt.SetOptionSet("lights", this->scenarioEngine->scenarioReader->lightStatus);
     osg::ArgumentParser arguments(&arg_count, args.data());
     viewer_ = new viewer::Viewer(roadmanager::Position::GetOpenDrive(),
                                  scenarioEngine->getSceneGraphFilename().c_str(),
@@ -692,6 +693,11 @@ int ScenarioPlayer::InitViewer()
     else if (opt.GetOptionArg("road_features") == "off")
     {
         viewer_->ClearNodeMaskBits(viewer::NodeMask::NODE_MASK_ODR_FEATURES);
+    }
+
+    if (opt.GetOptionSet("lights"))
+    {
+        viewer_->SetNodeMaskBits(viewer::NodeMask::NODE_MASK_LIGHTS_STATE);
     }
 
     if (opt.GetOptionSet("hide_route_waypoints"))
@@ -1266,6 +1272,9 @@ int ScenarioPlayer::Init()
     opt.AddOption("hide_route_waypoints", "Disable route waypoint visualization (toggle with key 'R')");
     opt.AddOption("hide_trajectories", "Hide trajectories from start (toggle with key 'n')");
     opt.AddOption("info_text", "Show on-screen info text (toggle key 'i') mode 0=None 1=current (default) 2=per_object 3=both", "mode");
+    #ifdef _USE_OSG
+        opt.AddOption("lights", "Show lights for light state actions");
+    #endif
     opt.AddOption("logfile_path", "logfile path/filename, e.g. \"../esmini.log\" (default: log.txt)", "path");
     opt.AddOption("osc_str", "OpenSCENARIO XML string", "string");
 #ifdef _USE_OSI

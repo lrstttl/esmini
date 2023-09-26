@@ -3267,6 +3267,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
             LightStateAction                *lightStateAction = new LightStateAction();
             Object::VehicleLightActionStatus LightActionStatus;
             pugi::xml_node                   appearanceActionChild = actionChild.first_child();
+            this->lightStatus = true;
 
             if (appearanceActionChild.name() == std::string("LightStateAction"))
             {
@@ -3385,10 +3386,6 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                 lightStateAction->setbaseRgbAndPrepare(LightActionStatus);
                 lightStateAction->AddVehicleLightActionStatus(LightActionStatus);
                 action = lightStateAction;
-            }
-            else
-            {
-                LOG("LightStateAction missing");
             }
         }
         else
