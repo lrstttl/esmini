@@ -3989,7 +3989,7 @@ bool ViewerEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActi
             }
         }
         break;
-        case (osgGA::GUIEventAdapter::KEY_L):
+        case ('L'):
         {
             if (ea.getEventType() & osgGA::GUIEventAdapter::KEYDOWN)
             {

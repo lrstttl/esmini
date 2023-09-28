@@ -1231,6 +1231,7 @@ namespace scenarioengine
         double initialValueRgb_[3];
         double finalValueRgb[3];
         bool isUserSetRgb = true;
+        bool isRgbFromLightType = false;
         double lum_max = 0.9;
         double lum_default = 0.5;
         Object::VehicleLightMode perviousMode;

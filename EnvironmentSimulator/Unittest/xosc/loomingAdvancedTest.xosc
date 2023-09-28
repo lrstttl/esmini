@@ -5,7 +5,7 @@
 <OpenSCENARIO>
     <FileHeader revMajor="1" revMinor="1" date="2021-08-24T10:00:00" description="Demonstrate ACC controller" author="esmini-team"/>
     <ParameterDeclarations>
-        <ParameterDeclaration name="HostVehicle" parameterType="string" value="car_white"/>
+        <ParameterDeclaration name="HostVehicle" parameterType="string" value="vehicle_light"/>
         <ParameterDeclaration name="EgoSpeed" parameterType="double" value="50.0"/>
         <ParameterDeclaration name="EgoS" parameterType="double" value="0.0"/>
     </ParameterDeclarations>
@@ -69,7 +69,7 @@
                                 <LanePosition roadId="2" laneId="-1" offset="0" s="10"/>
                             </Position>
                         </TeleportAction>
-                    </PrivateAction>                
+                    </PrivateAction>
                     <PrivateAction>
                         <RoutingAction>
                             <AssignRouteAction>
