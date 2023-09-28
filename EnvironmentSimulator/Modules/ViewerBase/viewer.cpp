@@ -1230,24 +1230,33 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
         FindNamedGeode           fnn(lightName, nodes);
         group->accept(fnn);
 
-        for (size_t i = 0; i < nodes.size(); i++)
+        if (!nodes.empty())
         {
-            group_ = nodes[i];
-            if (group_ != NULL)
+            for (size_t i = 0; i < nodes.size(); i++)
             {
-                group_ = static_cast<osg::Group*>(group_->getChild(0));
-                osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
-                // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                if (geode->getName().c_str() ==  (lightName + "_m-material"))
-                { // material name in model is lightType_m
-                    light_material_.push_back(geode);
-                    geode->setNodeMask(NodeMask::NODE_MASK_LIGHTS_STATE);
-                }
-                else
+                group_ = nodes[i];
+                if (group_ != NULL)
                 {
-                    LOG_ONCE("Missing light node %s in vehicle model %s - ignoring", lightName, group->getName().c_str());
+                    group_ = static_cast<osg::Group*>(group_->getChild(0));
+                    osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
+                    // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    if (geode->getName().c_str() ==  (lightName + "_m-material"))
+                    { // material name in model is lightType_m
+                        light_material_.push_back(geode);
+                        geode->setNodeMask(NodeMask::NODE_MASK_LIGHTS_STATE);
+                    }
+                    else
+                    {// no visualization
+                        light_material_.push_back(nullptr);
+                        LOG("Missing light material %s in vehicle model %s - ignoring visualization", lightName.c_str(), group->getName().c_str());
+                    }
                 }
             }
+        }
+        else
+        {// no visualization
+            light_material_.push_back(nullptr);
+            LOG("Missing light node %s in vehicle model %s - ignoring visualization", lightName.c_str(), group->getName().c_str());
         }
     }
 }
@@ -1444,31 +1453,33 @@ void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
 {
     for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
     {
-        if (list[i].type != Object::VehicleLightType::UNDEFINED)
-        {
-             const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
-
-            if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
+        if( light_material_[i] != nullptr)
+        { // no visualization without material
+            if (list[i].type != Object::VehicleLightType::UNDEFINED)
             {
-                osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_LEFT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
-                mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_RIGHT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
-            }
-            else if ( list[i].type == Object::VehicleLightType::FOG_LIGHTS)
-            {
-                osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_FRONT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
-                mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_REAR]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
 
-            }
-            else
-            {
-                osg::Material *mat = static_cast<osg::Material*>(light_material_[list[i].type]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
-            }
+                if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
+                {
+                    osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_LEFT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_RIGHT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                }
+                else if ( list[i].type == Object::VehicleLightType::FOG_LIGHTS)
+                {
+                    osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_FRONT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_REAR]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
 
+                }
+                else
+                {
+                    osg::Material *mat = static_cast<osg::Material*>(light_material_[list[i].type]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                }
+            }
         }
     }
 }

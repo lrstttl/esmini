@@ -1122,30 +1122,30 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
             Object::VehicleLightType lightName = static_cast<Object::VehicleLightType>(i);
             for (size_t j = 0; j < model->light_material_.size(); j++)
             {
-                if ( (lightName == Object::VehicleLightType::FOG_LIGHTS))
-                {// fog light is combination of front and back fog lights same for waring and indicator light
-                    lightName = Object::VehicleLightType::FOG_LIGHTS_REAR;
-                }
-                else if (lightName == Object::VehicleLightType::WARNING_LIGHTS)
+                if( model->light_material_[j] != nullptr)
                 {
-                    lightName = Object::VehicleLightType::INDICATOR_LEFT;
-                }
-                LOG("light name: %s", obj->LightType2Str(lightName).c_str());
-                LOG("material name: %s", model->light_material_[j]->getOrCreateStateSet()->getName().c_str());
-                if ( obj->LightType2Str(lightName) + "_m" ==  model->light_material_[j]->getOrCreateStateSet()->getName().c_str())
-                {
-                    osg::Material *mat = static_cast<osg::Material*>(model->light_material_[j]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    const osg::Vec4 &dCol = mat->getDiffuseFrontAndBack()?mat->getDiffuse( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );
-                    obj->vehicleLightActionStatusList[i].baseRgb[0] = dCol.r();
-                    obj->vehicleLightActionStatusList[i].baseRgb[1] = dCol.g();
-                    obj->vehicleLightActionStatusList[i].baseRgb[2] = dCol.b();
-                    obj->vehicleLightActionStatusList[i].rgb[0] = dCol.r();
-                    obj->vehicleLightActionStatusList[i].rgb[1] = dCol.g();
-                    obj->vehicleLightActionStatusList[i].rgb[2] = dCol.b();
-                    break;
+                    if ( (lightName == Object::VehicleLightType::FOG_LIGHTS))
+                    {// fog light is combination of front and back fog lights same for waring and indicator light
+                        lightName = Object::VehicleLightType::FOG_LIGHTS_REAR;
+                    }
+                    else if (lightName == Object::VehicleLightType::WARNING_LIGHTS)
+                    {
+                        lightName = Object::VehicleLightType::INDICATOR_LEFT;
+                    }
+                    if ( obj->LightType2Str(lightName) + "_m" ==  model->light_material_[j]->getOrCreateStateSet()->getName().c_str())
+                    {
+                        osg::Material *mat = static_cast<osg::Material*>(model->light_material_[j]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
+                        const osg::Vec4 &dCol = mat->getDiffuseFrontAndBack()?mat->getDiffuse( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );
+                        obj->vehicleLightActionStatusList[i].baseRgb[0] = dCol.r();
+                        obj->vehicleLightActionStatusList[i].baseRgb[1] = dCol.g();
+                        obj->vehicleLightActionStatusList[i].baseRgb[2] = dCol.b();
+                        obj->vehicleLightActionStatusList[i].rgb[0] = dCol.r();
+                        obj->vehicleLightActionStatusList[i].rgb[1] = dCol.g();
+                        obj->vehicleLightActionStatusList[i].rgb[2] = dCol.b();
+                        break;
+                    }
                 }
             }
-
         }
     }
 

@@ -2655,15 +2655,20 @@ TEST(TestGetAndSet, OverrideActionTest)
 //
 TEST(TestGetAndSet, BrakeLightActionTest)
 {
-    std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc";
-    const char* Scenario_file = scenario_file.c_str();
+    // std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc";
+
+    const char* args[] =
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc", "--window", "60", "60", "800", "400", "4", "--headless"};
+
+    // const char* Scenario_file = scenario_file.c_str();
     float       dt            = 0.1f;
     float       t             = 0.0f;
 
     int               sv_size = 0;
     osi3::GroundTruth osi_gt;
 
-    ASSERT_EQ(SE_Init(Scenario_file, 0, 0, 0, 0), 0);
+    // ASSERT_EQ(SE_Init(Scenario_file, 0, 0, 0, 0), 0);
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     SE_UpdateOSIGroundTruth();
 
@@ -2679,9 +2684,9 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -2700,10 +2705,10 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.59000000134110453);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.56750000100582842);
     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.20250000301748514);
     EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.20250000301748514);
-    EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
     EXPECT_DOUBLE_EQ(bState, 3);
@@ -2724,10 +2729,10 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.50999999716877942);
+    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.41249999646097424);
     EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.022499993629753579);
     EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.022499993629753579);
-    EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
     EXPECT_DOUBLE_EQ(bState, 2);

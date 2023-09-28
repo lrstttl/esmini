@@ -2266,22 +2266,32 @@ void LightStateAction::Start(double simTime, double dt)
         }
     }
 
+    // set base and initial value
     baseRgb[0] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[0];
     baseRgb[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[1];
     baseRgb[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].baseRgb[2];
 
+    //base value as default initial value
     initialValueRgb_[0] = baseRgb[0];
     initialValueRgb_[1] = baseRgb[1];
     initialValueRgb_[2] = baseRgb[2];
 
+    if (CheckArrayRange0to1(object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb, 3))
+    {// material is missing-rgb will be default value which is replaced with base value
+        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[0] = baseRgb[0];
+        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[1] = baseRgb[1];
+        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[2] = baseRgb[2];
+    }
+
     if (perviousMode == Object::VehicleLightMode::ON ||
         perviousMode == Object::VehicleLightMode::FLASHING ||
         isModelRgbAccepted)
-    { // pervious state- use pervious state value as initial value
+    { // pervious state- use pervious state value as initial value. On, Off, base value is postprocessed in case for rbg from model.
         initialValueRgb_[0] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[0];
         initialValueRgb_[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[1];
         initialValueRgb_[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[2];
     }
+
 
     //find final rbg
     if  (vehicleLightActionStatus.mode == Object::VehicleLightMode::ON ||
@@ -2306,6 +2316,7 @@ void LightStateAction::Start(double simTime, double dt)
         finalValueRgb[2] = baseRgb[2];
     }
 
+    // set remaining light state
     object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].mode = vehicleLightActionStatus.mode;
     object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].luminousIntensity = vehicleLightActionStatus.luminousIntensity;
     object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].type = vehicleLightActionStatus.type;
