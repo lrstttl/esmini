@@ -2276,13 +2276,6 @@ void LightStateAction::Start(double simTime, double dt)
     initialValueRgb_[1] = baseRgb[1];
     initialValueRgb_[2] = baseRgb[2];
 
-    if (CheckArrayRange0to1(object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb, 3))
-    {// material is missing-rgb will be default value which is replaced with base value
-        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[0] = baseRgb[0];
-        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[1] = baseRgb[1];
-        object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[2] = baseRgb[2];
-    }
-
     if (perviousMode == Object::VehicleLightMode::ON ||
         perviousMode == Object::VehicleLightMode::FLASHING ||
         isModelRgbAccepted)
@@ -2291,7 +2284,6 @@ void LightStateAction::Start(double simTime, double dt)
         initialValueRgb_[1] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[1];
         initialValueRgb_[2] = object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].rgb[2];
     }
-
 
     //find final rbg
     if  (vehicleLightActionStatus.mode == Object::VehicleLightMode::ON ||
@@ -2586,8 +2578,8 @@ void LightStateAction::convertLightTypeAndSetBaseRgb(Object::VehicleLightActionS
 
     else if (lightStatus.type == Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS)
     {
-        lightStatus.baseRgb[0] = 0.4005465;
-        lightStatus.baseRgb[1] = 0.4020614;
+        lightStatus.baseRgb[0] = 0.3;
+        lightStatus.baseRgb[1] = 0.3;
         lightStatus.baseRgb[2] = 0.5;
     }
 }
