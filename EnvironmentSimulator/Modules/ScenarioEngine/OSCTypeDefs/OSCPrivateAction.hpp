@@ -1229,7 +1229,14 @@ namespace scenarioengine
         double transitionTimer_ = SMALL_NUMBER;
         double flashingTimer_   = SMALL_NUMBER;
         double initialValueRgb_[3];
-        double finalValueRgb[3];
+        double finalValueRgb_[3];
+
+        double initialDiffRgb_[3];
+        double finalDiffRgb_[3];
+
+        double initialEmissionRgb_[3];
+        double finalEmissionRgb_[3];
+
         bool isUserSetRgb = true;
         bool isRgbFromLightType = false;
         double lum_max = 0.9;
@@ -1237,6 +1244,8 @@ namespace scenarioengine
         Object::VehicleLightMode perviousMode;
         double perviousIntensity;
         double baseRgb[3];
+        double t = 0.0;
+        int emissionFactor = 0;
 
         enum class flashingStatus
         {

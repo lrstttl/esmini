@@ -1451,33 +1451,39 @@ void EntityModel::SetRotation(double h, double p, double r)
 
 void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
 {
-    for (int i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
+    for (unsigned i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
     {
         if( light_material_[i] != nullptr)
         { // no visualization without material
             if (list[i].type != Object::VehicleLightType::UNDEFINED)
             {
-                const osg::Vec4 rgb = {list[i].rgb[0], list[i].rgb[1], list[i].rgb[2], 1.0};
+                osg::Vec4 diffuseRgb(list[i].diffuseRgb[0], list[i].diffuseRgb[1], list[i].diffuseRgb[2], 1.0);
+                osg::Vec4 emissionRgb(list[i].emissionRgb[0], list[i].emissionRgb[1], list[i].emissionRgb[2], 1.0);
 
                 if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
                 {
                     osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_LEFT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, diffuseRgb);
+                    mat->setEmission(osg::Material::FRONT_AND_BACK, emissionRgb);
                     mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::INDICATOR_RIGHT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, diffuseRgb);
+                    mat->setEmission(osg::Material::FRONT_AND_BACK, emissionRgb);
                 }
                 else if ( list[i].type == Object::VehicleLightType::FOG_LIGHTS)
                 {
                     osg::Material *mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_FRONT]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, diffuseRgb);
+                    mat->setEmission(osg::Material::FRONT_AND_BACK, emissionRgb);
                     mat = static_cast<osg::Material*>(light_material_[Object::VehicleLightType::FOG_LIGHTS_REAR]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, diffuseRgb);
+                    mat->setEmission(osg::Material::FRONT_AND_BACK, emissionRgb);
 
                 }
                 else
                 {
                     osg::Material *mat = static_cast<osg::Material*>(light_material_[list[i].type]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, rgb);
+                    mat->setDiffuse(osg::Material::FRONT_AND_BACK, diffuseRgb);
+                    mat->setEmission(osg::Material::FRONT_AND_BACK, emissionRgb);
                 }
             }
         }

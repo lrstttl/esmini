@@ -1136,12 +1136,22 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
                     {
                         osg::Material *mat = static_cast<osg::Material*>(model->light_material_[j]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
                         const osg::Vec4 &dCol = mat->getDiffuseFrontAndBack()?mat->getDiffuse( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );
+                        const osg::Vec4 &eCol = mat->getEmissionFrontAndBack()?mat->getEmission( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );
+
                         obj->vehicleLightActionStatusList[i].baseRgb[0] = dCol.r();
                         obj->vehicleLightActionStatusList[i].baseRgb[1] = dCol.g();
                         obj->vehicleLightActionStatusList[i].baseRgb[2] = dCol.b();
                         obj->vehicleLightActionStatusList[i].rgb[0] = dCol.r();
                         obj->vehicleLightActionStatusList[i].rgb[1] = dCol.g();
                         obj->vehicleLightActionStatusList[i].rgb[2] = dCol.b();
+
+                        obj->vehicleLightActionStatusList[i].diffuseRgb[0] = dCol.r();
+                        obj->vehicleLightActionStatusList[i].diffuseRgb[1] = dCol.g();
+                        obj->vehicleLightActionStatusList[i].diffuseRgb[2] = dCol.b();
+                        obj->vehicleLightActionStatusList[i].emissionRgb[0] = eCol.r();
+                        obj->vehicleLightActionStatusList[i].emissionRgb[1] = eCol.g();
+                        obj->vehicleLightActionStatusList[i].emissionRgb[2] = eCol.b();
+
                         break;
                     }
                 }

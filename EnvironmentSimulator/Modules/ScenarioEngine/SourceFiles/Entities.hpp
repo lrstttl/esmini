@@ -175,6 +175,8 @@ namespace scenarioengine
             VehicleLightColor colorName         = VehicleLightColor::UNKNOWN;
             double            luminousIntensity = -1.0; // -1 denotes missing from scenario
             double            rgb[3]            = {-1.0, -1.0, -1.0};  // current rbg
+            double            diffuseRgb[3]     = {-1.0, -1.0, -1.0};  // current diffuseRbg
+            double            emissionRgb[3]    = {0.0, 0.0, 0.0};  // current emissionRbg
             double            baseRgb[3]        = {-1.0, -1.0, -1.0};  // base rbg
         };
 
