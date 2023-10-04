@@ -968,6 +968,7 @@ int ScenarioPlayer::InitViewer()
         {
             road_sensor = true;
         }
+        viewer_->lightStateAction = opt.GetOptionSet("lights");
 
         if (viewer_->AddEntityModel(viewer_->CreateEntityModel(obj->model3d_,
                                                                trail_color,

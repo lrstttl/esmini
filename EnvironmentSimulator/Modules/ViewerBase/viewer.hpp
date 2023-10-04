@@ -405,7 +405,8 @@ namespace viewer
                  osg::ref_ptr<osg::Node>  dot_node,
                  osg::ref_ptr<osg::Group> route_waypoint_parent,
                  osg::Vec4                trail_color,
-                 std::string              name);
+                 std::string              name,
+                 bool                     lightStatus);
         ~CarModel();
         osg::ref_ptr<osg::PositionAttitudeTransform> AddWheel(osg::ref_ptr<osg::Node> carNode, const char* wheelName);
         void                                         UpdateWheels(double wheel_angle, double wheel_rotation);
@@ -622,6 +623,8 @@ namespace viewer
             return saveImagesToRAM_;
         }
         void Frame();
+
+        bool lightStateAction;
 
     private:
         bool                                         CreateRoadLines(roadmanager::OpenDrive* od);

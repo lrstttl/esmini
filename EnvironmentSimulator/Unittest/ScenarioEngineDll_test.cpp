@@ -2653,7 +2653,7 @@ TEST(TestGetAndSet, OverrideActionTest)
 }
 
 //
-TEST(TestGetAndSet, BrakeLightActionTest)
+TEST(TestLightStateAction, BrakeLightActionTest)
 {
     // std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc";
 
@@ -2740,7 +2740,7 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     SE_Close();
 }
 
-TEST(TestGetAndSet, WarningLightActionTest)
+TEST(TestLightStateAction, WarningLightActionTest)
 {
     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test_baseline.xosc";
     const char* Scenario_file = scenario_file.c_str();
@@ -2920,7 +2920,7 @@ TEST(TestGetAndSet, WarningLightActionTest)
     SE_Close();
 }
 
-TEST(TestGetAndSet, BrakeLightIntensityActionTest)
+TEST(TestLightStateAction, BrakeLightIntensityActionTest)
 {
     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test_intensity.xosc";
     const char* Scenario_file = scenario_file.c_str();
@@ -3077,7 +3077,7 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     SE_Close();
 }
 
-TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
+TEST(TestLightStateAction, BrakeLightColorTypeActionTest)
 {
     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test_colorType.xosc";
     const char* Scenario_file = scenario_file.c_str();
@@ -3235,7 +3235,7 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     SE_Close();
 }
 
-TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
+TEST(TestLightStateAction, BrakeLightUserSetRgbActionTest)
 {
     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test_rgb.xosc";
     const char* Scenario_file = scenario_file.c_str();
@@ -3368,7 +3368,7 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     SE_Close();
 }
 
-TEST(TestGetAndSet, LightConflictLightDomainActionTest)
+TEST(TestLightStateAction, LightConflictLightDomainActionTest)
 {
     std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test_conflict_lightDomain.xosc";
     const char* Scenario_file = scenario_file.c_str();

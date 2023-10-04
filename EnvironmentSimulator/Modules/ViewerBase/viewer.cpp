@@ -1239,6 +1239,7 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
                 {
                     group_ = static_cast<osg::Group*>(group_->getChild(0));
                     osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
+                    // LOG("light material name %s in vehicle model", geode->getName().c_str());
                     // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
                     if (geode->getName().c_str() ==  (lightName + "-material"))
                     { // material name in model is lightType_m
@@ -1341,7 +1342,8 @@ CarModel::CarModel(osgViewer::Viewer*       viewer,
                    osg::ref_ptr<osg::Node>  dot_node,
                    osg::ref_ptr<osg::Group> route_waypoint_parent,
                    osg::Vec4                trail_color,
-                   std::string              name)
+                   std::string              name,
+                   bool                     lightState)
     : MovingModel(viewer, group, parent, trail_parent, traj_parent, dot_node, route_waypoint_parent, trail_color, name)
 {
     wheel_angle_ = 0;
@@ -1355,9 +1357,10 @@ CarModel::CarModel(osgViewer::Viewer*       viewer,
     retval[2]                         = AddWheel(car_node, "wheel_rr");
     retval[3]                         = AddWheel(car_node, "wheel_rl");
 
-
-    AddLights(group_);
-
+    if (lightState)
+    { // no light action,
+        AddLights(group_);
+    }
     // Print message only if some wheel nodes are missing
     if (retval[0] || retval[1] || retval[2] || retval[3])
     {
@@ -1451,7 +1454,7 @@ void EntityModel::SetRotation(double h, double p, double r)
 
 void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
 {
-    for (unsigned i = 0; i < Object::VehicleLightType::NUMBER_OF_VEHICLE_LIGHTS; i++)
+    for (unsigned i = 0; i < light_material_.size(); i++)
     {
         if( light_material_[i] != nullptr)
         { // no visualization without material
@@ -2095,13 +2098,13 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager,
     light->setPosition(osg::Vec4(-7500., 5000., 10000., 1.0));
     light->setDirection(osg::Vec3(7.5, -5., -10.));
 
-    // float ambient = 0.4f;
-    // light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
-    // light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.7f, 1.0f));
-
-    float ambient = 0.0f;
+    float ambient = 0.4f;
     light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
-    light->setDiffuse(osg::Vec4(0.0f, 0.0f, 0.2f, 1.0f));
+    light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.7f, 1.0f));
+
+    // float ambient = 0.0f;
+    // light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
+    // light->setDiffuse(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
     // Overlay text
     osg::ref_ptr<osg::Geode> textGeode = new osg::Geode;
@@ -2551,7 +2554,7 @@ EntityModel* Viewer::CreateEntityModel(std::string             modelFilepath,
     EntityModel* emodel;
     if (type == EntityModel::EntityType::VEHICLE)
     {
-        emodel = new CarModel(osgViewer_, group, rootnode_, trails_, trajectoryLines_, dot_node_, routewaypoints_, trail_color, name);
+        emodel = new CarModel(osgViewer_, group, rootnode_, trails_, trajectoryLines_, dot_node_, routewaypoints_, trail_color, name, this->lightStateAction);
     }
     else if (type == EntityModel::EntityType::MOVING)
     {
