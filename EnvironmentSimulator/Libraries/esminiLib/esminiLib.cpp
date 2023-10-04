@@ -252,9 +252,12 @@ static int copyVehicleLightStatesListFromScenarioEngine(SE_VehicleLightState *st
     states->intensity = obj->vehicleLightActionStatusList[lightIndex].luminousIntensity;
     states->lightMode = static_cast<int>(obj->vehicleLightActionStatusList[lightIndex].mode);
     states->lightType = obj->vehicleLightActionStatusList[lightIndex].type;
-    states->rgb[0]    = obj->vehicleLightActionStatusList[lightIndex].rgb[0];
-    states->rgb[1]    = obj->vehicleLightActionStatusList[lightIndex].rgb[1];
-    states->rgb[2]    = obj->vehicleLightActionStatusList[lightIndex].rgb[2];
+    states->diffuseRgb[0]    = obj->vehicleLightActionStatusList[lightIndex].diffuseRgb[0];
+    states->diffuseRgb[1]    = obj->vehicleLightActionStatusList[lightIndex].diffuseRgb[1];
+    states->diffuseRgb[2]    = obj->vehicleLightActionStatusList[lightIndex].diffuseRgb[2];
+    states->emissionRgb[0]    = obj->vehicleLightActionStatusList[lightIndex].emissionRgb[0];
+    states->emissionRgb[1]    = obj->vehicleLightActionStatusList[lightIndex].emissionRgb[1];
+    states->emissionRgb[2]    = obj->vehicleLightActionStatusList[lightIndex].emissionRgb[2];
     states->baseRgb[0]    = obj->vehicleLightActionStatusList[lightIndex].baseRgb[0];
     states->baseRgb[1]    = obj->vehicleLightActionStatusList[lightIndex].baseRgb[1];
     states->baseRgb[2]    = obj->vehicleLightActionStatusList[lightIndex].baseRgb[2];

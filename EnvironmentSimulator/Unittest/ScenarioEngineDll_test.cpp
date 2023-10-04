@@ -2684,9 +2684,9 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -2705,9 +2705,9 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.56750000100582842);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.20250000301748514);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.20250000301748514);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.56750000100582842);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.20250000301748514);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.20250000301748514);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -2729,9 +2729,9 @@ TEST(TestGetAndSet, BrakeLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.41249999646097424);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.032499990798532941);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.032499990798532941);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.41249999646097424);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.022499993629753579);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.022499993629753579);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -2766,9 +2766,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , -1.0);
     EXPECT_EQ(indState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -2788,9 +2788,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.59000000134110453);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.47375000184401872);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.31100000254809856);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.59000000134110453);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.47375000184401872);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.31100000254809856);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -2813,9 +2813,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.50999999716877942);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.3674999950453639);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.16799999207258229);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.50999999716877942);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.36374999610707159);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.15899999462068082);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -2837,9 +2837,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000.0);
     EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.69999999999999996);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.625);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.52000000000000002);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.69999999999999996);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.625);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.52000000000000002);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -2861,9 +2861,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.69999999999999996);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.625);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.52000000000000002);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.69999999999999996);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.625);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.52000000000000002);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -2885,9 +2885,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000.0);
     EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.34999999999999998);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.14000000000000001);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.34999999999999998);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.14000000000000001);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -2909,9 +2909,9 @@ TEST(TestGetAndSet, WarningLightActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.34999999999999998);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.14000000000000001);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.34999999999999998);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.14000000000000001);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -2946,9 +2946,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 3.0f; t += dt)
@@ -2967,9 +2967,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 12000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.90000000000000002);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.89999999999999991);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.89999999999999991);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.90000000000000002);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.89999999999999991);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.89999999999999991);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -2991,9 +2991,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.69999999999999996);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.45000000000000001);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.45000000000000001);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.69999999999999996);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.45000000000000001);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.45000000000000001);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3016,9 +3016,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 0.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3041,9 +3041,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 10000.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3066,9 +3066,9 @@ TEST(TestGetAndSet, BrakeLightIntensityActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 10000.0);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.83333333333333337);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.75);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.75);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.83333333333333337);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.75);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.75);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3103,9 +3103,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 5.0f; t += dt)
@@ -3125,9 +3125,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 3);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.45);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.70);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.70);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.45);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3150,9 +3150,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 3);
     EXPECT_DOUBLE_EQ(lightList.intensity, 10000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.75);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.83333333333333337);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.75);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.75);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.83333333333333337);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.75);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3175,9 +3175,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 3);
     EXPECT_DOUBLE_EQ(lightList.intensity,-1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3200,9 +3200,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 4);
     EXPECT_DOUBLE_EQ(lightList.intensity,6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.45);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.45);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.70);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.70);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.5);
@@ -3224,9 +3224,9 @@ TEST(TestGetAndSet, BrakeLightColorTypeActionTest)
     EXPECT_EQ(lightList.colorName, 4);
     EXPECT_DOUBLE_EQ(lightList.intensity,-1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.5);
@@ -3261,9 +3261,9 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , -1.0);
     EXPECT_EQ(bState, 0);
 
     for (; t < 5.0f; t += dt)
@@ -3282,9 +3282,9 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     EXPECT_EQ(lightList.colorName, 0);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.45);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.65);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.65);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.45);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3307,9 +3307,9 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     EXPECT_EQ(lightList.colorName, 0);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.4);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3332,9 +3332,9 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     EXPECT_EQ(lightList.colorName, 7);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.45);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.45);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.65);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.45);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.65);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.4);
@@ -3357,9 +3357,9 @@ TEST(TestGetAndSet, BrakeLightUserSetRgbActionTest)
     EXPECT_EQ(lightList.colorName, 7);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.4);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.4);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.4);
@@ -3394,9 +3394,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 4);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], -1.0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , -1.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , -1.0);
     EXPECT_EQ(indState, 0);
 
     for (; t < 2.5f; t += dt)
@@ -3415,9 +3415,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.69999999999999996);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.625);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.52000000000000002);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.69999999999999996);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.625);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.52000000000000002);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -3439,9 +3439,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.35);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.14);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.35);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.14);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -3464,9 +3464,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.35);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.14);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.35);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.14);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -3489,9 +3489,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.53000000044703488);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.39125000061467285);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.1970000008493662);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.53000000044703488);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.39125000061467285);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.1970000008493662);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -3514,9 +3514,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, -1.0);
     EXPECT_EQ(lightList.lightMode, 0);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.57380000085830685);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.47915000150203702);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.34664000240325926);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.57380000085830685);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.45147500118017192);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.28022000163078309);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -3538,9 +3538,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 11);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 1);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.69999999999999996);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.625);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.52000000000000002);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.69999999999999996);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.625);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.52000000000000002);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.35);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.14);
@@ -3562,9 +3562,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 6);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.14999999999999999);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.14999999999999999);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.5);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.14999999999999999);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.0);
@@ -3586,9 +3586,9 @@ TEST(TestGetAndSet, LightConflictLightDomainActionTest)
     EXPECT_EQ(lightList.colorName, 4);
     EXPECT_DOUBLE_EQ(lightList.intensity, 6000);
     EXPECT_EQ(lightList.lightMode, 2);
-    EXPECT_DOUBLE_EQ(lightList.rgb[0], 0.5);
-    EXPECT_DOUBLE_EQ(lightList.rgb[1], 0.14999999999999999);
-    EXPECT_DOUBLE_EQ(lightList.rgb[2], 0.0);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[0] + lightList.emissionRgb[0] , 0.5);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[1] + lightList.emissionRgb[1] , 0.14999999999999999);
+    EXPECT_DOUBLE_EQ(lightList.diffuseRgb[2] + lightList.emissionRgb[2] , 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[0], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[1], 0.0);
     EXPECT_DOUBLE_EQ(lightList.baseRgb[2], 0.5);

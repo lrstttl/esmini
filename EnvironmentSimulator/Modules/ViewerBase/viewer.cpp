@@ -1179,27 +1179,27 @@ std::string LightTypeInd2Str(int index)
     switch(index)
     {
         case Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS:
-            return "daytime_running_light";
+            return "light_daytime_running";
         case Object::VehicleLightType::LOW_BEAM:
-          return "low_beam";
+          return "light_low_beam";
         case Object::VehicleLightType::HIGH_BEAM:
-            return "high_beam";
+            return "light_high_beam";
         case Object::VehicleLightType::FOG_LIGHTS_FRONT:
-           return "fog_light_front";
+           return "light_fog_front";
         case Object::VehicleLightType::FOG_LIGHTS_REAR:
-           return "fog_light_rear";
+           return "light_fog_rear";
         case Object::VehicleLightType::BRAKE_LIGHTS:
-            return "brake_light";
+            return "light_brake";
         case Object::VehicleLightType::INDICATOR_LEFT:
-           return "indicator_left";
+           return "light_indicator_left";
         case Object::VehicleLightType::INDICATOR_RIGHT:
-           return "indicator_right";
+           return "light_indicator_right";
         case Object::VehicleLightType::REVERSING_LIGHTS:
-           return "reversing_light";
+           return "light_reversing";
         case Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION:
-           return "license_plate_illumination";
+           return "light_license_plate";
         case Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS:
-           return "special_purpose_light";
+           return "light_special_purpose";
         case Object::VehicleLightType::FOG_LIGHTS:
             return "fog_light";
         case Object::VehicleLightType::WARNING_LIGHTS:
@@ -1240,7 +1240,7 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
                     group_ = static_cast<osg::Group*>(group_->getChild(0));
                     osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
                     // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
-                    if (geode->getName().c_str() ==  (lightName + "_m-material"))
+                    if (geode->getName().c_str() ==  (lightName + "-material"))
                     { // material name in model is lightType_m
                         light_material_.push_back(geode);
                         geode->setNodeMask(NodeMask::NODE_MASK_LIGHTS_STATE);
@@ -1457,8 +1457,8 @@ void CarModel::UpdateLight(Object::VehicleLightActionStatus* list)
         { // no visualization without material
             if (list[i].type != Object::VehicleLightType::UNDEFINED)
             {
-                osg::Vec4 diffuseRgb(list[i].diffuseRgb[0], list[i].diffuseRgb[1], list[i].diffuseRgb[2], 1.0);
-                osg::Vec4 emissionRgb(list[i].emissionRgb[0], list[i].emissionRgb[1], list[i].emissionRgb[2], 1.0);
+                osg::Vec4d diffuseRgb(list[i].diffuseRgb[0], list[i].diffuseRgb[1], list[i].diffuseRgb[2], 1.0);
+                osg::Vec4d emissionRgb(list[i].emissionRgb[0], list[i].emissionRgb[1], list[i].emissionRgb[2], 1.0);
 
                 if ( list[i].type == Object::VehicleLightType::WARNING_LIGHTS)
                 {
@@ -2094,9 +2094,14 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager,
     osg::Light* light = osgViewer_->getLight();
     light->setPosition(osg::Vec4(-7500., 5000., 10000., 1.0));
     light->setDirection(osg::Vec3(7.5, -5., -10.));
-    float ambient = 0.4f;
+
+    // float ambient = 0.4f;
+    // light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
+    // light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.7f, 1.0f));
+
+    float ambient = 0.0f;
     light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
-    light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.7f, 1.0f));
+    light->setDiffuse(osg::Vec4(0.0f, 0.0f, 0.2f, 1.0f));
 
     // Overlay text
     osg::ref_ptr<osg::Geode> textGeode = new osg::Geode;

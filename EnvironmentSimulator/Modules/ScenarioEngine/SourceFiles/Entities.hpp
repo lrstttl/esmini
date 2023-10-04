@@ -147,7 +147,6 @@ namespace scenarioengine
             OFF          = 0,
             ON           = 1,
             FLASHING     = 2,
-            OTHER        = 3,
             UNKNOWN_MODE = 4
         };
 
@@ -174,7 +173,6 @@ namespace scenarioengine
             VehicleLightMode  mode              = VehicleLightMode::UNKNOWN_MODE;
             VehicleLightColor colorName         = VehicleLightColor::UNKNOWN;
             double            luminousIntensity = -1.0; // -1 denotes missing from scenario
-            double            rgb[3]            = {-1.0, -1.0, -1.0};  // current rbg
             double            diffuseRgb[3]     = {-1.0, -1.0, -1.0};  // current diffuseRbg
             double            emissionRgb[3]    = {0.0, 0.0, 0.0};  // current emissionRbg
             double            baseRgb[3]        = {-1.0, -1.0, -1.0};  // base rbg

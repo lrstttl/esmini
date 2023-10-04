@@ -182,7 +182,8 @@ typedef struct
     int    lightMode;  // according to Entities.hpp::VehicleLightMode
     int    colorName;  // according to Entities.hpp::VehicleLightColor
     double intensity;
-    double rgb[3];
+    double diffuseRgb[3]; // current diffuseRbg
+    double emissionRgb[3];  // current emissionRbg
     double baseRgb[3];
 } SE_VehicleLightState;
 

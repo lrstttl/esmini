@@ -763,11 +763,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_brake_light_state(
                 osi3::MovingObject_VehicleClassification_LightState::BRAKE_LIGHT_STATE_NORMAL);
         }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::BRAKE_LIGHTS].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_brake_light_state(
-                osi3::MovingObject_VehicleClassification_LightState::BRAKE_LIGHT_STATE_OTHER);
-        }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::BRAKE_LIGHTS].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_brake_light_state(
@@ -784,11 +779,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_head_light(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
-        }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::LOW_BEAM].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_head_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::LOW_BEAM].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
@@ -807,11 +797,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_high_beam(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
         }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::HIGH_BEAM].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_high_beam(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
-        }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::HIGH_BEAM].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_high_beam(
@@ -828,11 +813,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_head_light(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
-        }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_head_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::DAY_TIME_RUNNING_LIGHTS].mode ==
                  Object::VehicleLightMode::UNKNOWN_MODE)
@@ -856,13 +836,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_rear_fog_light(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
         }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::FOG_LIGHTS].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_front_fog_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_rear_fog_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
-        }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::FOG_LIGHTS].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_front_fog_light(
@@ -882,11 +855,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_front_fog_light(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
         }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::FOG_LIGHTS_FRONT].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_front_fog_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
-        }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::FOG_LIGHTS_FRONT].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_front_fog_light(
@@ -903,11 +871,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_rear_fog_light(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
-        }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::FOG_LIGHTS_REAR].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_rear_fog_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::FOG_LIGHTS_REAR].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
@@ -926,11 +889,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_reversing_light(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
         }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::REVERSING_LIGHTS].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_reversing_light(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
-        }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::REVERSING_LIGHTS].mode == Object::VehicleLightMode::UNKNOWN_MODE)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_reversing_light(
@@ -947,11 +905,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_ON);
-        }
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_license_plate_illumination_rear(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::LICENSE_PLATER_ILLUMINATION].mode ==
                  Object::VehicleLightMode::UNKNOWN_MODE)
@@ -985,12 +938,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
                 osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_FLASHING_AMBER);
-        }
-
-        else if (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode == Object::VehicleLightMode::OTHER)
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_emergency_vehicle_illumination(
-                osi3::MovingObject_VehicleClassification_LightState::GENERIC_LIGHT_STATE_OTHER);
         }
         else if (objectState->state_.info.light_state[Object::VehicleLightType::SPECIAL_PURPOSE_LIGHTS].mode ==
                  Object::VehicleLightMode::UNKNOWN_MODE)
@@ -1031,13 +978,6 @@ int OSIReporter::UpdateOSIMovingObject(ObjectState *objectState)
         {
             obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_indicator_state(
                 osi3::MovingObject_VehicleClassification_LightState::INDICATOR_STATE_UNKNOWN);
-        }
-        else if ((objectState->state_.info.light_state[Object::VehicleLightType::WARNING_LIGHTS].mode == Object::VehicleLightMode::OTHER) &&
-                 (objectState->state_.info.light_state[Object::VehicleLightType::INDICATOR_LEFT].mode == Object::VehicleLightMode::OTHER) &&
-                 (objectState->state_.info.light_state[Object::VehicleLightType::INDICATOR_RIGHT].mode == Object::VehicleLightMode::OTHER))
-        {
-            obj_osi_internal.mobj->mutable_vehicle_classification()->mutable_light_state()->set_indicator_state(
-                osi3::MovingObject_VehicleClassification_LightState::INDICATOR_STATE_OTHER);
         }
 
 #endif
