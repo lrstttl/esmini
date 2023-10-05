@@ -2658,7 +2658,7 @@ TEST(TestLightStateAction, BrakeLightActionTest)
     // std::string scenario_file = "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc";
 
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc", "--window", "60", "60", "800", "400", "4", "--headless"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/light_test.xosc", "--window", "60", "60", "800", "400", "4", "--headless", "--path", "../../../resources/models"};
 
     // const char* Scenario_file = scenario_file.c_str();
     float       dt            = 0.1f;

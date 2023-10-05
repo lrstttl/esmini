@@ -2322,7 +2322,7 @@ void LightStateAction::Start(double simTime, double dt)
     }
 
     // set remaining light state
-    
+
     object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].mode = vehicleLightActionStatus.mode;
     object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].luminousIntensity = vehicleLightActionStatus.luminousIntensity;
     object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].type = vehicleLightActionStatus.type;

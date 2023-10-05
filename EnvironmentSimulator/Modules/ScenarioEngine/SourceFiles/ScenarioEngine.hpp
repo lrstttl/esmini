@@ -159,7 +159,6 @@ namespace scenarioengine
         double   trueTime_;
         bool     doOnce = true;
         SE_Mutex mutex_;
-        bool isLightActionActive = false;
 
     private:
         // OpenSCENARIO parameters

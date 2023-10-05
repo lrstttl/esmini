@@ -624,7 +624,7 @@ namespace viewer
         }
         void Frame();
 
-        bool lightStateAction;
+        bool isLightStateAction;
 
     private:
         bool                                         CreateRoadLines(roadmanager::OpenDrive* od);

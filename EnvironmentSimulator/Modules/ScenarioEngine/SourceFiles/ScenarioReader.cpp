@@ -563,7 +563,7 @@ Vehicle *ScenarioReader::parseOSCVehicle(pugi::xml_node vehicleNode)
     {
         vehicle->model3d_ = parameters.ReadAttribute(vehicleNode, "model3d");
     }
-    else if (vehicle->properties_.file_.filepath_ != "")
+    else if (vehicle->properties_.file_.filepath_ != "")    
     {
         vehicle->model3d_ = vehicle->properties_.file_.filepath_;
     }
@@ -3267,7 +3267,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
             LightStateAction                *lightStateAction = new LightStateAction();
             Object::VehicleLightActionStatus LightActionStatus;
             pugi::xml_node                   appearanceActionChild = actionChild.first_child();
-            this->lightStatus = true;
+            lightStatusOn = true;
 
             if (appearanceActionChild.name() == std::string("LightStateAction"))
             {
@@ -3285,20 +3285,24 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         {
                             if (lightTypeChild.name() == std::string("VehicleLight"))
                             {
-                                lightStateAction->parseVehicleLightType(parameters.ReadAttribute(lightTypeChild, "vehicleLightType"),
-                                                                      LightActionStatus);
+                                if(lightStateAction->parseVehicleLightType(parameters.ReadAttribute(lightTypeChild, "vehicleLightType"),
+                                                                      LightActionStatus))
+                                { // unkown light type
+                                    delete lightStateAction;
+                                    return 0;
+                                }
                             }
                             else if (lightTypeChild.name() == std::string("UserDefinedLight"))
                             {
                                 LOG("Skipping, UserDefinedLight not supported yet");
                                 delete lightStateAction;
-                                return 0;
+                                return nullptr;
                             }
                             else
                             { // shall be stoped
                                 LOG("Skipping, VehicleLight mandatory field in %s", lightTypeChild.name());
                                 delete lightStateAction;
-                                return 0;
+                                return nullptr;
                             }
                         }
                     }
@@ -3349,7 +3353,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                         { //shall be stoped
                                             LOG("Skipping, Any of Rgb values missing in %s", colourDesChild.name());
                                             delete lightStateAction;
-                                            return 0;
+                                            return nullptr;
                                         }
                                         LightActionStatus.baseRgb[0] = strtod(parameters.ReadAttribute(colourDesChild, "red"));
                                         LightActionStatus.baseRgb[1] = strtod(parameters.ReadAttribute(colourDesChild, "green"));
@@ -3364,7 +3368,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                                         {// shall be stoped
                                             LOG("Exiting,Any of CMYK values missing %s", colourDesChild.name());
                                             delete lightStateAction;
-                                            return 0;
+                                            return nullptr;
                                         }
                                         lightStateAction->cmyk_[0] = strtod(parameters.ReadAttribute(colourDesChild, "cyan"));
                                         lightStateAction->cmyk_[1] = strtod(parameters.ReadAttribute(colourDesChild, "magenta"));

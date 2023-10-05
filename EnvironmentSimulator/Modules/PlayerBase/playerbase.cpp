@@ -633,7 +633,7 @@ int ScenarioPlayer::InitViewer()
     int                arg_count = static_cast<int>(args.size());
 
     // Create viewer
-    opt.SetOptionSet("lights", this->scenarioEngine->scenarioReader->lightStatus);
+    opt.SetOptionSet("lights", this->scenarioEngine->scenarioReader->lightStatusOn);
     osg::ArgumentParser arguments(&arg_count, args.data());
     viewer_ = new viewer::Viewer(roadmanager::Position::GetOpenDrive(),
                                  scenarioEngine->getSceneGraphFilename().c_str(),
@@ -968,7 +968,7 @@ int ScenarioPlayer::InitViewer()
         {
             road_sensor = true;
         }
-        viewer_->lightStateAction = opt.GetOptionSet("lights");
+        viewer_->isLightStateAction = opt.GetOptionSet("lights");
 
         if (viewer_->AddEntityModel(viewer_->CreateEntityModel(obj->model3d_,
                                                                trail_color,
@@ -1133,7 +1133,7 @@ void ScenarioPlayer::InitVehicleModel(Object* obj, viewer::CarModel* model)
                     {
                         lightName = Object::VehicleLightType::INDICATOR_LEFT;
                     }
-                    if ( obj->LightType2Str(lightName) + "_m" ==  model->light_material_[j]->getOrCreateStateSet()->getName().c_str())
+                    if ( obj->LightType2Str(lightName) ==  model->light_material_[j]->getOrCreateStateSet()->getName().c_str())
                     {
                         osg::Material *mat = static_cast<osg::Material*>(model->light_material_[j]->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
                         const osg::Vec4 &dCol = mat->getDiffuseFrontAndBack()?mat->getDiffuse( osg::Material::FRONT_AND_BACK ):mat->getDiffuse( osg::Material::FRONT );
