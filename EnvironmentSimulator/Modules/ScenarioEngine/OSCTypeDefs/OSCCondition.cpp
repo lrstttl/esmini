@@ -275,7 +275,7 @@ bool OSCCondition::Evaluate(StoryBoard* storyBoard, double sim_time)
             // Trigger the global condition callback
             if (conditionCallback != nullptr)
             {
-                conditionCallback(name_.c_str(), sim_time);
+                conditionCallback(name_.c_str(), sim_time); 
             }
 
             return true;
@@ -365,6 +365,8 @@ bool Trigger::Evaluate(StoryBoard* storyBoard, double sim_time)
             for (size_t j = 0; j < conditionGroup_[i]->condition_.size(); j++)
             {
                 conditionGroup_[i]->condition_[j]->Log();
+               // restart the condition state for next execution iteration
+                conditionGroup_[i]->condition_[j]->state_ = OSCCondition::ConditionState::IDLE;
                 if (conditionGroup_[i]->condition_[j]->base_type_ == OSCCondition::ConditionType::BY_ENTITY)
                 {
                     TrigByEntity* trigger = static_cast<TrigByEntity*>(conditionGroup_[i]->condition_[j]);

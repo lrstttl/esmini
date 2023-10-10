@@ -1233,13 +1233,14 @@ void CarModel::AddLights(osg::ref_ptr<osg::Group> group)
 
         if (!nodes.empty())
         {
+            osg::ref_ptr<osg::Group>  groupNew;
             for (size_t i = 0; i < nodes.size(); i++)
             {
-                group_ = nodes[i];
-                if (group_ != NULL)
+                groupNew = nodes[i];
+                if (groupNew != NULL)
                 {
-                    group_ = static_cast<osg::Group*>(group_->getChild(0));
-                    osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(group_->getChild(0));
+                    groupNew = static_cast<osg::Group*>(groupNew->getChild(0));
+                    osg::ref_ptr<osg::Geode> geode = static_cast<osg::Geode*>(groupNew->getChild(0));
                     // LOG("light material name %s in vehicle model", geode->getName().c_str());
                     // osg::Material *mat = static_cast<osg::Material*>(geode->getOrCreateStateSet()->getAttribute( osg::StateAttribute::MATERIAL ));
                     if (geode->getName().c_str() ==  (lightName + "-material"))
@@ -2112,13 +2113,15 @@ Viewer::Viewer(roadmanager::OpenDrive* odrManager,
     light->setPosition(osg::Vec4(-7500., 5000., 10000., 1.0));
     light->setDirection(osg::Vec3(7.5, -5., -10.));
 
-    // float ambient = 0.4f;
-    // light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
-    // light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.7f, 1.0f));
-
+#if 1
+    float ambient = 0.4f;
+    light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
+    light->setDiffuse(osg::Vec4(0.8f, 0.8f, 0.7f, 1.0f));
+#else  // dark
     float ambient = 0.0f;
     light->setAmbient(osg::Vec4(ambient, ambient, 0.9f * ambient, 1.0f));
     light->setDiffuse(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+#endif
 
     // Overlay text
     osg::ref_ptr<osg::Geode> textGeode = new osg::Geode;
@@ -2349,7 +2352,7 @@ EntityModel* Viewer::CreateEntityModel(std::string             modelFilepath,
     {
         if (entities_[i]->filename_ == modelFilepath)
         {
-            modelgroup = dynamic_cast<osg::Group*>(entities_[i]->group_->getChild(0)->asGroup()->getChild(0)->clone(osg::CopyOp::DEEP_COPY_NODES));
+            modelgroup = dynamic_cast<osg::Group*>(entities_[i]->group_->getChild(0)->asGroup()->getChild(0)->clone(osg::CopyOp::DEEP_COPY_ALL));
             modelBB    = entities_[i]->modelBB_;
             break;
         }
