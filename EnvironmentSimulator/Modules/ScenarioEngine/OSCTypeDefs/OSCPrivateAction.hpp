@@ -73,7 +73,7 @@ namespace scenarioengine
             Acquire_POSITION,
             SYNCHRONIZE_ACTION,
             CONNECT_TRAILER_ACTION,
-            APPEARANCE_ACTION
+            LIGHT_STATE_ACTION
         };
 
         enum class DynamicsDimension
@@ -1218,7 +1218,7 @@ namespace scenarioengine
         double cmyk_[4];
 
         LightStateAction()
-            : OSCPrivateAction(OSCPrivateAction::ActionType::APPEARANCE_ACTION, ControlDomains::DOMAIN_NONE, Object::VehicleLightType::HIGH_BEAM),
+            : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_ACTION, ControlDomains::DOMAIN_NONE),
               transitionTime_(0.0),
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
