@@ -17,22 +17,22 @@
    </RoadNetwork>
    <Entities>
       <ScenarioObject name="Car1">
-         <CatalogReference catalogName="VehicleCatalog" entryName="car_white_lights" />
+         <CatalogReference catalogName="VehicleCatalog" entryName="car_white" />
       </ScenarioObject>
       <ScenarioObject name="Car2">
-         <CatalogReference catalogName="VehicleCatalog" entryName="car_white_lights" />
+         <CatalogReference catalogName="VehicleCatalog" entryName="car_white" />
       </ScenarioObject>
       <ScenarioObject name="Car3">
-         <CatalogReference catalogName="VehicleCatalog" entryName="car_white_lights" />
+         <CatalogReference catalogName="VehicleCatalog" entryName="car_white" />
       </ScenarioObject>
       <ScenarioObject name="Car4">
-         <CatalogReference catalogName="VehicleCatalog" entryName="car_white_lights" />
+         <CatalogReference catalogName="VehicleCatalog" entryName="car_white" />
       </ScenarioObject>
       <ScenarioObject name="Car5">
-         <CatalogReference catalogName="VehicleCatalog" entryName="car_white_lights" />
+         <CatalogReference catalogName="VehicleCatalog" entryName="car_white" />
       </ScenarioObject>
       <ScenarioObject name="Car6">
-         <CatalogReference catalogName="VehicleCatalog" entryName="car_white_lights" />
+         <CatalogReference catalogName="VehicleCatalog" entryName="car_white" />
       </ScenarioObject>
    </Entities>
    <Storyboard>
