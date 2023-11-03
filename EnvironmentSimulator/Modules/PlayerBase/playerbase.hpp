@@ -15,6 +15,7 @@
 #include <random>
 
 #include "ScenarioEngine.hpp"
+#include "DatLogger.hpp"
 #include "RoadManager.hpp"
 #include "CommonMini.hpp"
 #include "Server.hpp"
@@ -172,6 +173,7 @@ namespace scenarioengine
         }
 
         CSV_Logger      *CSV_Log;
+        DatLogger       *datLogger;
         ScenarioEngine  *scenarioEngine;
         ScenarioGateway *scenarioGateway;
 #ifdef _USE_OSI

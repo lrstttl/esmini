@@ -1622,7 +1622,9 @@ int ScenarioPlayer::Init()
         }
 
         LOG("Recording data to file %s", filename.c_str());
-        scenarioGateway->RecordToFile(filename, scenarioEngine->getOdrFilename(), scenarioEngine->getSceneGraphFilename());
+        // scenarioGateway->RecordToFile(filename, scenarioEngine->getOdrFilename(), scenarioEngine->getSceneGraphFilename());
+        // init the logger.
+        datLogger->init(filename, scenarioEngine->getOdrFilename(), scenarioEngine->getSceneGraphFilename());
     }
 
     if (launch_server)
