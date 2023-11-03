@@ -31,6 +31,7 @@ void DatLogger::logPackage(PackageStructPos package )
 {
     if (data_file_.is_open())
     {
+
         PackageStructPos pos = getLatestPackage<PackageStructPos>(package.hdr.id);
         if (pos.pos.h == package.pos.h)
         {
@@ -102,17 +103,53 @@ T DatLogger::getLatestPackage(const int id) {
 
     // Find the package with the specified ID, searching backward from the end of the file.
     T package;
-    std::cout << "Complete Package Size: " << sizeof(T) << std::endl;
+    std::cout << "Given Package Size: " << sizeof(T) << std::endl;
     if (static_cast<int>(lastPointerPosition) < static_cast<int>(sizeof(T)) || isFirstEntry)
     {
+        data_file_.seekg(currentFilePointerPosition, std::ios::beg);
         std::streampos exitPointerPosition = data_file_.tellg();
         std::cout << "Pointer num: " << exitPointerPosition <<" while exit" << std::endl;
         return T();
     }
-
+    int searchingPackSize = 0;
     // std::cout << "Complete Package Size T: " << sizeof(T) << std::endl;
     while (data_file_.tellg() > 0) {
-        data_file_.seekg(-sizeof(T), std::ios::cur);
+
+        data_file_.seekg(-4, std::ios::cur);
+        searchingPackSize += 4;
+        std::cout << "Searching package size: " << searchingPackSize << " dynamic"<<std::endl;
+        std::streampos dynamic_position = data_file_.tellg();
+
+        // Check if the seekg() function was successful.
+        if (dynamic_position == std::streampos(-1)) {
+            std::cout << "pointer did not moved" << std::endl;
+        // Handle the error.
+        }
+
+        std::cout << "Pointer num: " << dynamic_position <<" dynamic" << std::endl;
+
+        // check furthur in case last package
+        if (data_file_.tellg() != 0)
+        {
+            // continue searching for two package end Read the pervious package end.
+            data_file_.read(reinterpret_cast<char*>(&package.package_end.end_of_package), 4);
+            std::cout << "Pointer num: " << data_file_.tellg() <<" read" << std::endl;
+            // // move back again
+            data_file_.seekg(-4, std::ios::cur);
+            std::cout << "Pointer num: " << data_file_.tellg()<<" corrected" << std::endl;
+
+            // continue searching till same size package as given package
+            if (package.package_end.end_of_package != sizeof(T)) {
+                searchingPackSize = 0;
+            continue;
+            }
+
+            std::cout << "---Package size matches with given package---- " << std::endl;
+
+        }
+        data_file_.seekg(-(sizeof(T)-4), std::ios::cur);
+
+        std::cout << "Pointer Num after matching size: " << data_file_.tellg() << std::endl;
 
         // Read the package ID.
         data_file_.read(reinterpret_cast<char*>(&package.hdr.id), sizeof(package.hdr.id));
@@ -121,6 +158,8 @@ T DatLogger::getLatestPackage(const int id) {
         if (package.hdr.id != id) {
         continue;
         }
+
+        std::cout << "---Package id matches with id package---- " << std::endl;
 
         // Read the package size.
         data_file_.read(reinterpret_cast<char*>(&package.hdr.size), sizeof(package.hdr.size));
@@ -138,7 +177,7 @@ T DatLogger::getLatestPackage(const int id) {
         data_file_.read(reinterpret_cast<char*>(&package), sizeof(package));
 
         // Read the package data.
-        std::cout << "---Package found---- " << std::endl;
+        std::cout << "---Package found with same id and size as given---- " << std::endl;
         std::cout << "Complete Package Size: " << sizeof(package) << std::endl;
         // std::cout << "Package id Size: " << sizeof(package.hdr.id) << std::endl;
         // std::cout << "Package size Size: " << sizeof(package.hdr.size) << std::endl;
