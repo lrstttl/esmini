@@ -1,9 +1,62 @@
-// logDat
+/*
+ * esmini - Environment Simulator Minimalistic
+ * https://github.com/esmini/esmini
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) partners of Simulation Scenarios
+ * https://sites.google.com/view/simulationscenarios
+ */
 
 #include <iostream>
-#include <fstream>
 
 #include "DatLogger.hpp"
+
+using namespace scenarioengine;
+
+void DatLogger::step(const ObjectState &objState )
+// void DatLogger::step()
+{
+    if (data_file_.is_open())
+    {
+        PackageStructTime packageTime;
+        packageTime.hdr.id = static_cast<int>(PackageId::TIME_SERIES); // version id
+        packageTime.hdr.size = sizeof(objState.state_.info.timeStamp);
+        packageTime.time = objState.state_.info.timeStamp;
+        packageTime.package_end.end_of_package = sizeof(packageTime);
+        std::cout << "------Time Package->Send----- " << std::endl;
+        // // // std::cout << "Complete Package Size: " << sizeof(packageVersion) << std::endl;
+        // // // std::cout << "Package id Size: " << sizeof(packageVersion.hdr.id) << std::endl;
+        // // // std::cout << "Package size Size: " << sizeof(packageVersion.hdr.size) << std::endl;
+        // // // std::cout << "Package content Size: " << sizeof(packageVersion.version) << std::endl;
+        // // // std::cout << "------------------------- " << std::endl;
+        logPackage(packageTime);
+        std::cout << "------------------------- " << std::endl;
+
+        PackageStructPos packagePos;
+        packagePos.hdr.id = static_cast<int>(PackageId::POSITIONS); // version id
+        packagePos.pos.id = objState.state_.info.id;
+        packagePos.pos.x = objState.state_.pos.GetX();
+        packagePos.pos.y = objState.state_.pos.GetY();
+        packagePos.pos.z = objState.state_.pos.GetZ();
+        packagePos.pos.h = objState.state_.pos.GetH();
+        packagePos.pos.r = objState.state_.pos.GetR();
+        packagePos.pos.p = objState.state_.pos.GetP();
+        packagePos.hdr.size = sizeof(packagePos.pos);
+        packagePos.package_end.end_of_package = sizeof(packagePos);
+        std::cout << "------Pos package->Send----- " << std::endl;
+        // std::cout << "Complete Package Size: " << sizeof(packagePos) << std::endl;
+        // std::cout << "Package id Size: " << sizeof(packagePos.hdr.id) << std::endl;
+        // std::cout << "Package size Size: " << sizeof(packagePos.hdr.size) << std::endl;
+        // std::cout << "Package content Size: " << sizeof(packagePos.pos) << std::endl;
+        // std::cout << "------------------------- " << std::endl;
+        logPackage(packagePos);
+        std::cout << "------------------------- " << std::endl;
+
+    }
+}
 
 void DatLogger::logPackage(PackageStructVersion package )
 {
@@ -33,7 +86,9 @@ void DatLogger::logPackage(PackageStructPos package )
     {
 
         PackageStructPos pos = getLatestPackage<PackageStructPos>(package.hdr.id);
-        if (pos.pos.h == package.pos.h)
+        if (pos.pos.h == package.pos.h && pos.pos.id == package.pos.id && pos.pos.p == package.pos.p &&
+            pos.pos.r == package.pos.r && pos.pos.x == package.pos.x && pos.pos.y == package.pos.y &&
+            pos.pos.z == package.pos.z)
         {
             std::printf("Package skipped->same as pervious\n");
         }
@@ -55,7 +110,7 @@ void DatLogger::logPackage(PackageStructTime package )
     if (data_file_.is_open())
     {
         PackageStructTime time_s = getLatestPackage<PackageStructTime>(package.hdr.id);
-        if (time_s.time == package.time)
+        if (time_s.time == package.time && time_s.package_end.end_of_package == package.package_end.end_of_package)
         {
             std::printf("Package skipped->same as pervious\n");
         }
@@ -81,6 +136,23 @@ int DatLogger::init(std::string fileName)
         std::printf("Cannot open file: %s", fileName.c_str());
         return -1;
     }
+
+    // Write status to file - for later replay
+    PackageStructVersion packageVersion;
+    packageVersion.hdr.id = static_cast<int>(PackageId::VERSION); // version id
+    packageVersion.hdr.size = sizeof(int);
+    packageVersion.version = DAT_FILE_FORMAT_VERSION;
+    packageVersion.package_end.end_of_package = sizeof(packageVersion);
+    std::cout << "------Version Package->Send----- " << std::endl;
+    // std::cout << "Complete Package Size: " << sizeof(packageVersion) << std::endl;
+    // std::cout << "Package id Size: " << sizeof(packageVersion.hdr.id) << std::endl;
+    // std::cout << "Package size Size: " << sizeof(packageVersion.hdr.size) << std::endl;
+    // std::cout << "Package content Size: " << sizeof(packageVersion.version) << std::endl;
+    // std::cout << "Package size end: " << sizeof(packageVersion.package_end) << std::endl;
+    // std::cout << "------------------------- " << std::endl;
+    data_file_.write(reinterpret_cast<char*>(&packageVersion), sizeof(packageVersion));
+    std::cout << "------------------------- " << std::endl;
+
     return 0;
 }
 
@@ -104,7 +176,7 @@ T DatLogger::getLatestPackage(const int id) {
     // Find the package with the specified ID, searching backward from the end of the file.
     T package;
     std::cout << "Given Package Size: " << sizeof(T) << std::endl;
-    if (static_cast<int>(lastPointerPosition) < static_cast<int>(sizeof(T)) || isFirstEntry)
+    if (static_cast<int>(lastPointerPosition) < static_cast<int>(sizeof(T)))
     {
         data_file_.seekg(currentFilePointerPosition, std::ios::beg);
         std::streampos exitPointerPosition = data_file_.tellg();

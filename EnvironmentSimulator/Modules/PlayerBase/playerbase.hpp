@@ -173,7 +173,6 @@ namespace scenarioengine
         }
 
         CSV_Logger      *CSV_Log;
-        DatLogger       *datLogger;
         ScenarioEngine  *scenarioEngine;
         ScenarioGateway *scenarioGateway;
 #ifdef _USE_OSI
