@@ -1055,6 +1055,7 @@ void ScenarioGateway::WriteStatesToFile()
         // datLogger->step(objState);
         if (datLogger != nullptr)
         {
+            std::cout << "No package written " << std::endl;
             // datLogger->step();
             datLogger->step(objState);
         }
@@ -1073,7 +1074,7 @@ int ScenarioGateway::RecordToFile(std::string filename, std::string odr_filename
                 return -1;
             }
 
-            if (datLogger->init(filename) != 0)
+            if (datLogger->init(filename, odr_filename, model_filename) != 0)
             {
                 delete datLogger;
                 datLogger = nullptr;

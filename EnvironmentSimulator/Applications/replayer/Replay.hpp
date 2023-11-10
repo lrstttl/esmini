@@ -16,6 +16,7 @@
 #include <fstream>
 #include "CommonMini.hpp"
 #include "ScenarioGateway.hpp"
+#include "DatLogger.hpp"
 
 namespace scenarioengine
 {
@@ -30,6 +31,10 @@ namespace scenarioengine
     public:
         DatHeader                header_;
         std::vector<ReplayEntry> data_;
+
+        PackageStructVersion     version_;
+        pkgModelFilename  modelName_;
+        pkgOdrFilename    odrName_;
 
         Replay(std::string filename, bool clean);
         // Replay(const std::string directory, const std::string scenario, bool clean);

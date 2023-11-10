@@ -26,53 +26,72 @@ namespace scenarioengine
         TIME_SERIES = 13,
         ODR_FILENAME = 14,
         OSC_BOUNDING_BOX = 15,
+        MODEL_FILENAME = 16,
     };
-    #pragma pack(push, 4)
+
     typedef struct
     {
         int id;
-        int size;
-    } CommonPackageHeader;
+        int content_size;
+    } CommonPkgHdr;
 
     typedef struct
     {
-        int end_of_package;
-    } CommonPackageEnd;
+        int pkg_size;
+    } CommonPkgEnd;
 
     typedef struct
     {
-        CommonPackageHeader hdr;
+        CommonPkgHdr hdr;
         unsigned int version;
-        CommonPackageEnd package_end;
-    } PackageStructVersion;
+        CommonPkgEnd pkg_end;
+    } PkgVersion;
 
     typedef struct
     {
-        int   id;
+        CommonPkgHdr hdr;
+        char *odr_filename;
+        CommonPkgEnd pkg_end;
+    } pkgOdrFilename;
+
+    typedef struct
+    {
+        CommonPkgHdr hdr;
+        char *model_filename;
+        CommonPkgEnd pkg_end;
+    } pkgModelFilename;
+
+    typedef struct
+    {
+        CommonPkgHdr hdr;
+        double time;
+        CommonPkgEnd pkg_end;
+    } PkgTime;
+
+    typedef struct
+    {
+        CommonPkgHdr hdr;
+        double Obj_id;
+        CommonPkgEnd pkg_end;
+    } PkgObjId;
+
+    typedef struct
+    {
         double x;
         double y;
         double z;
         double h;
         double r;
         double p;
-    } PackageStructPosition;
-
-
-    typedef struct
-    {
-        CommonPackageHeader hdr;
-        PackageStructPosition pos;
-        CommonPackageEnd package_end;
-    } PackageStructPos;
+    } Positions;
 
     typedef struct
     {
-        CommonPackageHeader hdr;
-        double time;
-        CommonPackageEnd package_end;
-    } PackageStructTime;
+        CommonPkgHdr hdr;
+        Positions pos;
+        CommonPkgEnd pkg_end;
+    } PkgPos;
 
-    #pragma pack(pop)
 
     class ObjectState; // Forward declaration of class ObjectState
 
@@ -85,20 +104,21 @@ namespace scenarioengine
         ~DatLogger() {
             data_file_.flush();
             data_file_.close();
+            std::cout << "---------------------------------file closed successfully in destructure" << std::endl;
         }
         bool isFirstEntry = true;
         bool notFirstEnd = false;
 
-        int init(std::string fileName);
+        int init(std::string fileName, std::string odr_filename, std::string model_filename);
 
         // Log a common package
-        void logPackage(PackageStructVersion package);
-        void logPackage(PackageStructPos package );
-        void logPackage(PackageStructTime package );
+        void logPackage(PkgVersion package);
+        void logPackage(PkgPos package );
+        void logPackage(PkgTime package );
         void step(const ObjectState &objState);
         // void step();
         template <typename T>
-        T getLatestPackage(const int id);
+        T getLatestPackage(const int id, const int size);
 
     };
 

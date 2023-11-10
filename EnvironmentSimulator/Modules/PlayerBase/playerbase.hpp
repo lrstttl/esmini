@@ -15,7 +15,6 @@
 #include <random>
 
 #include "ScenarioEngine.hpp"
-#include "DatLogger.hpp"
 #include "RoadManager.hpp"
 #include "CommonMini.hpp"
 #include "Server.hpp"
