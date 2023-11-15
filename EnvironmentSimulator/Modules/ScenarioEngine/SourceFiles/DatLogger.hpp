@@ -1,34 +1,19 @@
-/*
- * esmini - Environment Simulator Minimalistic
- * https://github.com/esmini/esmini
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright (c) partners of Simulation Scenarios
- * https://sites.google.com/view/simulationscenarios
- */
-
-#pragma once
-#include "ScenarioGateway.hpp"
-
 #include <fstream>
 #include <vector>
 
-#define DAT_FILE_FORMAT_VERSION 2
-
-namespace scenarioengine
+namespace DatLogger
 {
     enum class PackageId {
-        VERSION = 11,
-        POSITIONS   = 12,
-        TIME_SERIES = 13,
-        ODR_FILENAME = 14,
+        HEADER      = 11,
+        TIME_SERIES = 12,
+        OBJ_ID      = 13,
+        POSITIONS   = 14,
         OSC_BOUNDING_BOX = 15,
-        MODEL_FILENAME = 16,
     };
 
+    // #pragma pack(push, 4)
+
+    // mandatory packages
     typedef struct
     {
         int id;
@@ -37,43 +22,33 @@ namespace scenarioengine
 
     typedef struct
     {
-        int pkg_size;
+        unsigned long long pkg_size;  // avoid padding for 64 bit alignment
     } CommonPkgEnd;
 
+    // common package types
     typedef struct
     {
-        CommonPkgHdr hdr;
-        unsigned int version;
-        CommonPkgEnd pkg_end;
-    } PkgVersion;
+        int size;  // size of the string
+        char *string;
+    } CommonString;
+
+    // specific packages
+    typedef struct
+    {
+        int version;
+        CommonString odrFilename;
+        CommonString modelFilename;
+    } DatHdr;
 
     typedef struct
     {
-        CommonPkgHdr hdr;
-        char *odr_filename;
-        CommonPkgEnd pkg_end;
-    } pkgOdrFilename;
-
-    typedef struct
-    {
-        CommonPkgHdr hdr;
-        char *model_filename;
-        CommonPkgEnd pkg_end;
-    } pkgModelFilename;
-
-    typedef struct
-    {
-        CommonPkgHdr hdr;
         double time;
-        CommonPkgEnd pkg_end;
-    } PkgTime;
+    } Time;
 
     typedef struct
     {
-        CommonPkgHdr hdr;
-        double Obj_id;
-        CommonPkgEnd pkg_end;
-    } PkgObjId;
+        int obj_id;
+    } ObjId;
 
     typedef struct
     {
@@ -83,42 +58,61 @@ namespace scenarioengine
         double h;
         double r;
         double p;
-    } Positions;
+    } Pos;
+
+#if 0
+    typedef struct
+    {
+        union
+        {
+            DatHdr hdr;
+            Time   time;
+            ObjId  id;
+            Pos    pos;
+        } content;
+    } CommonContent;
 
     typedef struct
     {
-        CommonPkgHdr hdr;
-        Positions pos;
-        CommonPkgEnd pkg_end;
-    } PkgPos;
+        CommonPkgHdr  hdr;
+        CommonContent content;
+        CommonPkgEnd  end;
+    } CommonPkg;
+#else
+    typedef struct
+    {
+        CommonPkgHdr  hdr;
+        char*         content;   // pointer to allocated content
+        CommonPkgEnd  end;
+    } CommonPkg;
+#endif
+    // #pragma pack(pop)
 
-
-    class ObjectState; // Forward declaration of class ObjectState
 
     class DatLogger {
     private:
         std::fstream data_file_;
-
     public:
         DatLogger() = default;
         ~DatLogger() {
             data_file_.flush();
             data_file_.close();
-            std::cout << "---------------------------------file closed successfully in destructure" << std::endl;
+            std::cout << "File closed successfully in destructure" << std::endl;
         }
         bool isFirstEntry = true;
         bool notFirstEnd = false;
+        bool display_print = false;
+        std::vector<CommonPkg> pkgs_;
 
-        int init(std::string fileName, std::string odr_filename, std::string model_filename);
+        int init(std::string fileName, int ver, std::string odrName, std::string modelName);
 
-        // Log a common package
-        void logPackage(PkgVersion package);
-        void logPackage(PkgPos package );
-        void logPackage(PkgTime package );
-        void step(const ObjectState &objState);
-        // void step();
+        void logPackage(CommonPkg package ); // check package can be logged or not
+        void writePackage(CommonPkg package ); // will just write package
+        int recordPackage(const std::string& fileName); // check package can be recorded or not
+
+
         template <typename T>
-        T getLatestPackage(const int id, const int size);
+        T getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize);
 
     };
 
