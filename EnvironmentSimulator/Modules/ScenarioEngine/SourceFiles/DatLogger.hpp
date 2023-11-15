@@ -8,7 +8,7 @@ namespace DatLogger
         TIME_SERIES = 12,
         OBJ_ID      = 13,
         POSITIONS   = 14,
-        OSC_BOUNDING_BOX = 15,
+        SPEED       = 15,
     };
 
     // #pragma pack(push, 4)
@@ -44,6 +44,11 @@ namespace DatLogger
     {
         double time;
     } Time;
+
+    typedef struct
+    {
+        double speed_;
+    } Speed;
 
     typedef struct
     {
@@ -106,13 +111,13 @@ namespace DatLogger
 
         int init(std::string fileName, int ver, std::string odrName, std::string modelName);
 
-        void logPackage(CommonPkg package ); // check package can be logged or not
+        void logPackage(CommonPkg package, const int object_id); // check package can be logged or not
         void writePackage(CommonPkg package ); // will just write package
         int recordPackage(const std::string& fileName); // check package can be recorded or not
 
 
         template <typename T>
-        T getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize);
+        T getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize, const int obj_id);
 
     };
 
