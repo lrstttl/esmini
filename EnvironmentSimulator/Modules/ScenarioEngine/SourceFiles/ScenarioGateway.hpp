@@ -14,7 +14,6 @@
 #include "RoadManager.hpp"
 #include "OSCBoundingBox.hpp"
 #include "Entities.hpp"
-#include "DatLogger.hpp"
 
 #define DAT_FILE_FORMAT_VERSION 2
 #define DAT_FILENAME_SIZE       512
@@ -200,8 +199,6 @@ namespace scenarioengine
         friend class ScenarioGateway;
     };
 
-    class DatLogger; // Forward declaration of class DatLogger
-
     class ScenarioGateway
     {
     public:
@@ -372,8 +369,7 @@ namespace scenarioengine
 
     private:
         int updateObjectInfo(ObjectState *obj_state, double timestamp, int visibilityMask, double speed, double wheel_angle, double wheel_rot);
-        // std::ofstream data_file_;
-        DatLogger       *datLogger = nullptr;
+        std::ofstream data_file_;
     };
 
 }  // namespace scenarioengine

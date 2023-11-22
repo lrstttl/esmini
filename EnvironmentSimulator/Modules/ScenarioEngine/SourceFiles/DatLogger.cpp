@@ -1,18 +1,103 @@
 // logDat
 
 #include <iostream>
+#include <iostream>
 #include <fstream>
 #include <cstring>
+#include <chrono>
+#include <cmath>
 
 #include "DatLogger.hpp"
 
-using namespace DatLogger;
+using namespace datLogger;
 
-void DatLogger::DatLogger::writePackage(CommonPkg package )
+void DatLogger::step(int obj_no)
+{
+    double x = 1.0;
+    double y = 2.0;
+    double z = 3.0;
+    double h = 4.0;
+    double r = 5.0;
+    double p = 6.0;
+    double speed = 1.0;
+    double current_time = 0.033;
+
+    for (int i = 0; i < 6 ; i++)
+    {
+        if (i > 0)
+        {
+            isFirstEntry = false;
+        }
+
+        if (i == 4 || i == 5)
+        {
+            h = 6.0;
+        }
+
+
+        // time package
+        CommonPkg timePkg;
+
+        timePkg.hdr.id = static_cast<int>(PackageId::TIME_SERIES);
+        timePkg.hdr.content_size = sizeof(current_time);
+        timePkg.content = reinterpret_cast<char*>(&current_time);
+        timePkg.end.pkg_size = sizeof(CommonPkgHdr) + timePkg.hdr.content_size + sizeof(CommonPkgEnd);
+        logPackage(timePkg, 0);
+
+        for ( int j = 0; j < obj_no; j++)
+        {
+            if ( i == 2 && j == 2)
+            {
+                break; // delete one object.
+            }
+            int object_id = j;
+            // Obj id package
+            CommonPkg pkgObjId;
+            pkgObjId.hdr.id = static_cast<int>(PackageId::OBJ_ID);
+            pkgObjId.hdr.content_size = sizeof(object_id);
+            pkgObjId.content = reinterpret_cast<char*>(&object_id);
+            pkgObjId.end.pkg_size = sizeof(CommonPkgHdr) + pkgObjId.hdr.content_size + sizeof(CommonPkgEnd);
+            logPackage(pkgObjId, object_id);
+
+            // Pos package
+            Pos pos_;
+            CommonPkg packagePos;
+            packagePos.hdr.id = static_cast<int>(PackageId::POSITIONS);
+            pos_.x = x;
+            pos_.y = y;
+            pos_.z = z;
+            pos_.h = h;
+            pos_.r = r;
+            pos_.p = p;
+            packagePos.hdr.content_size = sizeof(pos_);
+            packagePos.content = reinterpret_cast<char*>(&pos_);
+            packagePos.end.pkg_size = sizeof(CommonPkgHdr) + packagePos.hdr.content_size + sizeof(CommonPkgEnd);
+            logPackage(packagePos, object_id);
+
+            // Speed package
+            CommonPkg pkgSpeed;
+            pkgSpeed.hdr.id = static_cast<int>(PackageId::SPEED);
+            pkgSpeed.hdr.content_size = sizeof(speed);
+            pkgSpeed.content = reinterpret_cast<char*>(&speed);
+            pkgSpeed.end.pkg_size = sizeof(CommonPkgHdr) + pkgSpeed.hdr.content_size + sizeof(CommonPkgEnd);
+            logPackage(pkgSpeed, object_id);
+
+        }
+        if (i != 3 )
+        {
+            speed += 1.0;
+        }
+        current_time += 1.089;
+    }
+}
+
+void DatLogger::writePackage(CommonPkg package )
 {
     if (data_file_.is_open())
     {
+        if (display_print) {
         std::cout << "New Package->written package name : " << pkgIdTostring( static_cast<PackageId>(package.hdr.id)) << std::endl;
+        }
         data_file_.write(reinterpret_cast<char*>(&package.hdr), sizeof(CommonPkgHdr));
         data_file_.write(package.content, package.hdr.content_size);
         data_file_.write(reinterpret_cast<char*>(&package.end.pkg_size), sizeof(CommonPkgEnd));
@@ -24,7 +109,7 @@ void DatLogger::DatLogger::writePackage(CommonPkg package )
     }
 }
 
-void DatLogger::DatLogger::logPackage(CommonPkg package, const int object_id)
+void DatLogger::logPackage(CommonPkg package, const int object_id)
 {
     totalPkgReceived += 1;
     switch (static_cast<PackageId>(package.hdr.id))
@@ -96,7 +181,7 @@ void DatLogger::DatLogger::logPackage(CommonPkg package, const int object_id)
     }
 }
 
-int DatLogger::DatLogger::recordPackage(const std::string& fileName)
+int DatLogger::recordPackage(const std::string& fileName)
 {
 
     std::ifstream file_Read_;
@@ -250,16 +335,10 @@ int DatLogger::DatLogger::recordPackage(const std::string& fileName)
             }
         }
     }
-    // create a state for all object for single time frame
-    // Initiate for first time frame
-    initiateStates(1700125053.5537829);
-    // update the states now
-    updateStates(1700125053.5539184);
-
     return 0;
 }
 
-PackageId DatLogger::DatLogger::readPkgHdr(char* package )
+PackageId DatLogger::readPkgHdr(char* package )
 {
     CommonPkg pkg;
     pkg = *reinterpret_cast<CommonPkg*>(package);
@@ -267,7 +346,7 @@ PackageId DatLogger::DatLogger::readPkgHdr(char* package )
     return static_cast<PackageId>(pkg.hdr.id);
 }
 
-int DatLogger::DatLogger::getPkgCntBtwObj( int idx, int id)
+int DatLogger::getPkgCntBtwObj( int idx)
 {
     int count = 0;
     for (size_t i = idx + 1; i < pkgs_.size(); i++) // start looking from next package
@@ -282,7 +361,7 @@ int DatLogger::DatLogger::getPkgCntBtwObj( int idx, int id)
     return count;
 }
 
-std::vector<int> DatLogger::DatLogger::getObjIdPkgIndexBtwTime( double t)
+std::vector<int> DatLogger::getObjIdPkgIndexBtwTime( double t)
 {
     std::vector<int> Indices;
     bool timeFound = false;
@@ -310,94 +389,263 @@ std::vector<int> DatLogger::DatLogger::getObjIdPkgIndexBtwTime( double t)
     return Indices;
 }
 
-void DatLogger::DatLogger::updateStates(double t)
+bool areApproximatelyEqual(double d1, double d2)
 {
+    const double TOLERANCE = 0.0001;  // Tolerance value for approximate equality
+    double absoluteDifference = fabs(d1 - d2);
+    return absoluteDifference <= TOLERANCE;
+}
 
-    std::vector<int> objIdIndices = getObjIdPkgIndexBtwTime(t);
-    // objectStates_.clear(); // clear the states first, TODO update only changed package.
-    if (objIdIndices.size() == objectStates_.size() )
-    { // no new object added for given time frame from current objects states
+
+int DatLogger::searchAndReplacePkg(int idx1, int idx2, int idx3, double t)
+{
+    // lets take idx3 as a first reference ptr
+    int ptr = idx3;
+
+    // read the pkg id to find
+    PackageId pkgIdToFind = readPkgHdr(objectStates_.obj_states[idx1].pkgs[idx2].pkg);
+
+    // idx3 is the index where the obj id package found
+    int objIdToFind = *reinterpret_cast<int*>(pkgs_[idx3].content);
+
+    // last time when this pkg has updated.
+    double refTime = objectStates_.obj_states[idx1].pkgs[idx2].time_;
+
+    if ( t == refTime)
+    { // already latest pkg
+        return 0;
+    }
+
+    // find the index for immediate time frame.(can be next or pervious one)
+    // find next or immediate time frame
+    int idxDir = 0 ;
+    if ( t > refTime) // search forward
+    {
+        idxDir = -1; // forward
+    }
+    else if (t > refTime) // search backward
+    {
+        idxDir = 1; // backward
+    }
+
+    // start idx3 as reference to start backward or forward search
+    while(true)
+    {
+        ptr += idxDir;
+        if ( pkgs_[ptr].hdr.id == static_cast<int>(PackageId::OBJ_ID))
+        {
+            if ( objIdToFind == *reinterpret_cast<int*>(pkgs_[ptr].content)) // objIdToFind found
+            {
+                // now find the package
+                int ptrTemp = 1;
+                while(true)
+                {
+                    if ( static_cast<int>(pkgIdToFind) == pkgs_[ptr + ptrTemp].hdr.id)
+                    { // found looking package finally. now replace
+                        objectStates_.obj_states[idx1].pkgs[idx2].pkg = reinterpret_cast<char*>(&pkgs_[ptr + ptrTemp]);
+                        objectStates_.obj_states[idx1].pkgs[idx2].time_ = getTimeFromPkgIdx(ptr + ptrTemp);
+                        return 1;
+                    }
+                    if (pkgs_[ptr + ptrTemp].hdr.id == static_cast<int>(PackageId::OBJ_ID) ||
+                        pkgs_[ptr + ptrTemp].hdr.id == static_cast<int>(PackageId::TIME_SERIES)) // already reached next time frame or next obj id
+                    {
+                        break; // go one step above
+                    }
+
+                    ptrTemp += 1;
+                }
+
+            }
+        }
+        else if( pkgs_[ptr].hdr.id == static_cast<int>(PackageId::TIME_SERIES) )
+        {
+            // check last updated time frame reached
+            double foundTime =  *reinterpret_cast<double*>(pkgs_[ptr].content);
+            if (areApproximatelyEqual(foundTime, refTime)) // ref time frame reached
+            {
+                return 1; // stop searching
+            }
+        }
+    }
+}
+
+bool DatLogger::isObjAvailable(int idx) // check in current state
+{
+    bool status = false;
+    for (size_t i = 0; i < objectStates_.obj_states.size(); i++) // loop current state object id to find the object id
+    {
+        if (objectStates_.obj_states[i].id == *reinterpret_cast<int*>(pkgs_[idx].content))
+        {
+            status = true; // obj id present
+            break;
+        }
+    }
+    return status;
+}
+
+bool DatLogger::isObjAvailable(int idx,  std::vector<int> Indices) // check in the object in the given new time
+{
+    bool status = false;
+    for (int Index : Indices) // loop found object ids for given new time to find the object id in current object state
+    {
+        if (objectStates_.obj_states[idx].id == *reinterpret_cast<int*>(pkgs_[Index].content))
+        {
+            status = true; // obj id present
+            break;
+        }
+    }
+    return status;
+}
+
+void DatLogger::updateStates(double t)
+{
+    if ( objectStates_.sim_time != t) // already current object is in given time
+    {
+        objectStates_.sim_time = t;
+        std::vector<int> objIdIndices = getObjIdPkgIndexBtwTime(t);
 
         for (int Index : objIdIndices)
         {
-            ObjectState objectState_;
-            objectState_.id = *reinterpret_cast<int*>(pkgs_[Index].content);
-            std::cout << "Total number of new package found is : " << getPkgCntBtwObj(Index, objectState_.id) << " in given new time" << std::endl;
-            for ( int i = 1;  i < getPkgCntBtwObj(Index, objectState_.id) + 1; i++) // start with i =1, looking from next package
-            { // getPkgCntBtwObj will return count of package.
-
-                // new package found in new time, now replace the found package from current state
-                // find the package to be replaced from current state
-                std::cout << "Found package ID from new time: " << pkgIdTostring(static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[Index + i].hdr.id))) << std::endl;
-                for (size_t j = 0; j < objectStates_.size(); j++) // loop current state object id to find the object id
+            if(isObjAvailable(Index))
+            {
+                ObjectStateWithObjId stateObjId;
+                stateObjId.id = *reinterpret_cast<int*>(pkgs_[Index].content);
+                int pkgCnt = getPkgCntBtwObj(Index);
+                for (size_t i = 0; i < objectStates_.obj_states.size(); i++) // loop current state object id to find the object id
                 {
-                    if (objectStates_[j].id ==  objectState_.id) // found object id
+                    if (isObjAvailable(i, objIdIndices))
                     {
-                        for (size_t k = 0; k < objectStates_[j].states.size(); k++) // loop current state states to find the correct package to replace
+                        if (objectStates_.obj_states[i].id ==   stateObjId.id) // found object id
                         {
-                            if (objectStates_[j].states[k].time_ == t ) // time matches so already new package
+                            for (size_t j = 0;j < objectStates_.obj_states[i].pkgs.size(); j++) // loop current state states to find the correct package to replace
                             {
-                                continue;
-                            }
-                            else
-                            {
-                                PackageId id_ = readPkgHdr(objectStates_[j].states[k].pkg);
-                                std::cout << "Searching for Package ID-> " << pkgIdTostring(id_) << std::endl;
-                                if (id_ == static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[Index + i].hdr.id)))
-                                {// package id matches replace it with new package
-                                    std::cout << "Package ID: " << pkgIdTostring(static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[Index + i].hdr.id))) << " ->Matched from current object state"<<std::endl;
-                                    objectStates_[j].states[k].pkg = reinterpret_cast<char*>(&pkgs_[Index + i]);
-                                    objectStates_[j].states[k].time_ = t;
-                                    std::cout << "Package ID: " << pkgIdTostring(static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[Index + i].hdr.id))) << " ->Replaced from current object state"<<std::endl;
-                                }
-                                else
-                                {// look backward to find the latest package
-                                    for ( size_t l = Index - 1; l < pkgs_.size(); l--) // start with object od package -1
+                                for ( int k = Index + 1;  k < Index + pkgCnt + 1; k++) // start with Index + 1, Index will have object id package index. looking from next package
+                                {
+                                    PackageId id_ = readPkgHdr(objectStates_.obj_states[i].pkgs[j].pkg);
+
+                                    if (objectStates_.obj_states[i].pkgs[j].time_ == t ) // time matches so already new package in current state
                                     {
-                                        if (id_ == static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[l].hdr.id)))
-                                        {// package id matches replace it with new package
-                                            std::cout << "Package ID: " << pkgIdTostring(static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[l].hdr.id))) << " ->Matched from previous time frame"<<std::endl;
-                                            objectStates_[j].states[k].pkg = reinterpret_cast<char*>(&pkgs_[l]);
-                                            objectStates_[j].states[k].time_ = t; // may be time when package found
-                                            std::cout << "Package ID: " << pkgIdTostring(static_cast<PackageId>(*reinterpret_cast<char*>(&pkgs_[l].hdr.id))) << " ->Replaced from current object state"<<std::endl;
-                                        }
+                                        break;
+                                    }
+
+                                    if (id_ == static_cast<PackageId>(pkgs_[k].hdr.id)) // package id matches in given time, replace it with new package
+                                    {
+                                        objectStates_.obj_states[i].pkgs[j].pkg = reinterpret_cast<char*>(&pkgs_[k]);
+                                        objectStates_.obj_states[i].pkgs[j].time_ = t;
+                                        break;
+                                    }
+                                    if ( k == Index + pkgCnt ) // reaches last iteration, only look for pervious time, No pkg match found in new time.
+                                    {
+                                        searchAndReplacePkg(i, j, Index, t);
+                                        break;
                                     }
                                 }
                             }
                         }
                     }
+                    else
+                    { // object deleted
+                        objectStates_.obj_states.erase(objectStates_.obj_states.begin() + i);
+                        std::cout << "Object deleted" << std::endl;
+                    }
                 }
+            }
+            else
+            {// object added
+                addObjState(Index, t);
+                std::cout << "Object added" << std::endl;
             }
         }
     }
-    else
-    {
-        std::cout << "addition or deletion of object found:" << std::endl;
-    }
 }
 
-void DatLogger::DatLogger::initiateStates(double t)
+double DatLogger::getTimeFromPkgIdx( int idx)
+{
+    double time_ = -1.0;
+    for ( size_t i = idx; i > 0; i--) // return time if idx is already time pkg or find the respective time pkg for given pkg idx
+    {
+        if (static_cast<PackageId>(pkgs_[i].hdr.id) == PackageId::TIME_SERIES) // find time pkg for given pkg idx
+        {
+            time_ = *reinterpret_cast<double*>(pkgs_[i].content);
+            break;
+        }
+    }
+    return time_;
+}
+
+double DatLogger::getTimeFromCnt(int count)
+{
+    double time_ = -1.0;
+    int count_ = 0;
+    for ( size_t i = 0; i < pkgs_.size(); i++) // return time if idx is already time pkg or find the respective time pkg for given pkg idx
+    {
+        if (static_cast<PackageId>(pkgs_[i].hdr.id) == PackageId::TIME_SERIES) // find time pkg for given pkg idx
+        {
+            count_ += 1;
+            if (count == count_)
+            {
+                time_ = *reinterpret_cast<double*>(pkgs_[i].content);
+                break;
+            }
+
+        }
+    }
+    return time_;
+}
+
+void DatLogger::deleteObjState(int objId)
+{
+    for (size_t i = 0; i < objectStates_.obj_states.size(); i++) // loop current state object id to find the object id
+    {
+        if (objectStates_.obj_states[i].id == objId) // found object id
+        { // delete now
+            objectStates_.obj_states.erase(objectStates_.obj_states.begin() + i);
+        }
+    }
+
+}
+
+void DatLogger::addObjState(int idx, double t)
+{
+    ObjectStateWithObjId stateObjId;
+    if (static_cast<PackageId>(pkgs_[idx].hdr.id) != PackageId::OBJ_ID)
+    {
+        std::cout << " Initialization error->Stop replay " << std::endl;
+    }
+    stateObjId.id = *reinterpret_cast<int*>(pkgs_[idx].content);
+    int pkgCount = getPkgCntBtwObj(idx);
+
+    for ( int i = idx + 1;  i < pkgCount + idx + 1; i++)
+    { // getPkgCntBtwObj will return count of package.
+        ObjectStateWithPkg statePkg;
+        statePkg.pkg = reinterpret_cast<char*>(&pkgs_[i]);
+        statePkg.time_ = t;
+        stateObjId.pkgs.push_back(statePkg);
+    }
+    objectStates_.obj_states.push_back(stateObjId);
+
+}
+
+void DatLogger::initiateStates(double t)
 {
 
     std::vector<int> objIdIndices = getObjIdPkgIndexBtwTime(t);
 
+    if (objIdIndices.size() == 0)
+    {
+        // no obj found for given time, may be given time frame pkg not available.
+        std::cout << " No obj found for given time, may be given time frame pkg not available. " << std::endl;
+    }
+
+    objectStates_.sim_time = t;
     for (int Index : objIdIndices)
     {
-        ObjectState objectState_;
-        objectState_.id = *reinterpret_cast<int*>(pkgs_[Index].content);
-        for ( int i = 1;  i < getPkgCntBtwObj(Index, objectState_.id) + 1; i++)  // start with i =1, looking from next package
-        { // getPkgCntBtwObj will return count of package.
-            ObjectStateWithTime statePkg;
-            statePkg.pkg = reinterpret_cast<char*>(&pkgs_[Index + i]);
-            statePkg.time_ = t;
-            objectState_.states.push_back(statePkg);
-        }
-        objectStates_.push_back(objectState_);
+        addObjState(Index, t);
     }
 }
 
 
-int DatLogger::DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
+int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
 {
     totalPkgReceived += 1;
     std::ofstream data_file(fileName, std::ios::binary);
@@ -460,12 +708,14 @@ int DatLogger::DatLogger::init(std::string fileName, int ver, std::string odrNam
     // write packag
     data_file_.write(reinterpret_cast<char*>(&hdrPkg.end.pkg_size), sizeof(hdrPkg.end));
     totalPkgProcessed += 1;
+    if (display_print) {
     std::cout << "New Package->written package name : " << pkgIdTostring( static_cast<PackageId>(cmnHdr.id)) << std::endl;
+    }
 
     return 0;
 }
 
-std::string DatLogger::DatLogger::pkgIdTostring(PackageId id)
+std::string DatLogger::pkgIdTostring(PackageId id)
 {
     switch (id)
     {
@@ -507,7 +757,7 @@ std::string DatLogger::DatLogger::pkgIdTostring(PackageId id)
 }
 
 template <typename T>
-T DatLogger::DatLogger::getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize, const int objId) {
+T DatLogger::getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize, const int objId) {
     // Open the file in read mode.
     if (!data_file_.is_open()) {
         std::cerr << "Error opening file: " << std::endl;
@@ -534,10 +784,10 @@ T DatLogger::DatLogger::getLatestPackage(const int id, const unsigned long long 
         return T();
     }
     int pkgSizeTemp = 0; // pointer size to move forward
-    int lastReadObjIdPkgPtrPos = 0; // to jump to last read obj id package pointer
+    int lastReadTimePkgPtrPos = 0; // to jump to last read obj id package pointer
     int ptrsToMove = 0; // pointer size to move backward
     int currentObjID; // to jump to last read obj id package pointer
-    bool firstTimeObjIdPkgFound = false;
+    bool firstTimePkgFound = false;
 
     // Find the object id package, searching backward from the end of the file.
     while (data_file_.tellg() > 0) {
@@ -572,52 +822,38 @@ T DatLogger::DatLogger::getLatestPackage(const int id, const unsigned long long 
         CommonPkgHdr cmnPkgHdr_;
         data_file_.read(reinterpret_cast<char*>(&cmnPkgHdr_), sizeof(cmnPkgHdr_));
 
-        // continue till object id package found
-        if (cmnPkgHdr_.id != static_cast<int>(PackageId::OBJ_ID))
+        // continue till time package found
+        if (cmnPkgHdr_.id != static_cast<int>(PackageId::TIME_SERIES))
         {
             // current pointer is end of content size field
             ptrsToMove = sizeof(cmnPkgHdr_);
             continue;
         }
-        else
-        {   // first object id package not interested.
-            if (!firstTimeObjIdPkgFound)
-            {
-                firstTimeObjIdPkgFound = true;
-                // current pointer is end of content size field
-                ptrsToMove = sizeof(cmnPkgHdr_);
-                continue;
-            }
 
-            data_file_.read(reinterpret_cast<char*>(&currentObjID), cmnPkgHdr_.content_size);
-            if (currentObjID == objId)
-            {  // stop searching.
-                lastReadObjIdPkgPtrPos = data_file_.tellg() - sizeof(cmnPkgHdr_) - cmnPkgHdr_.content_size;
-                if(display_print)
-                {
-                    std::cout << "Found object id: " << currentObjID << std::endl;
-                    std::cout << "Started look for package, Entering stage 2 "<< std::endl;
-                }
-            }
-            else
-            {
-                // current pointer is end of content field
-                ptrsToMove = sizeof(cmnPkgHdr_) + cmnPkgHdr_.content_size;
-                continue;
-            }
+        if (!firstTimePkgFound)
+        { // continue till pervious time package found
+            firstTimePkgFound = true;
+
+            // current pointer is end of content size field
+            ptrsToMove = sizeof(cmnPkgHdr_);
+            continue;
+        }
+        if(display_print)
+        {
+            std::cout << "Pointer number before stage 2: " << data_file_.tellg() << std::endl;
         }
 
-
+        lastReadTimePkgPtrPos = data_file_.tellg() - sizeof(cmnPkgHdr_);
         ptrsToMove = 0;
         // stage 2-> Find the package
-        // object id found now look for package forward.Always content field end will be current pointer position for stage2
-        data_file_.seekg(sizeof(CommonPkgEnd), std::ios::cur);
+        // object id found now look for package forward.Always time package content size end will be current pointer position for stage2(seek time pkg content and end size)
+        data_file_.seekg((cmnPkgHdr_.content_size + sizeof(CommonPkgEnd)), std::ios::cur);
         if(display_print)
         {
             std::cout << "Pointer number in stage 2: " << data_file_.tellg() << std::endl;
         }
 
-        while (!data_file_.eof() || data_file_.tellg() == std::streampos(lastReadObjIdPkgPtrPos))
+        while (!data_file_.eof() || data_file_.tellg() == std::streampos(lastReadTimePkgPtrPos))
         {
             // read header
             data_file_.read(reinterpret_cast<char*>(&cmnPkgHdr_), sizeof(cmnPkgHdr_));
@@ -626,11 +862,14 @@ T DatLogger::DatLogger::getLatestPackage(const int id, const unsigned long long 
             // read overall size
             data_file_.read(reinterpret_cast<char*>(&pkgEnd.pkg_size), sizeof(CommonPkgEnd));
 
+            // check obj id pkg available in each time frame, May be new obj id.
+            if(cmnPkgHdr_.id != id)
+
             // go back to stage1.
-            if (cmnPkgHdr_.id == static_cast<int>(PackageId::OBJ_ID))
+            if (cmnPkgHdr_.id == static_cast<int>(PackageId::TIME_SERIES))
             {
                 // Jump to last known obj id package.
-                data_file_.seekg(lastReadObjIdPkgPtrPos, std::ios::beg);
+                data_file_.seekg(lastReadTimePkgPtrPos, std::ios::beg);
                 break;
             }
 
@@ -675,524 +914,3 @@ T DatLogger::DatLogger::getLatestPackage(const int id, const unsigned long long 
     return T();
 }
 
-#include <cstring>
-#include <iostream>
-#include <chrono>
-
-#include "DatLogger.hpp"
-
-using namespace std::chrono;
-using namespace DatLogger;
-
-int main(int, char**){
-
-    std::string fileName = "sim.dat";
-    std::string odrFileName = "e6mini.xodr";
-    std::string model_Name = "e6mini.osgb";
-
-
-    bool display_print = true;
-    int version_ = 2;
-    double current_time  = 1.09;
-
-    DatLogger::DatLogger logger;
-    logger.system_mode = Mode::RECORD;
-    if (logger.system_mode == Mode::LOG)
-    {
-        // logger.init(fileName);
-
-        double x = 1.0;
-        double y = 2.0;
-        double z = 3.0;
-        double h = 4.0;
-        double r = 5.0;
-        double p = 6.0;
-
-        float bb = 1.0;
-        float bb1 = 2.0;
-        int object_id = 1;
-        double speed = 1.0;
-
-        logger.init(fileName, version_, odrFileName, model_Name);
-
-        for (int i = 0; i < 6 ; i++)
-        {
-            std::cout << "Iteration: " << i << std::endl;
-            if (i > 0)
-            {
-                logger.isFirstEntry = false;
-            }
-
-            if (i == 4 || i == 5)
-            {
-                h = 6.0;
-            }
-
-            auto now = high_resolution_clock::now();
-            typedef std::chrono::duration<double> duration_type;
-            duration_type time_since_epoch = duration_cast<duration_type>(now.time_since_epoch());
-            double current_time = time_since_epoch.count();
-
-            // time package
-            CommonPkg timePkg;
-
-            timePkg.hdr.id = static_cast<int>(PackageId::TIME_SERIES);
-            timePkg.hdr.content_size = sizeof(current_time);
-            timePkg.content = reinterpret_cast<char*>(&current_time);
-            timePkg.end.pkg_size = sizeof(CommonPkgHdr) + timePkg.hdr.content_size + sizeof(CommonPkgEnd);
-            logger.logPackage(timePkg, object_id);
-
-            // Obj id package
-            CommonPkg pkgObjId;
-            pkgObjId.hdr.id = static_cast<int>(PackageId::OBJ_ID);
-            pkgObjId.hdr.content_size = sizeof(object_id);
-            pkgObjId.content = reinterpret_cast<char*>(&object_id);
-            pkgObjId.end.pkg_size = sizeof(CommonPkgHdr) + pkgObjId.hdr.content_size + sizeof(CommonPkgEnd);
-            logger.logPackage(pkgObjId, object_id);
-
-            // Pos package
-            Pos pos_;
-            CommonPkg packagePos;
-            packagePos.hdr.id = static_cast<int>(PackageId::POSITIONS);
-            pos_.x = x;
-            pos_.y = y;
-            pos_.z = z;
-            pos_.h = h;
-            pos_.r = r;
-            pos_.p = p;
-            packagePos.hdr.content_size = sizeof(pos_);
-            packagePos.content = reinterpret_cast<char*>(&pos_);
-            packagePos.end.pkg_size = sizeof(CommonPkgHdr) + packagePos.hdr.content_size + sizeof(CommonPkgEnd);
-            logger.logPackage(packagePos, object_id);
-
-            // Speed package
-            CommonPkg pkgSpeed;
-            pkgSpeed.hdr.id = static_cast<int>(PackageId::SPEED);
-            pkgSpeed.hdr.content_size = sizeof(speed);
-            pkgSpeed.content = reinterpret_cast<char*>(&speed);
-            pkgSpeed.end.pkg_size = sizeof(CommonPkgHdr) + pkgSpeed.hdr.content_size + sizeof(CommonPkgEnd);
-            logger.logPackage(pkgSpeed, object_id);
-
-            if (i != 3 )
-            {
-                speed += 1.0;
-            }
-
-            std::cout << "------------------------------------------------------" << i << std::endl;
-        }
-
-    }
-    else if (logger.system_mode == Mode::RECORD)
-    {
-        logger.recordPackage(fileName);
-    }
-    else if (logger.system_mode == Mode::REPLAY)
-    {
-        std::ifstream file_Read_;
-        file_Read_.open(fileName, std::ifstream::binary);
-        if (file_Read_.fail())
-        {
-            std::printf("READ, Cannot open file: %s", fileName.c_str());
-            return -1;
-        }
-
-        if (file_Read_.is_open())
-        {
-            std::cout << "File Opened for read" << std::endl;
-        }
-
-        CommonPkg hdrPkgRead;
-
-        // Read common header
-        file_Read_.read(reinterpret_cast<char*>(&hdrPkgRead.hdr), sizeof(CommonPkgHdr));
-        // hdrPkgRead.content = new char[hdrPkgRead.hdr.content_size];
-
-
-        DatHdr datHdrRead;
-        // Read content -> version
-        file_Read_.read(reinterpret_cast<char*>(&datHdrRead.version), sizeof(datHdrRead.version));
-
-        CommonString odrStrRead;
-        // Read content -> odr filename size
-        file_Read_.read(reinterpret_cast<char*>(&odrStrRead.size), sizeof(odrStrRead.size));
-
-        // Read content -> odr filename string
-        odrStrRead.string = new char[odrStrRead.size];
-        file_Read_.read(odrStrRead.string, odrStrRead.size);
-
-        CommonString mdlStrRead;
-        // Read content -> model filename size
-        file_Read_.read(reinterpret_cast<char*>(&mdlStrRead.size), sizeof(mdlStrRead.size));
-
-        // Read content -> model filename string
-        mdlStrRead.string = new char[mdlStrRead.size];
-        file_Read_.read(mdlStrRead.string, mdlStrRead.size);
-
-        datHdrRead.odrFilename = odrStrRead;
-        datHdrRead.modelFilename = mdlStrRead;
-        hdrPkgRead.content = reinterpret_cast<char*>(&datHdrRead);
-
-        // Read whole package size
-        file_Read_.read(reinterpret_cast<char*>(&hdrPkgRead.end.pkg_size), sizeof(hdrPkgRead.end.pkg_size));
-
-        if(display_print){
-        std::cout << "------Hdr Package->Read from file----- " << std::endl;
-        std::cout << "Package id number: " << hdrPkgRead.hdr.id << std::endl;
-        std::cout << "Package content size : " << hdrPkgRead.hdr.content_size << std::endl;
-        std::cout << "Version : " << datHdrRead.version << std::endl;
-        std::cout << "Odr content Size: " << odrStrRead.size << std::endl;
-        std::cout << "Odr file name: " << odrStrRead.string << std::endl;
-        std::cout << "Model content Size: " << mdlStrRead.size << std::endl;
-        std::cout << "Model file name: " << mdlStrRead.string << std::endl;
-        std::cout << "Package size end: " << hdrPkgRead.end.pkg_size << std::endl;
-        std::cout << "------------------------- " << std::endl;
-        }
-
-        logger.pkgs_.push_back(hdrPkgRead);
-        // Read from package
-        DatHdr* datHdrPkg = reinterpret_cast<DatHdr*>(hdrPkgRead.content);
-        int version = datHdrPkg->version;
-        CommonString odrFilename = datHdrPkg->odrFilename;
-        CommonString modelFilename = datHdrPkg->modelFilename;
-
-        if(display_print){
-        std::cout << "------Hdr Package->Read from Vector----- " << std::endl;
-        std::cout << "Package id number: " << hdrPkgRead.hdr.id << std::endl;
-        std::cout << "Package content size : " << hdrPkgRead.hdr.content_size << std::endl;
-        std::cout << "Version : " << version << std::endl;
-        std::cout << "Odr content Size: " << odrFilename.size << std::endl;
-        std::cout << "Odr file name: " << odrFilename.string << std::endl;
-        std::cout << "Model content Size: " << modelFilename.size << std::endl;
-        std::cout << "Model file name: " << modelFilename.string << std::endl;
-        std::cout << "Package size end: " << hdrPkgRead.end.pkg_size << std::endl;
-        std::cout << "------------------------- " << std::endl;
-        }
-
-        // read time package
-
-        CommonPkg timePkgRead;
-
-        file_Read_.read(reinterpret_cast<char*>(&timePkgRead.hdr), sizeof(CommonPkgHdr));
-        Time t;
-        file_Read_.read(reinterpret_cast<char*>(&t.time), sizeof(CommonPkgHdr));
-        file_Read_.read(reinterpret_cast<char*>(&timePkgRead.end.pkg_size), sizeof(CommonPkgEnd));
-        timePkgRead.content = reinterpret_cast<char*>(&t.time);
-        logger.pkgs_.push_back(timePkgRead);
-
-        Time t_;
-        t_.time = *reinterpret_cast<double*>(timePkgRead.content);
-
-        if(display_print){
-        std::cout << "------Time Package->Read from vector----- " << std::endl;
-        std::cout << "Package id number: " << timePkgRead.hdr.id << std::endl;
-        std::cout << "Package content size : " << timePkgRead.hdr.content_size << std::endl;
-        std::cout << "Version : " << t_.time << std::endl;
-        std::cout << "Package size end: " << timePkgRead.end.pkg_size << std::endl;
-        std::cout << "------------------------- " << std::endl;
-        }
-
-
-    }
-    else if (logger.system_mode == Mode::WRITE)
-    {
-        std::ofstream file_;
-        file_.open(fileName, std::ofstream::binary);
-        if (file_.fail())
-        {
-            std::printf("Cannot open file: %s", fileName.c_str());
-            return -1;
-        }
-
-        if (file_.is_open())
-        {
-            std::cout << "File Opened " << std::endl;
-        }
-
-
-        CommonPkgHdr cmnHdr;
-        cmnHdr.id = static_cast<int>(PackageId::HEADER);
-
-        CommonString odrStr;
-        odrStr.size = odrFileName.size() + 1;
-        odrStr.string = new char[odrStr.size];
-        strncpy(odrStr.string, odrFileName.c_str(), odrStr.size);
-        CommonString mdlStr;
-        mdlStr.size = model_Name.size() + 1;
-        mdlStr.string = new char[mdlStr.size];
-        strncpy(mdlStr.string, model_Name.c_str(), mdlStr.size);
-
-        cmnHdr.content_size = sizeof(odrStr.size) + odrStr.size + mdlStr.size + sizeof(mdlStr.size);
-
-        DatHdr datHdr;
-        datHdr.version = version_;
-        datHdr.odrFilename = odrStr;
-        datHdr.modelFilename = mdlStr;
-
-        CommonPkg hdrPkg;
-        hdrPkg.hdr = cmnHdr;
-        hdrPkg.content = reinterpret_cast<char*>(&datHdr);
-        hdrPkg.end.pkg_size = sizeof(CommonPkgHdr) + cmnHdr.content_size + sizeof(CommonPkgEnd);
-
-        // write common header
-
-        // file_.write(reinterpret_cast<char*>(&hdrPkg.hdr), sizeof(hdrPkg.hdr));
-        file_.write(reinterpret_cast<char*>(&hdrPkg.hdr), sizeof(CommonPkgHdr));
-
-        // write header package
-
-        // write content -> version
-        file_.write(reinterpret_cast<char*>(&datHdr.version), sizeof(datHdr.version));
-
-        // write content -> odr filename size
-        file_.write(reinterpret_cast<char*>(&datHdr.odrFilename.size), sizeof(datHdr.odrFilename.size));
-
-        // write actual odr filename string
-        file_.write(odrStr.string, datHdr.odrFilename.size);
-
-        // write content -> model filename size
-        file_.write(reinterpret_cast<char*>(&datHdr.modelFilename.size), sizeof(datHdr.modelFilename.size));
-
-        // write actual model filename string
-        file_.write(mdlStr.string, datHdr.modelFilename.size);
-
-// #if 0
-        // write packag
-        file_.write(reinterpret_cast<char*>(&hdrPkg.end.pkg_size), sizeof(hdrPkg.end));
-// #endif
-        file_.flush();
-        file_.close();
-
-        if(display_print){
-        std::cout << "------Hdr Package->Send----- " << std::endl;
-        std::cout << "Package id number: " << hdrPkg.hdr.id << std::endl;
-        std::cout << "Package content size : " << hdrPkg.hdr.content_size << std::endl;
-        std::cout << "Version : " << datHdr.version << std::endl;
-        std::cout << "Odr content Size: " << odrStr.size << std::endl;
-        std::cout << "Odr file name: " << odrFileName.c_str() << std::endl;
-        std::cout << "Model content Size: " << mdlStr.size << std::endl;
-        std::cout << "Model file name: " << model_Name.c_str() << std::endl;
-        std::cout << "Package size end: " << hdrPkg.end.pkg_size << std::endl;
-        std::cout << "------------------------- " << std::endl;
-        }
-
-        if (!file_.is_open())
-        {
-            std::cout << "File closed " << std::endl;
-        }
-    }
-    else if (logger.system_mode == Mode::READ)
-    {
-        std::ifstream file_Read_;
-        file_Read_.open(fileName, std::ifstream::binary);
-        if (file_Read_.fail())
-        {
-            std::printf("READ, Cannot open file: %s", fileName.c_str());
-            return -1;
-        }
-
-        if (file_Read_.is_open())
-        {
-            std::cout << "File Opened for read" << std::endl;
-        }
-
-        CommonPkg hdrPkgRead;
-
-        // Read common header
-        file_Read_.read(reinterpret_cast<char*>(&hdrPkgRead.hdr), sizeof(CommonPkgHdr));
-        // hdrPkgRead.content = new char[hdrPkgRead.hdr.content_size];
-
-
-        DatHdr datHdrRead;
-        // Read content -> version
-        file_Read_.read(reinterpret_cast<char*>(&datHdrRead.version), sizeof(datHdrRead.version));
-
-        CommonString odrStrRead;
-        // Read content -> odr filename size
-        file_Read_.read(reinterpret_cast<char*>(&odrStrRead.size), sizeof(odrStrRead.size));
-
-        // Read content -> odr filename string
-        odrStrRead.string = new char[odrStrRead.size];
-        file_Read_.read(odrStrRead.string, odrStrRead.size);
-
-        CommonString mdlStrRead;
-        // Read content -> model filename size
-        file_Read_.read(reinterpret_cast<char*>(&mdlStrRead.size), sizeof(mdlStrRead.size));
-
-        // Read content -> model filename string
-        mdlStrRead.string = new char[mdlStrRead.size];
-        file_Read_.read(mdlStrRead.string, mdlStrRead.size);
-
-        // Read whole package size
-        file_Read_.read(reinterpret_cast<char*>(&hdrPkgRead.end.pkg_size), sizeof(hdrPkgRead.end.pkg_size));
-
-        if(display_print){
-        std::cout << "------Hdr Package->Read----- " << std::endl;
-        std::cout << "Package id number: " << hdrPkgRead.hdr.id << std::endl;
-        std::cout << "Package content size : " << hdrPkgRead.hdr.content_size << std::endl;
-        std::cout << "Version : " << datHdrRead.version << std::endl;
-        std::cout << "Odr content Size: " << odrStrRead.size << std::endl;
-        std::cout << "Odr file name: " << odrStrRead.string << std::endl;
-        std::cout << "Model content Size: " << mdlStrRead.size << std::endl;
-        std::cout << "Model file name: " << mdlStrRead.string << std::endl;
-        std::cout << "Package size end: " << hdrPkgRead.end.pkg_size << std::endl;
-        std::cout << "------------------------- " << std::endl;
-        }
-
-
-        // read time package
-        CommonPkg timePkgRead;
-
-        file_Read_.read(reinterpret_cast<char*>(&timePkgRead.hdr), sizeof(CommonPkgHdr));
-        Time t;
-        file_Read_.read(reinterpret_cast<char*>(&t.time), timePkgRead.hdr.content_size);
-        file_Read_.read(reinterpret_cast<char*>(&timePkgRead.end.pkg_size), sizeof(CommonPkgEnd));
-
-
-        if(display_print){
-        std::cout << "------Time Package->Read----- " << std::endl;
-        std::cout << "Package id number: " << timePkgRead.hdr.id << std::endl;
-        std::cout << "Package content size : " << timePkgRead.hdr.content_size << std::endl;
-        std::cout << "Time : " << t.time << std::endl;
-        std::cout << "Package size end: " << timePkgRead.end.pkg_size << std::endl;
-        std::cout << "------------------------- " << std::endl;
-        }
-
-        file_Read_.close();
-        if (!file_Read_.is_open())
-        {
-            std::cout << "File closed After read" << std::endl;
-        }
-    }
-    else if (logger.system_mode == Mode::BOTH_SIMPLE)
-    {
-        std::string fileName = "sim_both.dat";
-        std::fstream data_file_both;
-        std::ofstream data_file(fileName, std::ios::binary);
-        data_file_both.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
-        if (data_file_both.fail())
-        {
-            std::printf("Cannot open file: %s", fileName.c_str());
-            return -1;
-        }
-        if (data_file_both.is_open()) {
-            std::cout << "File opened successfully for both ." << std::endl;
-        }
-
-        char *stringTmp;
-        int size = odrFileName.size() + 1;
-        stringTmp = new char[size];
-        strncpy(stringTmp, odrFileName.c_str(), size);
-        std::cout << "Wrote content: " << odrFileName.c_str()<< std::endl;
-        data_file_both.write(stringTmp, size);
-
-        data_file_both.seekg(0, std::ios::beg);
-
-        char *stringRead;
-        int sizeRead = odrFileName.size();
-        stringRead = new char[sizeRead];
-        data_file_both.read(stringRead, sizeRead);
-        std::cout << "Read content: " << stringRead<< std::endl;
-
-        data_file_both.flush();
-        data_file_both.close();
-
-        if (!data_file_both.is_open())
-        {
-            std::cout << "File closed after read and write" << std::endl;
-        }
-
-    }
-    else if (logger.system_mode == Mode::LOG_PKG)
-    {
-        std::ofstream file_;
-        std::string fileName = "sim_pkg.dat";
-        file_.open(fileName, std::ofstream::binary);
-        if (file_.fail())
-        {
-            std::printf("Cannot open file: %s", fileName.c_str());
-            return -1;
-        }
-
-        if (file_.is_open())
-        {
-            std::cout << "File Opened " << std::endl;
-        }
-
-
-        typedef struct
-        {
-            int id;
-            int size;
-
-        } ModelHdr;
-
-        typedef struct
-        {
-            ModelHdr hdr;
-            char *stringTmp;
-            int pkg_size;
-
-        } ModelPkg;
-
-        ModelPkg pkg;
-
-
-        // char *stringTmp;
-        pkg.hdr.id = 1;
-        // int size_all;
-        pkg.hdr.size = 12;
-        // int size = odr_fileName.size() + 1;
-        pkg.pkg_size = pkg.hdr.size + sizeof(ModelHdr) + sizeof(pkg.pkg_size);
-        pkg.stringTmp = new char[pkg.hdr.size];
-        file_.write(reinterpret_cast<char*>(&pkg.hdr.id), sizeof(int));
-        file_.write(reinterpret_cast<char*>(&pkg.hdr.size), sizeof(int));
-        strncpy(pkg.stringTmp, odrFileName.c_str(), pkg.hdr.size);
-        file_.write(pkg.stringTmp, pkg.hdr.size);
-        file_.write(reinterpret_cast<char*>(&pkg.pkg_size), sizeof(pkg.pkg_size));
-        file_.flush();
-        file_.close();
-
-        if (!file_.is_open())
-        {
-            std::cout << "File closed " << std::endl;
-        }
-    }
-
-    else if (logger.system_mode== Mode::SIMPLE)
-    {
-        std::ofstream file_;
-        std::string fileName = "sim.dat";
-        file_.open(fileName, std::ofstream::binary);
-        if (file_.fail())
-        {
-            std::printf("Cannot open file: %s", fileName.c_str());
-            return -1;
-        }
-
-        if (file_.is_open())
-        {
-            std::cout << "File Opened " << std::endl;
-        }
-
-
-        CommonPkg timePkg;
-
-        timePkg.hdr.id = static_cast<int>(PackageId::TIME_SERIES);
-        timePkg.hdr.content_size = sizeof(current_time);
-        timePkg.content = reinterpret_cast<char*>(&current_time);
-        timePkg.end.pkg_size = sizeof(CommonPkgHdr) + timePkg.hdr.content_size + sizeof(CommonPkgEnd);
-
-        file_.write(reinterpret_cast<char*>(&timePkg.hdr), sizeof(CommonPkgHdr));
-        file_.write(timePkg.content, timePkg.hdr.content_size);
-        file_.write(reinterpret_cast<char*>(&timePkg.end.pkg_size), sizeof(CommonPkgEnd));
-
-        file_.flush();
-        file_.close();
-
-        if (!file_.is_open())
-        {
-            std::cout << "File closed " << std::endl;
-        }
-    }
-
-}

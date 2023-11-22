@@ -109,3 +109,11 @@ unittest(
     ${OSI_LIBRARIES}
     ${SUMO_LIBRARIES}
     ${SOCK_LIB})
+
+# ############################### Creating executable (Replayer_test) ##############################################
+
+unittest(
+    Replayer_test
+    Replayer_test.cpp
+    "${SCENARIO_ENGINE_PATH}/SourceFiles/DatLogger.cpp")
+

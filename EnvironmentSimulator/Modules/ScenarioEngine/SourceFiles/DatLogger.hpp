@@ -1,8 +1,22 @@
+/*
+ * esmini - Environment Simulator Minimalistic
+ * https://github.com/esmini/esmini
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) partners of Simulation Scenarios
+ * https://sites.google.com/view/simulationscenarios
+ */
+
+#pragma once
+
 #include <fstream>
 #include <vector>
-#include <map>
 
-namespace DatLogger
+
+namespace datLogger
 {
     enum class PackageId {
         HEADER      = 11,
@@ -75,13 +89,19 @@ namespace DatLogger
     {
         double       time_;
         char*         pkg;
-    } ObjectStateWithTime;
+    } ObjectStateWithPkg;
 
     typedef struct
     {
         int       id;
-        std::vector<ObjectStateWithTime> states;
-    } ObjectState;
+        std::vector<ObjectStateWithPkg> pkgs;
+    } ObjectStateWithObjId;
+
+    typedef struct
+    {
+        double       sim_time;
+        std::vector<ObjectStateWithObjId> obj_states;
+    } ScenarioState;
 
     enum class Mode
     {
@@ -96,6 +116,7 @@ namespace DatLogger
         SIMPLE = 8 // isolated problem checking
     } ;
 
+    class ObjectState;
     class DatLogger {
     private:
         std::fstream data_file_;
@@ -121,6 +142,10 @@ namespace DatLogger
 
             std::cout << "File closed successfully in destructure" << std::endl;
         }
+
+        void step(int obj_no);
+
+
         bool isFirstEntry = true;
         bool notFirstEnd = false;
         bool display_print = false;
@@ -128,7 +153,7 @@ namespace DatLogger
         int totalPkgReceived = 0;
         int totalPkgSkipped = 0;
         std::vector<CommonPkg> pkgs_;
-        std::vector<ObjectState> objectStates_;
+        ScenarioState objectStates_;
 
         Mode system_mode;
         void initiateStates(double time_frame);
@@ -141,9 +166,17 @@ namespace DatLogger
         void writePackage(CommonPkg package ); // will just write package
         int recordPackage(const std::string& fileName); // check package can be recorded or not
         std::vector<int> getObjIdPkgIndexBtwTime( double t); // till next time forward
-        int getPkgCntBtwObj( int idx, int id); // till next time forward
+        int getPkgCntBtwObj( int idx); // till next time forward
+        double getTimeFromPkgIdx( int idx);
         std::string pkgIdTostring(PackageId id);
-
+        double getTimeFromCnt(int count); // give time for the time
+        void deleteObjState(int objId); // delete the object state for given object id from the current object state
+        void addObjState(int objId, double t); // add the object state for given object id from the current object state
+        int searchAndReplacePkg(int idx1, int idx2, int idx3, double time);
+        int getNextTimeIdx(double t, int idxDir);
+        int getIdxFromTime(double t);
+        bool isObjAvailable(int Idx);  // check in current state
+        bool isObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
         template <typename T>
         T getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize, const int obj_id);
 
