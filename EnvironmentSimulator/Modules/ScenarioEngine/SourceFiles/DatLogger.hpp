@@ -153,7 +153,7 @@ namespace datLogger
         int totalPkgReceived = 0;
         int totalPkgSkipped = 0;
         std::vector<CommonPkg> pkgs_;
-        ScenarioState objectStates_;
+        ScenarioState scenarioState;
 
         Mode system_mode;
         void initiateStates(double time_frame);

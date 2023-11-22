@@ -403,13 +403,13 @@ int DatLogger::searchAndReplacePkg(int idx1, int idx2, int idx3, double t)
     int ptr = idx3;
 
     // read the pkg id to find
-    PackageId pkgIdToFind = readPkgHdr(objectStates_.obj_states[idx1].pkgs[idx2].pkg);
+    PackageId pkgIdToFind = readPkgHdr(scenarioState.obj_states[idx1].pkgs[idx2].pkg);
 
     // idx3 is the index where the obj id package found
     int objIdToFind = *reinterpret_cast<int*>(pkgs_[idx3].content);
 
     // last time when this pkg has updated.
-    double refTime = objectStates_.obj_states[idx1].pkgs[idx2].time_;
+    double refTime = scenarioState.obj_states[idx1].pkgs[idx2].time_;
 
     if ( t == refTime)
     { // already latest pkg
@@ -442,8 +442,8 @@ int DatLogger::searchAndReplacePkg(int idx1, int idx2, int idx3, double t)
                 {
                     if ( static_cast<int>(pkgIdToFind) == pkgs_[ptr + ptrTemp].hdr.id)
                     { // found looking package finally. now replace
-                        objectStates_.obj_states[idx1].pkgs[idx2].pkg = reinterpret_cast<char*>(&pkgs_[ptr + ptrTemp]);
-                        objectStates_.obj_states[idx1].pkgs[idx2].time_ = getTimeFromPkgIdx(ptr + ptrTemp);
+                        scenarioState.obj_states[idx1].pkgs[idx2].pkg = reinterpret_cast<char*>(&pkgs_[ptr + ptrTemp]);
+                        scenarioState.obj_states[idx1].pkgs[idx2].time_ = getTimeFromPkgIdx(ptr + ptrTemp);
                         return 1;
                     }
                     if (pkgs_[ptr + ptrTemp].hdr.id == static_cast<int>(PackageId::OBJ_ID) ||
@@ -472,9 +472,9 @@ int DatLogger::searchAndReplacePkg(int idx1, int idx2, int idx3, double t)
 bool DatLogger::isObjAvailable(int idx) // check in current state
 {
     bool status = false;
-    for (size_t i = 0; i < objectStates_.obj_states.size(); i++) // loop current state object id to find the object id
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++) // loop current state object id to find the object id
     {
-        if (objectStates_.obj_states[i].id == *reinterpret_cast<int*>(pkgs_[idx].content))
+        if (scenarioState.obj_states[i].id == *reinterpret_cast<int*>(pkgs_[idx].content))
         {
             status = true; // obj id present
             break;
@@ -488,7 +488,7 @@ bool DatLogger::isObjAvailable(int idx,  std::vector<int> Indices) // check in t
     bool status = false;
     for (int Index : Indices) // loop found object ids for given new time to find the object id in current object state
     {
-        if (objectStates_.obj_states[idx].id == *reinterpret_cast<int*>(pkgs_[Index].content))
+        if (scenarioState.obj_states[idx].id == *reinterpret_cast<int*>(pkgs_[Index].content))
         {
             status = true; // obj id present
             break;
@@ -499,9 +499,9 @@ bool DatLogger::isObjAvailable(int idx,  std::vector<int> Indices) // check in t
 
 void DatLogger::updateStates(double t)
 {
-    if ( objectStates_.sim_time != t) // already current object is in given time
+    if ( scenarioState.sim_time != t) // already current object is in given time
     {
-        objectStates_.sim_time = t;
+        scenarioState.sim_time = t;
         std::vector<int> objIdIndices = getObjIdPkgIndexBtwTime(t);
 
         for (int Index : objIdIndices)
@@ -511,27 +511,27 @@ void DatLogger::updateStates(double t)
                 ObjectStateWithObjId stateObjId;
                 stateObjId.id = *reinterpret_cast<int*>(pkgs_[Index].content);
                 int pkgCnt = getPkgCntBtwObj(Index);
-                for (size_t i = 0; i < objectStates_.obj_states.size(); i++) // loop current state object id to find the object id
+                for (size_t i = 0; i < scenarioState.obj_states.size(); i++) // loop current state object id to find the object id
                 {
                     if (isObjAvailable(i, objIdIndices))
                     {
-                        if (objectStates_.obj_states[i].id ==   stateObjId.id) // found object id
+                        if (scenarioState.obj_states[i].id ==   stateObjId.id) // found object id
                         {
-                            for (size_t j = 0;j < objectStates_.obj_states[i].pkgs.size(); j++) // loop current state states to find the correct package to replace
+                            for (size_t j = 0;j < scenarioState.obj_states[i].pkgs.size(); j++) // loop current state states to find the correct package to replace
                             {
                                 for ( int k = Index + 1;  k < Index + pkgCnt + 1; k++) // start with Index + 1, Index will have object id package index. looking from next package
                                 {
-                                    PackageId id_ = readPkgHdr(objectStates_.obj_states[i].pkgs[j].pkg);
+                                    PackageId id_ = readPkgHdr(scenarioState.obj_states[i].pkgs[j].pkg);
 
-                                    if (objectStates_.obj_states[i].pkgs[j].time_ == t ) // time matches so already new package in current state
+                                    if (scenarioState.obj_states[i].pkgs[j].time_ == t ) // time matches so already new package in current state
                                     {
                                         break;
                                     }
 
                                     if (id_ == static_cast<PackageId>(pkgs_[k].hdr.id)) // package id matches in given time, replace it with new package
                                     {
-                                        objectStates_.obj_states[i].pkgs[j].pkg = reinterpret_cast<char*>(&pkgs_[k]);
-                                        objectStates_.obj_states[i].pkgs[j].time_ = t;
+                                        scenarioState.obj_states[i].pkgs[j].pkg = reinterpret_cast<char*>(&pkgs_[k]);
+                                        scenarioState.obj_states[i].pkgs[j].time_ = t;
                                         break;
                                     }
                                     if ( k == Index + pkgCnt ) // reaches last iteration, only look for pervious time, No pkg match found in new time.
@@ -545,7 +545,7 @@ void DatLogger::updateStates(double t)
                     }
                     else
                     { // object deleted
-                        objectStates_.obj_states.erase(objectStates_.obj_states.begin() + i);
+                        scenarioState.obj_states.erase(scenarioState.obj_states.begin() + i);
                         std::cout << "Object deleted" << std::endl;
                     }
                 }
@@ -595,11 +595,11 @@ double DatLogger::getTimeFromCnt(int count)
 
 void DatLogger::deleteObjState(int objId)
 {
-    for (size_t i = 0; i < objectStates_.obj_states.size(); i++) // loop current state object id to find the object id
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++) // loop current state object id to find the object id
     {
-        if (objectStates_.obj_states[i].id == objId) // found object id
+        if (scenarioState.obj_states[i].id == objId) // found object id
         { // delete now
-            objectStates_.obj_states.erase(objectStates_.obj_states.begin() + i);
+            scenarioState.obj_states.erase(scenarioState.obj_states.begin() + i);
         }
     }
 
@@ -622,7 +622,7 @@ void DatLogger::addObjState(int idx, double t)
         statePkg.time_ = t;
         stateObjId.pkgs.push_back(statePkg);
     }
-    objectStates_.obj_states.push_back(stateObjId);
+    scenarioState.obj_states.push_back(stateObjId);
 
 }
 
@@ -637,7 +637,7 @@ void DatLogger::initiateStates(double t)
         std::cout << " No obj found for given time, may be given time frame pkg not available. " << std::endl;
     }
 
-    objectStates_.sim_time = t;
+    scenarioState.sim_time = t;
     for (int Index : objIdIndices)
     {
         addObjState(Index, t);
@@ -821,33 +821,66 @@ T DatLogger::getLatestPackage(const int id, const unsigned long long pkgSize, co
         // Read the header
         CommonPkgHdr cmnPkgHdr_;
         data_file_.read(reinterpret_cast<char*>(&cmnPkgHdr_), sizeof(cmnPkgHdr_));
+        if(display_print)
+        {
+        std::cout << "Package ID: " << pkgIdTostring(static_cast<PackageId>(cmnPkgHdr_.id)) << std::endl;
+        }
 
         // continue till time package found
-        if (cmnPkgHdr_.id != static_cast<int>(PackageId::TIME_SERIES))
+        if (cmnPkgHdr_.id != static_cast<int>(PackageId::TIME_SERIES) && !firstTimePkgFound)
         {
             // current pointer is end of content size field
             ptrsToMove = sizeof(cmnPkgHdr_);
             continue;
         }
 
-        if (!firstTimePkgFound)
+        if (!firstTimePkgFound && cmnPkgHdr_.id == static_cast<int>(PackageId::TIME_SERIES))
         { // continue till pervious time package found
-            firstTimePkgFound = true;
 
+            firstTimePkgFound = true;
             // current pointer is end of content size field
             ptrsToMove = sizeof(cmnPkgHdr_);
             continue;
         }
+
+        // continue till time package found, no given obj id found in pervious time so this is new obj
+        if (cmnPkgHdr_.id == static_cast<int>(PackageId::TIME_SERIES))
+        {
+            // set ptr to correct position on return
+            data_file_.seekg(currentFilePointerPosition, std::ios::beg);
+            return T();
+        }
+
+        // look till obj id found
+        if (cmnPkgHdr_.id != static_cast<int>(PackageId::OBJ_ID))
+        {
+            // set ptr to correct position
+            ptrsToMove = sizeof(cmnPkgHdr_);
+            continue;
+        }
+
+        // read content
+        int obj_id;
+        data_file_.read(reinterpret_cast<char*>(&obj_id), cmnPkgHdr_.content_size);
+
+        // check the obj id match
+        if (obj_id != objId)
+        {
+            // set ptr to correct position
+            ptrsToMove = sizeof(cmnPkgHdr_) + cmnPkgHdr_.content_size;
+            continue;
+        }
+
         if(display_print)
         {
             std::cout << "Pointer number before stage 2: " << data_file_.tellg() << std::endl;
         }
 
-        lastReadTimePkgPtrPos = data_file_.tellg() - sizeof(cmnPkgHdr_);
+        lastReadTimePkgPtrPos = data_file_.tellg() - (sizeof(cmnPkgHdr_) + cmnPkgHdr_.content_size);
         ptrsToMove = 0;
         // stage 2-> Find the package
-        // object id found now look for package forward.Always time package content size end will be current pointer position for stage2(seek time pkg content and end size)
-        data_file_.seekg((cmnPkgHdr_.content_size + sizeof(CommonPkgEnd)), std::ios::cur);
+        // object id found now look for package forward.Always obj id package content end will be current pointer position for stage2(seek time pkg content and end size)
+        data_file_.seekg((sizeof(CommonPkgEnd)), std::ios::cur);
         if(display_print)
         {
             std::cout << "Pointer number in stage 2: " << data_file_.tellg() << std::endl;
@@ -862,14 +895,14 @@ T DatLogger::getLatestPackage(const int id, const unsigned long long pkgSize, co
             // read overall size
             data_file_.read(reinterpret_cast<char*>(&pkgEnd.pkg_size), sizeof(CommonPkgEnd));
 
-            // check obj id pkg available in each time frame, May be new obj id.
-            if(cmnPkgHdr_.id != id)
 
             // go back to stage1.
-            if (cmnPkgHdr_.id == static_cast<int>(PackageId::TIME_SERIES))
+            if (cmnPkgHdr_.id == static_cast<int>(PackageId::TIME_SERIES) ||
+                cmnPkgHdr_.id == static_cast<int>(PackageId::OBJ_ID))
             {
                 // Jump to last known obj id package.
                 data_file_.seekg(lastReadTimePkgPtrPos, std::ios::beg);
+                firstTimePkgFound = false;
                 break;
             }
 

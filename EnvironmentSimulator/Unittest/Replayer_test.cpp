@@ -20,6 +20,10 @@ TEST(LogOperationsWithOneObject, TestLogInitAndStepWithOneObject)
     int no_of_obj = 1;
     int pkg_nos = 2; // speed and pos pkg
     int total_time = 6;
+    // calc
+    // 1obj
+    // 1 hdr, 6 time, 6 obj id, 6 pos, 6 speed  = 25 pkg  received
+    // 1 hdr, 6 time, 6 obj id, 2 pos, 5 speed  = 20 pkg  written
 
     logger->init(fileName, version_, odrFileName, model_Name);
     ASSERT_EQ(logger->totalPkgReceived, 1);
@@ -43,23 +47,23 @@ TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
     ASSERT_EQ(logger->pkgs_.size(), 20);
 
     logger->initiateStates(logger->getTimeFromCnt(1));
-    ASSERT_EQ(logger->objectStates_.sim_time, logger->getTimeFromCnt(1));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 1);
-    ASSERT_EQ(logger->objectStates_.obj_states[0].pkgs.size(), 2);
+    ASSERT_EQ(logger->scenarioState.sim_time, logger->getTimeFromCnt(1));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 1);
+    ASSERT_EQ(logger->scenarioState.obj_states[0].pkgs.size(), 2);
     ASSERT_DOUBLE_EQ(logger->getTimeFromCnt(2), 1.122);
 
     logger->updateStates(logger->getTimeFromCnt(2));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(2));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(2));
 
     logger->updateStates(logger->getTimeFromCnt(4));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
 
     logger->updateStates(logger->getTimeFromCnt(5));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(5));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 1);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(5));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 1);
 
 
     delete logger;
@@ -77,6 +81,10 @@ TEST(LogOperationsWithTwoObject, TestLogInitAndStepWithTwoObject)
     int no_of_obj = 2;
     int pkg_nos = 2; // speed and pos pkg
     int total_time = 6;
+    // calc
+    // 2obj
+    // 1 hdr, 6 time, 12 obj id, 12 pos, 12 speed  = 43 pkg  received
+    // 1 hdr, 6 time, 12 obj id, 4 pos, 10 speed  = 33 pkg  written
 
     logger->init(fileName, version_, odrFileName, model_Name);
     ASSERT_EQ(logger->totalPkgReceived, 1);
@@ -99,31 +107,31 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
     ASSERT_EQ(logger->pkgs_.size(), 33);
 
     logger->initiateStates(logger->getTimeFromCnt(1));
-    ASSERT_EQ(logger->objectStates_.sim_time, logger->getTimeFromCnt(1));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 2);
-    ASSERT_EQ(logger->objectStates_.obj_states[0].pkgs.size(), 2);
+    ASSERT_EQ(logger->scenarioState.sim_time, logger->getTimeFromCnt(1));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(logger->scenarioState.obj_states[0].pkgs.size(), 2);
     ASSERT_DOUBLE_EQ(logger->getTimeFromCnt(2), 1.122);
 
     logger->updateStates(logger->getTimeFromCnt(2));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 2);
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(2));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(2));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 2);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(2));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(2));
 
     logger->updateStates(logger->getTimeFromCnt(4));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 2);
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 2);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
 
     logger->updateStates(logger->getTimeFromCnt(5));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 2);
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(5));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(5));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 2);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(5));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(5));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
 
     delete logger;
 
@@ -143,13 +151,18 @@ TEST(LogOperationsWithThreeObject, TestLogInitAndStepWithThreeObject)
     int total_time = 6;
     int no_of_obj_deleted = 1;
 
+    //calc
+    // 3obj- one obj deleted so 1 obj id  + pos + speed pkg less
+    // 1 hdr, 6 time, 18 obj id, 18 pos, 18 speed  =58 pkg  received
+    // 1 hdr, 6 time, 17 obj id, 6 pos, 14 speed  = 45 pkg  written (while add obj . all pkg to be added)
+
     logger->init(fileName, version_, odrFileName, model_Name);
     ASSERT_EQ(logger->totalPkgReceived, 1);
     ASSERT_EQ(logger->totalPkgSkipped, 0);
     logger->step(no_of_obj);
     ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) - (pkg_nos + no_of_obj_deleted));
-    ASSERT_EQ(logger->totalPkgProcessed, 44);
-    ASSERT_EQ(logger->totalPkgSkipped, 14);
+    ASSERT_EQ(logger->totalPkgProcessed, 45);
+    ASSERT_EQ(logger->totalPkgSkipped, 13);
 
     delete logger;
 
@@ -161,43 +174,52 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
 
     std::string fileName = "sim.dat";
     logger->recordPackage(fileName);
-    ASSERT_EQ(logger->pkgs_.size(), 44);
+    ASSERT_EQ(logger->pkgs_.size(), 45);
 
     logger->initiateStates(logger->getTimeFromCnt(1));
-    ASSERT_EQ(logger->objectStates_.sim_time, logger->getTimeFromCnt(1));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 3);
-    ASSERT_EQ(logger->objectStates_.obj_states[0].pkgs.size(), 2);
+    ASSERT_EQ(logger->scenarioState.sim_time, logger->getTimeFromCnt(1));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 3);
+    ASSERT_EQ(logger->scenarioState.obj_states[0].pkgs.size(), 2);
     ASSERT_DOUBLE_EQ(logger->getTimeFromCnt(2), 1.122);
 
     logger->updateStates(logger->getTimeFromCnt(2));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 3);
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(2));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(2));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[2].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[2].pkgs[1].time_, logger->getTimeFromCnt(2));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 3);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(2));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(2));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[2].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[2].pkgs[1].time_, logger->getTimeFromCnt(2));
 
     logger->updateStates(logger->getTimeFromCnt(3));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 2); // obj deleted
-    ASSERT_EQ(logger->objectStates_.obj_states[0].id, 0);
-    ASSERT_EQ(logger->objectStates_.obj_states[1].id, 1);
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(3));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(3));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 2); // obj deleted
+    ASSERT_EQ(logger->scenarioState.obj_states[0].id, 0);
+    ASSERT_EQ(logger->scenarioState.obj_states[1].id, 1);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(3));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(3));
 
     logger->updateStates(logger->getTimeFromCnt(4));
-    ASSERT_EQ(logger->objectStates_.obj_states.size(), 3); // obj added
-    ASSERT_EQ(logger->objectStates_.obj_states[0].id, 0);
-    ASSERT_EQ(logger->objectStates_.obj_states[1].id, 1);
-    ASSERT_EQ(logger->objectStates_.obj_states[2].id, 2);
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[2].pkgs[0].time_, logger->getTimeFromCnt(4));
-    ASSERT_DOUBLE_EQ(logger->objectStates_.obj_states[2].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 3); // obj added
+    ASSERT_EQ(logger->scenarioState.obj_states[0].id, 0);
+    ASSERT_EQ(logger->scenarioState.obj_states[1].id, 1);
+    ASSERT_EQ(logger->scenarioState.obj_states[2].id, 2);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[2].pkgs[0].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[2].pkgs[1].time_, logger->getTimeFromCnt(4));
+
+    logger->updateStates(logger->getTimeFromCnt(5));
+    ASSERT_EQ(logger->scenarioState.obj_states.size(), 3);
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[0].time_, logger->getTimeFromCnt(5));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[0].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[0].time_, logger->getTimeFromCnt(5));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[1].pkgs[1].time_, logger->getTimeFromCnt(4));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[2].pkgs[0].time_, logger->getTimeFromCnt(5));
+    ASSERT_DOUBLE_EQ(logger->scenarioState.obj_states[2].pkgs[1].time_, logger->getTimeFromCnt(4));
 
     delete logger;
 
