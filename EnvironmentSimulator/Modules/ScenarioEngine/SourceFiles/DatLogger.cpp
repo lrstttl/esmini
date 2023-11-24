@@ -11,6 +11,10 @@
 
 using namespace datLogger;
 
+#define SMALL_NUMBER 1e-6
+
+
+#if (0)
 void DatLogger::step(int obj_no)
 {
     double x = 1.0;
@@ -89,6 +93,119 @@ void DatLogger::step(int obj_no)
         }
         current_time += 1.089;
     }
+
+}
+#endif
+
+int DatLogger::WriteObjSpeed(int obj_id, double speed)
+{
+    totalPkgReceived += 1;
+    for (int i = 0; i < completeObjectState.obj_states.size(); i ++)
+    {
+        if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+        {
+            continue;
+        }
+        if (fabs(completeObjectState.obj_states[i].speed_.speed_ - speed) > SMALL_NUMBER)
+        {
+            speedPkgs += 1;
+            // create pkg
+            CommonPkg pkg;
+            pkg.hdr.id = static_cast<int>(PackageId::SPEED);
+            pkg.hdr.content_size = sizeof(speed);
+            pkg.content = reinterpret_cast<char*>(&speed);
+            pkg.end.pkg_size = sizeof(CommonPkgHdr) + pkg.hdr.content_size + sizeof(CommonPkgEnd);
+            writePackage(pkg);
+            completeObjectState.obj_states[i].speed_.speed_= speed;
+            break;
+        }
+        else
+        {
+            totalPkgSkipped += 1;
+            break;
+        }
+    }
+    return 0;
+
+}
+
+int DatLogger::WriteTime(double t)
+{
+    totalPkgReceived += 1;
+    timePkgs += 1;
+
+    // create pkg
+    CommonPkg pkg;
+    pkg.hdr.id = static_cast<int>(PackageId::TIME_SERIES);
+    pkg.hdr.content_size = sizeof(t);
+    pkg.content = reinterpret_cast<char*>(&t);
+    pkg.end.pkg_size = sizeof(CommonPkgHdr) + pkg.hdr.content_size + sizeof(CommonPkgEnd);
+    writePackage(pkg);
+    completeObjectState.time.time = t;
+
+    return 0;
+}
+
+int DatLogger::WriteObjId(int obj_id)
+{
+    totalPkgReceived += 1;
+    objIdPkgs += 1;
+    ObjState objState_;
+    // create pkg
+    CommonPkg pkg;
+    pkg.hdr.id = static_cast<int>(PackageId::OBJ_ID);
+    pkg.hdr.content_size = sizeof(obj_id);
+    pkg.content = reinterpret_cast<char*>(&obj_id);
+    pkg.end.pkg_size = sizeof(CommonPkgHdr) + pkg.hdr.content_size + sizeof(CommonPkgEnd);
+    writePackage(pkg);
+    objState_.obj_id_.obj_id = obj_id;
+    completeObjectState.obj_states.push_back(objState_);
+    return 0;
+
+}
+
+int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, double p, double r)
+{
+    totalPkgReceived += 1;
+    for (int i = 0; i < completeObjectState.obj_states.size(); i ++)
+    {
+        if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+        {
+            continue;
+        }
+        if (completeObjectState.obj_states[i].pos_.h != h ||
+            completeObjectState.obj_states[i].pos_.p != p ||
+            completeObjectState.obj_states[i].pos_.r != r ||
+            completeObjectState.obj_states[i].pos_.x != x ||
+            completeObjectState.obj_states[i].pos_.y != y ||
+            completeObjectState.obj_states[i].pos_.z != z)
+        {
+            posPkgs += 1;
+            // create pkg
+            CommonPkg pkg;
+            Pos pos_ ;
+            pos_.x = x;
+            pos_.y = y;
+            pos_.z = z;
+            pos_.h = h;
+            pos_.r = r;
+            pos_.p = p;
+
+            pkg.hdr.id = static_cast<int>(PackageId::POSITIONS);
+            pkg.hdr.content_size = sizeof(pos_);
+            pkg.content = reinterpret_cast<char*>(&pos_);
+            pkg.end.pkg_size = sizeof(CommonPkgHdr) + pkg.hdr.content_size + sizeof(CommonPkgEnd);
+            writePackage(pkg);
+            completeObjectState.obj_states[i].pos_ = pos_;
+            break;
+        }
+        else
+        {
+            totalPkgSkipped += 1;
+            break;
+        }
+    }
+    return 0;
 }
 
 void DatLogger::writePackage(CommonPkg package )
@@ -361,7 +478,7 @@ int DatLogger::getPkgCntBtwObj( int idx)
     return count;
 }
 
-std::vector<int> DatLogger::getObjIdPkgIndexBtwTime( double t)
+std::vector<int> DatLogger::GetNumberOfObjectsAtTime( double t)
 {
     std::vector<int> Indices;
     bool timeFound = false;
@@ -497,12 +614,12 @@ bool DatLogger::isObjAvailable(int idx,  std::vector<int> Indices) // check in t
     return status;
 }
 
-void DatLogger::updateStates(double t)
+void DatLogger::MoveToTime(double t)
 {
     if ( scenarioState.sim_time != t) // already current object is in given time
     {
         scenarioState.sim_time = t;
-        std::vector<int> objIdIndices = getObjIdPkgIndexBtwTime(t);
+        std::vector<int> objIdIndices = GetNumberOfObjectsAtTime(t);
 
         for (int Index : objIdIndices)
         {
@@ -595,11 +712,11 @@ double DatLogger::getTimeFromCnt(int count)
 
 void DatLogger::deleteObjState(int objId)
 {
-    for (size_t i = 0; i < scenarioState.obj_states.size(); i++) // loop current state object id to find the object id
+    for (size_t i = 0; i < completeObjectState.obj_states.size(); i++) // loop current state object id to find the object id
     {
-        if (scenarioState.obj_states[i].id == objId) // found object id
+        if (completeObjectState.obj_states[i].obj_id_.obj_id == objId) // found object id
         { // delete now
-            scenarioState.obj_states.erase(scenarioState.obj_states.begin() + i);
+            completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + i);
         }
     }
 
@@ -629,7 +746,7 @@ void DatLogger::addObjState(int idx, double t)
 void DatLogger::initiateStates(double t)
 {
 
-    std::vector<int> objIdIndices = getObjIdPkgIndexBtwTime(t);
+    std::vector<int> objIdIndices = GetNumberOfObjectsAtTime(t);
 
     if (objIdIndices.size() == 0)
     {
