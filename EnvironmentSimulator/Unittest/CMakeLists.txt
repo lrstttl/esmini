@@ -115,5 +115,6 @@ unittest(
 unittest(
     Replayer_test
     Replayer_test.cpp
+    "${REPLAYER_PATH}/Replay.cpp"
     "${SCENARIO_ENGINE_PATH}/SourceFiles/DatLogger.cpp")
 
