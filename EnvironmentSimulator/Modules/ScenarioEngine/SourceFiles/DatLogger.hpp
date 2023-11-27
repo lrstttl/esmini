@@ -33,10 +33,10 @@ namespace datLogger
         int content_size;
     } CommonPkgHdr;
 
-    typedef struct
+    /*typedef struct
     {
         unsigned long long pkg_size;  // avoid padding for 64 bit alignment
-    } CommonPkgEnd;
+    } CommonPkgEnd;*/
 
     // common package types
     typedef struct
@@ -82,7 +82,7 @@ namespace datLogger
     {
         CommonPkgHdr  hdr;
         char*         content;   // pointer to allocated content
-        CommonPkgEnd  end;
+        // CommonPkgEnd  end;
     } CommonPkg;
 
     // cache for writing and reading states
@@ -178,8 +178,7 @@ namespace datLogger
         int totalPkgProcessed = 0;
         int totalPkgReceived = 0;
         int totalPkgSkipped = 0;
-        std::vector<CommonPkg> pkgs_;
-        ScenarioState scenarioState;
+
         CompleteObjectState completeObjectState;
 
         Mode system_mode;
@@ -193,15 +192,15 @@ namespace datLogger
         void writePackage(CommonPkg package ); // will just write package
         int recordPackage(const std::string& fileName); // check package can be recorded or not
         std::vector<int> GetNumberOfObjectsAtTime( double t); // till next time forward
-        int getPkgCntBtwObj( int idx); // till next time forward
-        double getTimeFromPkgIdx( int idx);
+        int getPkgCntBtwObj( size_t idx); // till next time forward
+        double getTimeFromPkgIdx( size_t idx);
         std::string pkgIdTostring(PackageId id);
         double getTimeFromCnt(int count); // give time for the time
         void deleteObjState(int objId); // delete the object state for given object id from the current object state
-        void addObjState(int objId, double t); // add the object state for given object id from the current object state
+        void addObjState(size_t objId, double t); // add the object state for given object id from the current object state
         int searchAndReplacePkg(int idx1, int idx2, int idx3, double time);
 
-        bool isObjAvailable(int Idx);  // check in current state
+        bool isObjAvailableInCache(int Idx);  // check in current state
         bool isObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
         template <typename T>
         T getLatestPackage(const int id, const unsigned long long pkgSize, const int contentSize, const int obj_id);
@@ -218,7 +217,7 @@ namespace datLogger
         // the methods will find most recent value given the timestamp
         // int MoveToTime(double time);
         void MoveToTime(double time_frame);
-        std::vector<int> GetNumberOfObjectsAtTime( double t); // till next time forward, also indexes of object id
+        // std::vector<int> GetNumberOfObjectsAtTime( double t); // till next time forward, also indexes of object id
 
         // int GetObjectId(int index);   its already available in above method // index from the number of objects present at specific time
         int GetObjCompleteState(double time, int obj_id, CompleteObjectState& state);

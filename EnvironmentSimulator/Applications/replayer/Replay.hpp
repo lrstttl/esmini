@@ -32,9 +32,6 @@ namespace scenarioengine
         DatHeader                header_;
         std::vector<ReplayEntry> data_;
 
-        PackageStructVersion     version_;
-        pkgModelFilename  modelName_;
-        pkgOdrFilename    odrName_;
 
         Replay(std::string filename, bool clean);
         // Replay(const std::string directory, const std::string scenario, bool clean);
@@ -83,6 +80,10 @@ namespace scenarioengine
         void CleanEntries(std::vector<ReplayEntry>& entries);
         void BuildData(std::vector<std::pair<std::string, std::vector<ReplayEntry>>>& scenarios);
         void CreateMergedDatfile(const std::string filename);
+
+        // new replayer
+
+
 
     private:
         std::ifstream            file_;

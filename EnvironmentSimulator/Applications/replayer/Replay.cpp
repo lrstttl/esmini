@@ -26,51 +26,28 @@ Replay::Replay(std::string filename, bool clean) : time_(0.0), index_(0), repeat
         throw std::invalid_argument(std::string("Cannot open file: ") + filename);
     }
 
-    // file_.read(reinterpret_cast<char*>(&header_), sizeof(header_));
-    // LOG("Recording %s opened. dat version: %d odr: %s model: %s",
-    //     FileNameOf(filename).c_str(),
-    //     header_.version,
-    //     FileNameOf(header_.odr_filename).c_str(),
-    //     FileNameOf(header_.model_filename).c_str());
-
-    // if (header_.version != DAT_FILE_FORMAT_VERSION)
-    // {
-    //     LOG_AND_QUIT("Version mismatch. %s is version %d while supported version is %d. Please re-create dat file.",
-    //                  filename.c_str(),
-    //                  header_.version,
-    //                  DAT_FILE_FORMAT_VERSION);
-    // }
-
-    // if (header_.version != DAT_FILE_FORMAT_VERSION)
-    // {
-    //     LOG_AND_QUIT("Version mismatch. %s is version %d while supported version is %d. Please re-create dat file.",
-    //                  filename.c_str(),
-    //                  header_.version,
-    //                  DAT_FILE_FORMAT_VERSION);
-    // }
-
-
-    file_.read(reinterpret_cast<char*>(&version_), sizeof(version_));
-
-    file_.read(reinterpret_cast<char*>(&odrName_.hdr.id), 4);
-    file_.read(reinterpret_cast<char*>(&odrName_.hdr.content_size), 4);
-    odrName_.odr_filename = new char[odrName_.hdr.content_size];
-    file_.read(odrName_.odr_filename, odrName_.hdr.content_size);
-    file_.read(reinterpret_cast<char*>(&odrName_.pkg_end.pkg_size), 4);
-
-    file_.read(reinterpret_cast<char*>(&modelName_.hdr.id), 4);
-    file_.read(reinterpret_cast<char*>(&modelName_.hdr.content_size), 4);
-    modelName_.model_filename = new char[modelName_.hdr.content_size];
-    file_.read(modelName_.model_filename, modelName_.hdr.content_size);
-    file_.read(reinterpret_cast<char*>(&modelName_.pkg_end.pkg_size), 4);
-
-
+    file_.read(reinterpret_cast<char*>(&header_), sizeof(header_));
     LOG("Recording %s opened. dat version: %d odr: %s model: %s",
         FileNameOf(filename).c_str(),
-        version_.version,
-        FileNameOf(odrName_.odr_filename).c_str(),
-        FileNameOf(modelName_.model_filename).c_str());
+        header_.version,
+        FileNameOf(header_.odr_filename).c_str(),
+        FileNameOf(header_.model_filename).c_str());
 
+    if (header_.version != DAT_FILE_FORMAT_VERSION)
+    {
+        LOG_AND_QUIT("Version mismatch. %s is version %d while supported version is %d. Please re-create dat file.",
+                     filename.c_str(),
+                     header_.version,
+                     DAT_FILE_FORMAT_VERSION);
+    }
+
+    if (header_.version != DAT_FILE_FORMAT_VERSION)
+    {
+        LOG_AND_QUIT("Version mismatch. %s is version %d while supported version is %d. Please re-create dat file.",
+                     filename.c_str(),
+                     header_.version,
+                     DAT_FILE_FORMAT_VERSION);
+    }
 
     if (header_.version != 2)
     {

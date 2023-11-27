@@ -24,7 +24,9 @@
 #include <unistd.h> /* Needed for close() */
 #endif
 
+
 using namespace scenarioengine;
+
 
 ObjectState::ObjectState()
 {
@@ -1006,6 +1008,7 @@ void ScenarioGateway::removeObject(std::string name)
     }
 }
 
+#if 0
 void ScenarioGateway::WriteStatesToFile()
 {
     if (data_file_.is_open())
@@ -1045,11 +1048,55 @@ void ScenarioGateway::WriteStatesToFile()
         }
     }
 }
+#endif
+
+int ScenarioGateway::WriteStatesToFile()
+{
+    if (datLogger == nullptr)
+    {
+        if ((datLogger = new datLogger::DatLogger()) == nullptr)
+        {
+            return -1;
+        }
+    }
+    // Write status to file - for later replay
+    for (size_t i = 0; i < objectState_.size(); i++)
+    {
+        datLogger->WriteTime(objectState_[i]->state_.info.timeStamp);
+        datLogger->WriteObjId(objectState_[i]->state_.info.id);
+        datLogger->WriteObjPos(objectState_[i]->state_.info.id,
+                                objectState_[i]->state_.pos.GetX(),
+                                objectState_[i]->state_.pos.GetY(),
+                                objectState_[i]->state_.pos.GetY(),
+                                objectState_[i]->state_.pos.GetH(),
+                                objectState_[i]->state_.pos.GetP(),
+                                objectState_[i]->state_.pos.GetR());
+        datLogger->WriteObjSpeed(objectState_[i]->state_.info.id, objectState_[i]->state_.info.speed);
+    }
+    return 0;
+}
 
 int ScenarioGateway::RecordToFile(std::string filename, std::string odr_filename, std::string model_filename)
 {
     if (!filename.empty())
     {
+        int ver = DAT_FILE_FORMAT_VERSION;
+        if (datLogger == nullptr)
+        {
+            if ((datLogger = new datLogger::DatLogger()) == nullptr)
+            {
+                return -1;
+            }
+
+            if (datLogger->init(filename, ver, odr_filename, model_filename) != 0)
+            {
+                delete datLogger;
+                datLogger = nullptr;
+                return -1;
+            }
+        }
+
+#if (0)
         data_file_.open(filename, std::ofstream::binary);
         if (data_file_.fail())
         {
@@ -1062,7 +1109,11 @@ int ScenarioGateway::RecordToFile(std::string filename, std::string odr_filename
         StrCopy(header.model_filename, model_filename.c_str(), MIN(model_filename.length() + 1, DAT_FILENAME_SIZE));
 
         data_file_.write(reinterpret_cast<char*>(&header), sizeof(header));
+#endif
     }
-
     return 0;
 }
+
+
+
+
