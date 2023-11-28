@@ -112,9 +112,12 @@ unittest(
 
 # ############################### Creating executable (Replayer_test) ##############################################
 
+set(Replayer_sources
+    Replayer_test.cpp
+    "${SCENARIO_ENGINE_PATH}/SourceFiles/DatLogger.cpp"
+    "${REPLAYER_PATH}/Replay.cpp")
+
 unittest(
     Replayer_test
-    Replayer_test.cpp
-    "${REPLAYER_PATH}/Replay.cpp"
-    "${SCENARIO_ENGINE_PATH}/SourceFiles/DatLogger.cpp")
-
+    "${Replayer_sources}"
+    CommonMini)

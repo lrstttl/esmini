@@ -24,9 +24,7 @@
 #include <unistd.h> /* Needed for close() */
 #endif
 
-
 using namespace scenarioengine;
-
 
 ObjectState::ObjectState()
 {
@@ -1065,12 +1063,12 @@ int ScenarioGateway::WriteStatesToFile()
         datLogger->WriteTime(objectState_[i]->state_.info.timeStamp);
         datLogger->WriteObjId(objectState_[i]->state_.info.id);
         datLogger->WriteObjPos(objectState_[i]->state_.info.id,
-                                objectState_[i]->state_.pos.GetX(),
-                                objectState_[i]->state_.pos.GetY(),
-                                objectState_[i]->state_.pos.GetY(),
-                                objectState_[i]->state_.pos.GetH(),
-                                objectState_[i]->state_.pos.GetP(),
-                                objectState_[i]->state_.pos.GetR());
+                               objectState_[i]->state_.pos.GetX(),
+                               objectState_[i]->state_.pos.GetY(),
+                               objectState_[i]->state_.pos.GetY(),
+                               objectState_[i]->state_.pos.GetH(),
+                               objectState_[i]->state_.pos.GetP(),
+                               objectState_[i]->state_.pos.GetR());
         datLogger->WriteObjSpeed(objectState_[i]->state_.info.id, objectState_[i]->state_.info.speed);
     }
     return 0;
@@ -1113,7 +1111,3 @@ int ScenarioGateway::RecordToFile(std::string filename, std::string odr_filename
     }
     return 0;
 }
-
-
-
-

@@ -1,23 +1,20 @@
 // logDat
 
 #include <iostream>
-#include <iostream>
 #include <fstream>
 #include <cstring>
 #include <chrono>
 #include <cmath>
 
 #include "DatLogger.hpp"
+#include "CommonMini.hpp"
 
 using namespace datLogger;
-
-#define SMALL_NUMBER 1e-6
-
 
 int DatLogger::WriteObjSpeed(int obj_id, double speed)
 {
     totalPkgReceived += 1;
-    for (size_t i = 0; i < completeObjectState.obj_states.size(); i ++)
+    for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
     {
         if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
         {
@@ -28,11 +25,11 @@ int DatLogger::WriteObjSpeed(int obj_id, double speed)
             speedPkgs += 1;
             // create pkg
             CommonPkg pkg;
-            pkg.hdr.id = static_cast<int>(PackageId::SPEED);
+            pkg.hdr.id           = static_cast<int>(PackageId::SPEED);
             pkg.hdr.content_size = sizeof(speed);
-            pkg.content = reinterpret_cast<char*>(&speed);
+            pkg.content          = reinterpret_cast<char*>(&speed);
             writePackage(pkg);
-            completeObjectState.obj_states[i].speed_.speed_= speed;
+            completeObjectState.obj_states[i].speed_.speed_ = speed;
             break;
         }
         else
@@ -42,7 +39,6 @@ int DatLogger::WriteObjSpeed(int obj_id, double speed)
         }
     }
     return 0;
-
 }
 
 int DatLogger::WriteTime(double t)
@@ -52,14 +48,13 @@ int DatLogger::WriteTime(double t)
 
     if (data_file_.is_open())
     {
-
         if (fabs(completeObjectState.time.time - t) > SMALL_NUMBER)
         {
             // create pkg
             CommonPkg pkg;
-            pkg.hdr.id = static_cast<int>(PackageId::TIME_SERIES);
+            pkg.hdr.id           = static_cast<int>(PackageId::TIME_SERIES);
             pkg.hdr.content_size = sizeof(t);
-            pkg.content = reinterpret_cast<char*>(&t);
+            pkg.content          = reinterpret_cast<char*>(&t);
             writePackage(pkg);
             completeObjectState.time.time = t;
         }
@@ -81,12 +76,12 @@ int DatLogger::WriteObjId(int obj_id)
 
         // create pkg
         CommonPkg pkg;
-        pkg.hdr.id = static_cast<int>(PackageId::OBJ_ID);
+        pkg.hdr.id           = static_cast<int>(PackageId::OBJ_ID);
         pkg.hdr.content_size = sizeof(obj_id);
-        pkg.content = reinterpret_cast<char*>(&obj_id);
+        pkg.content          = reinterpret_cast<char*>(&obj_id);
         writePackage(pkg);
 
-        if (completeObjectState.obj_states.size() == 0) // first time
+        if (completeObjectState.obj_states.size() == 0)  // first time
         {
             ObjState objState_;
             objState_.obj_id_.obj_id = obj_id;
@@ -94,13 +89,13 @@ int DatLogger::WriteObjId(int obj_id)
         }
         else
         {
-            for (size_t i = 0; i < completeObjectState.obj_states.size(); i ++)
+            for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
             {
                 if (completeObjectState.obj_states[i].obj_id_.obj_id == obj_id)
                 {
-                    break; // object already available
+                    break;  // object already available
                 }
-                if ( i ==  completeObjectState.obj_states.size() - 1) // reached last iteration so add object
+                if (i == completeObjectState.obj_states.size() - 1)  // reached last iteration so add object
                 {
                     ObjState objState_;
                     objState_.obj_id_.obj_id = obj_id;
@@ -117,23 +112,20 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
     totalPkgReceived += 1;
     if (data_file_.is_open())
     {
-        for (size_t i = 0; i < completeObjectState.obj_states.size(); i ++)
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
         {
             if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
             {
                 continue;
             }
-            if (completeObjectState.obj_states[i].pos_.h != h ||
-                completeObjectState.obj_states[i].pos_.p != p ||
-                completeObjectState.obj_states[i].pos_.r != r ||
-                completeObjectState.obj_states[i].pos_.x != x ||
-                completeObjectState.obj_states[i].pos_.y != y ||
-                completeObjectState.obj_states[i].pos_.z != z)
+            if (completeObjectState.obj_states[i].pos_.h != h || completeObjectState.obj_states[i].pos_.p != p ||
+                completeObjectState.obj_states[i].pos_.r != r || completeObjectState.obj_states[i].pos_.x != x ||
+                completeObjectState.obj_states[i].pos_.y != y || completeObjectState.obj_states[i].pos_.z != z)
             {
                 posPkgs += 1;
                 // create pkg
                 CommonPkg pkg;
-                Pos pos_ ;
+                Pos       pos_;
                 pos_.x = x;
                 pos_.y = y;
                 pos_.z = z;
@@ -141,9 +133,9 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
                 pos_.r = r;
                 pos_.p = p;
 
-                pkg.hdr.id = static_cast<int>(PackageId::POSITIONS);
+                pkg.hdr.id           = static_cast<int>(PackageId::POSITIONS);
                 pkg.hdr.content_size = sizeof(pos_);
-                pkg.content = reinterpret_cast<char*>(&pos_);
+                pkg.content          = reinterpret_cast<char*>(&pos_);
                 writePackage(pkg);
                 completeObjectState.obj_states[i].pos_ = pos_;
                 break;
@@ -158,12 +150,13 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
     return 0;
 }
 
-void DatLogger::writePackage(CommonPkg package )
+void DatLogger::writePackage(CommonPkg package)
 {
     if (data_file_.is_open())
     {
-        if (display_print) {
-        std::cout << "New Package->written package name : " << pkgIdTostring( static_cast<PackageId>(package.hdr.id)) << std::endl;
+        if (display_print)
+        {
+            std::cout << "New Package->written package name : " << pkgIdTostring(static_cast<PackageId>(package.hdr.id)) << std::endl;
         }
         data_file_.write(reinterpret_cast<char*>(&package.hdr), sizeof(CommonPkgHdr));
         data_file_.write(package.content, package.hdr.content_size);
@@ -177,14 +170,13 @@ void DatLogger::writePackage(CommonPkg package )
 
 void DatLogger::deleteObjState(int objId)
 {
-    for (size_t i = 0; i < completeObjectState.obj_states.size(); i++) // loop current state object id to find the object id
+    for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)  // loop current state object id to find the object id
     {
-        if (completeObjectState.obj_states[i].obj_id_.obj_id == objId) // found object id
-        { // delete now
+        if (completeObjectState.obj_states[i].obj_id_.obj_id == objId)  // found object id
+        {                                                               // delete now
             completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
         }
     }
-
 }
 
 int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
@@ -197,7 +189,8 @@ int DatLogger::init(std::string fileName, int ver, std::string odrName, std::str
         std::printf("Cannot open file: %s", fileName.c_str());
         return -1;
     }
-    if (data_file_.is_open()) {
+    if (data_file_.is_open())
+    {
         std::cout << "File opened successfully." << std::endl;
     }
 
@@ -205,23 +198,23 @@ int DatLogger::init(std::string fileName, int ver, std::string odrName, std::str
     cmnHdr.id = static_cast<int>(PackageId::HEADER);
 
     CommonString odrStr;
-    odrStr.size = static_cast<int>(odrName.size() + 1);
+    odrStr.size   = static_cast<int>(odrName.size() + 1);
     odrStr.string = new char[odrStr.size];
-    strncpy(odrStr.string, odrName.c_str(), static_cast<size_t>(odrStr.size));
+    StrCopy(odrStr.string, odrName.c_str(), static_cast<size_t>(odrStr.size));
     CommonString mdlStr;
-    mdlStr.size = static_cast<int>(modelName.size() + 1);
+    mdlStr.size   = static_cast<int>(modelName.size() + 1);
     mdlStr.string = new char[mdlStr.size];
-    strncpy(mdlStr.string, modelName.c_str(), static_cast<size_t>(mdlStr.size));
+    StrCopy(mdlStr.string, modelName.c_str(), static_cast<size_t>(mdlStr.size));
 
     cmnHdr.content_size = static_cast<int>(sizeof(odrStr.size)) + odrStr.size + mdlStr.size + static_cast<int>(sizeof(mdlStr.size));
 
     DatHdr datHdr;
-    datHdr.version = ver;
-    datHdr.odrFilename = odrStr;
+    datHdr.version       = ver;
+    datHdr.odrFilename   = odrStr;
     datHdr.modelFilename = mdlStr;
 
     CommonPkg hdrPkg;
-    hdrPkg.hdr = cmnHdr;
+    hdrPkg.hdr     = cmnHdr;
     hdrPkg.content = reinterpret_cast<char*>(&datHdr);
 
     // write common header
@@ -248,8 +241,9 @@ int DatLogger::init(std::string fileName, int ver, std::string odrName, std::str
 
     // write packag
     totalPkgProcessed += 1;
-    if (display_print) {
-    std::cout << "New Package->written package name : " << pkgIdTostring( static_cast<PackageId>(cmnHdr.id)) << std::endl;
+    if (display_print)
+    {
+        std::cout << "New Package->written package name : " << pkgIdTostring(static_cast<PackageId>(cmnHdr.id)) << std::endl;
     }
 
     return 0;
@@ -295,4 +289,3 @@ std::string DatLogger::pkgIdTostring(PackageId id)
         }
     }
 }
-
