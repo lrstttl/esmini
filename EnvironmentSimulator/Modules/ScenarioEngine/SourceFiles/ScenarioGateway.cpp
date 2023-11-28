@@ -1060,9 +1060,11 @@ int ScenarioGateway::WriteStatesToFile()
     // Write status to file - for later replay
     for (size_t i = 0; i < objectState_.size(); i++)
     {
+        int objId = objectState_[i]->state_.info.id;
         datLogger->WriteTime(objectState_[i]->state_.info.timeStamp);
-        datLogger->WriteObjId(objectState_[i]->state_.info.id);
-        datLogger->WriteObjPos(objectState_[i]->state_.info.id,
+        datLogger->WriteObjId(objId);
+        datLogger->WriteModelId(objId, objectState_[i]->state_.info.model_id);
+        datLogger->WriteObjPos(objId,
                                objectState_[i]->state_.pos.GetX(),
                                objectState_[i]->state_.pos.GetY(),
                                objectState_[i]->state_.pos.GetY(),

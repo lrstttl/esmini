@@ -50,9 +50,12 @@ namespace scenarioengine
     {
     public:
         DatHeader                header_;
+        datLogger::DatHdr        headerNew_;
         std::vector<ReplayEntry> data_;
 
+        // new replayer
         Replay() = default;
+        Replay(std::string filename);
         Replay(std::string filename, bool clean);
         // Replay(const std::string directory, const std::string scenario, bool clean);
         Replay(const std::string directory, const std::string scenario, std::string create_datfile);
@@ -106,21 +109,26 @@ namespace scenarioengine
         std::vector<datLogger::CommonPkg> pkgs_;
         ScenarioState                     scenarioState;
 
-        void                 initiateStates(double time_frame);
-        datLogger::PackageId readPkgHdr(char* package);
-        int                  recordPackage(const std::string& fileName);  // check package can be recorded or not
-        std::vector<int>     GetNumberOfObjectsAtTime(double t);          // till next time forward
-        int                  getPkgCntBtwObj(size_t idx);                 // till next time forward
-        double               getTimeFromPkgIdx(size_t idx);
+        void                 InitiateStates(double time_frame);
+        datLogger::PackageId ReadPkgHdr(char* package);
+        int                  RecordPkgs(const std::string& fileName);  // check package can be recorded or not
+        std::vector<int>     GetNumberOfObjectsAtTime(double t);       // till next time forward
+        int                  GetPkgCntBtwObj(size_t idx);              // till next time forward
+        double               GetTimeFromPkgIdx(size_t idx);
 
-        double getTimeFromCnt(int count);            // give time for the time
-        void   addObjState(size_t objId, double t);  // add the object state for given object id from the current object state
-        int    searchAndReplacePkg(int idx1, int idx2, int idx3, double time);
+        double GetTimeFromCnt(int count);            // give time for the time
+        void   AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
+        int    SearchAndReplacePkg(int idx1, int idx2, int idx3, double time);
 
-        bool isObjAvailableInCache(int Idx);                     // check in current state
-        bool isObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
+        bool IsObjAvailableInCache(int Idx);                     // check in current state
+        bool IsObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
         void MoveToTime(double time_frame);
         int  GetObjCompleteState(double time, int obj_id, ScenarioState& state);
+
+        double GetNearestTime(double time_frame);
+        double GetNextTime(double time_frame);
+        double GetPreviousTime(double time_frame);
+        int    GetModelID(int obj_id);
 
     private:
         std::ifstream            file_;

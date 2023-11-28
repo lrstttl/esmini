@@ -41,6 +41,38 @@ int DatLogger::WriteObjSpeed(int obj_id, double speed)
     return 0;
 }
 
+int DatLogger::WriteModelId(int obj_id, int model_id)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].model_id != model_id)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::MODEL_ID);
+                pkg.hdr.content_size = sizeof(model_id);
+                pkg.content          = reinterpret_cast<char*>(&model_id);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].model_id = model_id;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
 int DatLogger::WriteTime(double t)
 {
     totalPkgReceived += 1;

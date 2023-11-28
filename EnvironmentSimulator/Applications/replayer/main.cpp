@@ -102,6 +102,94 @@ int ShowGhosts(Replay* player, bool show)
     return 0;
 }
 
+// new parse
+#if 0
+int ParseEntities(viewer::Viewer* viewer, Replay* player)
+{
+    double minTrajPointDist = 1;
+    double z_offset         = 0.2;
+    double width            = 1.75;
+
+    struct OdoInfo
+    {
+        double x, y, odometer;
+    };
+    std::map<int, OdoInfo> odo_info;  // temporary keep track of entity odometers
+
+    for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
+    {
+        OdoInfo               odo_entry;
+
+        // if (no_ghost && state->info.ctrl_type == GHOST_CTRL_TYPE)
+        // {
+        //     continue;
+        // }
+
+        if (std::find(removeObjects.begin(), removeObjects.end(), player->scenarioState.obj_states[i].id) != removeObjects.end())
+        {
+            continue;
+        }
+        ScenarioEntity* sc = getScenarioEntityById(player->scenarioState.obj_states[i].id);
+
+        // If not available, create it
+        if (sc == 0)
+        {
+            ScenarioEntity new_sc;
+
+            new_sc.id             = player->scenarioState.obj_states[i].id;
+            new_sc.trajPoints     = 0;
+            new_sc.pos            = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0.0f, 0.0f, 0.0f};
+            new_sc.trajectory     = nullptr;
+            new_sc.wheel_angle    = 0.0f;
+            new_sc.wheel_rotation = 0.0f;
+            new_sc.name           = "state_name"; // todo
+            new_sc.visible        = true;
+            std::string filename;
+            if (state->info.model_id >= 0)
+            {
+                filename = SE_Env::Inst().GetModelFilenameById(state->info.model_id);
+            }
+
+            if ((new_sc.entityModel = viewer->CreateEntityModel(filename.c_str(),
+                                                                osg::Vec4(0.5, 0.5, 0.5, 1.0),
+                                                                viewer::EntityModel::EntityType::VEHICLE,
+                                                                false,
+                                                                state->info.name,
+                                                                &state->info.boundingbox,
+                                                                static_cast<EntityScaleMode>(state->info.scaleMode))) == 0)
+            {
+                return -1;
+            }
+            else
+            {
+                if (viewer->AddEntityModel(new_sc.entityModel) != 0)
+                {
+                    return -1;
+                }
+            }
+
+            if (state->info.ctrl_type == GHOST_CTRL_TYPE && no_ghost_model)
+            {
+                new_sc.entityModel->txNode_->setNodeMask(0x0);
+            }
+
+            new_sc.bounding_box = state->info.boundingbox;
+
+            // Add it to the list of scenario cars
+            scenarioEntity.push_back(new_sc);
+
+            sc = &scenarioEntity.back();
+
+            odo_entry.x        = state->pos.x;
+            odo_entry.y        = state->pos.y;
+            odo_entry.odometer = 0.0;
+
+            odo_info.insert(std::make_pair(new_sc.id, odo_entry));  // Set inital odometer value for the entity
+        }
+
+    }
+}
+#endif
 int ParseEntities(viewer::Viewer* viewer, Replay* player)
 {
     double minTrajPointDist = 1;
@@ -448,7 +536,10 @@ int main(int argc, char** argv)
                 LOG("\"--saved_merged\" works only in combination with \"--dir\" argument, combining multiple dat files");
                 return -1;
             }
+#if 0
             player = std::make_unique<Replay>(opt.GetOptionArg("file"), true);
+#endif
+            player = std::make_unique<Replay>(opt.GetOptionArg("file"));
         }
     }
     catch (const std::exception& e)
@@ -459,31 +550,31 @@ int main(int argc, char** argv)
 
     try
     {
-        if (strcmp(player->header_.odr_filename, ""))
+        if (strcmp(player->headerNew_.odrFilename.string, ""))
         {
             // find and OpenDRIVE file. Test some combinations of paths and filename
             std::vector<std::string> file_name_candidates;
 
             // just filepath as stated in .dat file
-            file_name_candidates.push_back(player->header_.odr_filename);
+            file_name_candidates.push_back(player->headerNew_.odrFilename.string);
 
             // Check registered paths
             for (size_t i = 0; i < SE_Env::Inst().GetPaths().size(); i++)
             {
                 // Including file path
-                file_name_candidates.push_back(CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], player->header_.odr_filename));
+                file_name_candidates.push_back(CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], player->headerNew_.odrFilename.string));
 
                 // Excluding file path
                 file_name_candidates.push_back(
-                    CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], FileNameOf(player->header_.odr_filename)));
+                    CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i], FileNameOf(player->headerNew_.odrFilename.string)));
 
                 // Including file path and xodr sub folder
                 file_name_candidates.push_back(
-                    CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i] + "/xodr/", FileNameOf(player->header_.odr_filename)));
+                    CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i] + "/xodr/", FileNameOf(player->headerNew_.odrFilename.string)));
 
                 // Excluding file path but add xodr sub folder
                 file_name_candidates.push_back(
-                    CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i] + "/xodr/", player->header_.odr_filename));
+                    CombineDirectoryPathAndFilepath(SE_Env::Inst().GetPaths()[i] + "/xodr/", player->headerNew_.odrFilename.string));
             }
 
             size_t i;
@@ -500,7 +591,7 @@ int main(int argc, char** argv)
 
             if (i == file_name_candidates.size())
             {
-                printf("Failed to load OpenDRIVE file %s. Tried:\n", player->header_.odr_filename);
+                printf("Failed to load OpenDRIVE file %s. Tried:\n", player->headerNew_.odrFilename.string);
                 for (int j = 0; j < static_cast<int>(file_name_candidates.size()); j++)
                 {
                     printf("   %s\n", file_name_candidates[static_cast<unsigned int>(j)].c_str());
@@ -513,7 +604,7 @@ int main(int argc, char** argv)
 
         osg::ArgumentParser arguments(&argc, argv);
 
-        viewer = new viewer::Viewer(odrManager, player->header_.model_filename, NULL, argv[0], arguments, &opt);
+        viewer = new viewer::Viewer(odrManager, player->headerNew_.modelFilename.string, NULL, argv[0], arguments, &opt);
 
         if (viewer == nullptr)
         {
@@ -831,8 +922,13 @@ int main(int argc, char** argv)
                        static_cast<double>(player->data_.back().state.info.timeStamp));
                 startTime = static_cast<double>(player->data_.back().state.info.timeStamp);
             }
+#if 0
             player->SetStartTime(startTime);
             player->GoToTime(startTime);
+#endif
+            player->SetStartTime(player->GetNearestTime(startTime));
+            player->InitiateStates(player->GetTimeFromCnt(1));
+            player->MoveToTime(player->GetNearestTime(startTime));
         }
 
         std::string stop_time_str = opt.GetOptionArg("stop_time");

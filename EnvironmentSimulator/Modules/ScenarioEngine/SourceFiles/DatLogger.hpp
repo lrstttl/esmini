@@ -20,10 +20,11 @@ namespace datLogger
     enum class PackageId
     {
         HEADER      = 11,
-        TIME_SERIES = 12,
-        OBJ_ID      = 13,
-        POSITIONS   = 14,
-        SPEED       = 15,
+        MODEL_ID    = 12,
+        TIME_SERIES = 13,
+        OBJ_ID      = 14,
+        POSITIONS   = 15,
+        SPEED       = 16,
     };
 
     // mandatory packages
@@ -85,6 +86,7 @@ namespace datLogger
         ObjId obj_id_;
         Speed speed_;
         Pos   pos_;
+        int   model_id;
     };
 
     struct CompleteObjectState
@@ -152,6 +154,8 @@ namespace datLogger
         int         WriteTime(double t);
         int         WriteObjPos(int obj_id, double x, double y, double z, double h, double p, double r);
         int         WriteObjId(int obj_id);
+        int         WriteModelId(int obj_id, int model_id);
+
         std::string pkgIdTostring(PackageId id);
     };
 
