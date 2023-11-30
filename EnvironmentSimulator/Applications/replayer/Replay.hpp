@@ -128,7 +128,14 @@ namespace scenarioengine
         double GetNearestTime(double time_frame);
         double GetNextTime(double time_frame);
         double GetPreviousTime(double time_frame);
+
         int    GetModelID(int obj_id);
+        int    GetCtrlType(int obj_id);
+        int    GetBB(int obj_id, OSCBoundingBox& bb);
+        int    GetScaleMode(int obj_id);
+        datLogger::Pos GetPos(int obj_id);
+        double    GetX(int obj_id);
+        int    GetName(int obj_id, std::string& name);
 
     private:
         std::ifstream            file_;

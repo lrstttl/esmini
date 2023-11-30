@@ -15,16 +15,28 @@
 #include <fstream>
 #include <vector>
 
+#include "CommonMini.hpp"
+
+
 namespace datLogger
 {
     enum class PackageId
     {
         HEADER      = 11,
-        MODEL_ID    = 12,
-        TIME_SERIES = 13,
-        OBJ_ID      = 14,
+        TIME_SERIES = 12,
+        OBJ_ID      = 13,
+        MODEL_ID    = 14,
         POSITIONS   = 15,
         SPEED       = 16,
+        OBJ_TYPE    = 17,
+        OBJ_CATEGORY = 18,
+        CTRL_TYPE   = 19,
+        WHEEL_ANGLE = 20,
+        WHEEL_ROT   = 21,
+        BOUNDING_BOX = 22,
+        SCALE_MODE = 23,
+        VISIBILITY_MASK = 24,
+        NAME = 25
     };
 
     // mandatory packages
@@ -51,17 +63,56 @@ namespace datLogger
 
     struct Time
     {
-        double time;
-    };
-
-    struct Speed
-    {
-        double speed_ = 0.0;
+        double time = SMALL_NUMBER;
     };
 
     struct ObjId
     {
         int obj_id = -1;
+    };
+    struct ModelId
+    {
+        int model_id = -1;
+    };
+
+    struct ObjType
+    {
+        int obj_type = -1;
+    };
+
+    struct ObjCategory
+    {
+        int obj_category = -1;
+    };
+
+    struct CtrlType
+    {
+        int ctrl_type = -1;
+    };
+
+    struct WheelAngle
+    {
+        double wheel_angle = SMALL_NUMBER;
+    };
+
+    struct WheelRot
+    {
+        double wheel_rot = SMALL_NUMBER;
+    };
+
+
+    struct ScaleMode
+    {
+        int scale_mode = -1;
+    };
+    struct VisibilityMask
+    {
+        int visibility_mask = -1;
+    };
+
+    struct Name
+    {
+        char* string;
     };
 
     struct Pos
@@ -72,6 +123,21 @@ namespace datLogger
         double h = 0.0;
         double r = 0.0;
         double p = 0.0;
+    };
+
+    struct BoundingBox
+    {
+        float x = 0.0;
+        float y = 0.0;
+        float z = 0.0;
+        float width = 0.0;
+        float length = 0.0;
+        float height = 0.0;
+    };
+
+    struct Speed
+    {
+        double speed_ = SMALL_NUMBER;
     };
 
     struct CommonPkg
@@ -86,7 +152,16 @@ namespace datLogger
         ObjId obj_id_;
         Speed speed_;
         Pos   pos_;
-        int   model_id;
+        ModelId   modelId_;
+        ObjType   objType_;
+        ObjCategory   objCategory_;
+        CtrlType   ctrlType_;
+        WheelAngle          wheelAngle_;
+        WheelRot          wheelRot_;
+        BoundingBox boundingBox_;
+        ScaleMode            scaleMode_;
+        VisibilityMask            visibilityMask_;
+        std::string name_;
     };
 
     struct CompleteObjectState
@@ -95,7 +170,6 @@ namespace datLogger
         std::vector<ObjState> obj_states;
     };
 
-    class ObjectState;
     class DatLogger
     {
     private:
@@ -122,11 +196,28 @@ namespace datLogger
                 std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
             }
 
+            std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
+            std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
+            std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
+
             std::cout << "LOG Summary: " << std::endl;
-            std::cout << "Total pos Package: " << posPkgs << std::endl;
             std::cout << "Total time Package " << timePkgs << std::endl;
             std::cout << "Total id Package: " << objIdPkgs << std::endl;
+            std::cout << "Total model id:: " << modelIdPkg << std::endl;
+            std::cout << "Total pos Package: " << posPkgs << std::endl;
             std::cout << "Total speed Package: " << speedPkgs << std::endl;
+
+
+            std::cout << "Total objTypePkg " << objTypePkg << std::endl;
+            std::cout << "Total objCatePkg: " << objCatePkg << std::endl;
+            std::cout << "Total ctrlTypPkg: " << ctrlTypPkg << std::endl;
+
+            std::cout << "Total wheelAnPkg: " << wheelAnPkg << std::endl;
+            std::cout << "Total wheelRoPkg: " << wheelRoPkg << std::endl;
+            std::cout << "Total boundinPkg: " << boundinPkg << std::endl;
+            std::cout << "Total scaleMoPkg: " << scaleMoPkg << std::endl;
+            std::cout << "Total visibilPkg: " << visibilPkg << std::endl;
+            std::cout << "Total namePkg: " << namePkg << std::endl;
 
             std::cout << "File closed successfully in destructure" << std::endl;
         }
@@ -135,6 +226,17 @@ namespace datLogger
         int speedPkgs = 0;
         int timePkgs  = 0;
         int objIdPkgs = 0;
+        int modelIdPkg = 0;
+        int objTypePkg = 0;
+        int objCatePkg = 0;
+        int ctrlTypPkg = 0;
+        int wheelAnPkg = 0;
+        int wheelRoPkg = 0;
+        int boundinPkg = 0;
+        int scaleMoPkg = 0;
+        int visibilPkg = 0;
+        int namePkg = 0;
+
 
         bool isFirstEntry      = true;
         bool notFirstEnd       = false;
@@ -148,6 +250,7 @@ namespace datLogger
         int  init(std::string fileName, int ver, std::string odrName, std::string modelName);
         void deleteObjState(int objId);
 
+
         void writePackage(CommonPkg package);  // will just write package
 
         int         WriteObjSpeed(int obj_id, double speed);
@@ -155,6 +258,16 @@ namespace datLogger
         int         WriteObjPos(int obj_id, double x, double y, double z, double h, double p, double r);
         int         WriteObjId(int obj_id);
         int         WriteModelId(int obj_id, int model_id);
+        int         WriteObjType(int obj_id, int obj_type);
+        int         WriteObjCategory(int obj_id, int obj_category);
+        int         WriteCtrlType(int obj_id, int ctrl_type);
+
+        int         WriteWheelAngle(int obj_id, double angle);
+        int         WriteWheelRot(int obj_id, double rot);
+        int         WriteBB(int obj_id, float x, float y, float z, float length, float width, float height);
+        int         WriteScaleMode(int obj_id, int mode);
+        int         WriteVisiblityMask(int obj_id, int mask);
+        int         WriteName(int obj_id, std::string name);
 
         std::string pkgIdTostring(PackageId id);
     };

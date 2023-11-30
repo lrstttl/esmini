@@ -11,6 +11,12 @@
 
 using namespace datLogger;
 
+ bool isEqual(double val1, double val2)
+ {
+    return fabs(val1 - val2) < SMALL_NUMBER;
+ }
+
+
 int DatLogger::WriteObjSpeed(int obj_id, double speed)
 {
     totalPkgReceived += 1;
@@ -20,7 +26,7 @@ int DatLogger::WriteObjSpeed(int obj_id, double speed)
         {
             continue;
         }
-        if (fabs(completeObjectState.obj_states[i].speed_.speed_ - speed) > SMALL_NUMBER)
+        if (!isEqual(completeObjectState.obj_states[i].speed_.speed_, speed))
         {
             speedPkgs += 1;
             // create pkg
@@ -53,7 +59,7 @@ int DatLogger::WriteModelId(int obj_id, int model_id)
             {
                 continue;
             }
-            if (completeObjectState.obj_states[i].model_id != model_id)
+            if (completeObjectState.obj_states[i].modelId_.model_id != model_id)
             {
                 // create pkg
                 CommonPkg pkg;
@@ -61,7 +67,284 @@ int DatLogger::WriteModelId(int obj_id, int model_id)
                 pkg.hdr.content_size = sizeof(model_id);
                 pkg.content          = reinterpret_cast<char*>(&model_id);
                 writePackage(pkg);
-                completeObjectState.obj_states[i].model_id = model_id;
+                completeObjectState.obj_states[i].modelId_.model_id = model_id;
+                modelIdPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteObjType(int obj_id, int obj_type)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].objType_.obj_type != obj_type)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::OBJ_TYPE);
+                pkg.hdr.content_size = sizeof(obj_type);
+                pkg.content          = reinterpret_cast<char*>(&obj_type);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].objType_.obj_type = obj_type;
+                objTypePkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteObjCategory(int obj_id, int obj_category)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].objCategory_.obj_category != obj_category)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::OBJ_CATEGORY);
+                pkg.hdr.content_size = sizeof(obj_category);
+                pkg.content          = reinterpret_cast<char*>(&obj_category);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].objCategory_.obj_category = obj_category;
+                objCatePkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteCtrlType(int obj_id, int ctrl_type)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].ctrlType_.ctrl_type != ctrl_type)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::CTRL_TYPE);
+                pkg.hdr.content_size = sizeof(ctrl_type);
+                pkg.content          = reinterpret_cast<char*>(&ctrl_type);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].ctrlType_.ctrl_type = ctrl_type;
+                ctrlTypPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteWheelAngle(int obj_id, double angle)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (!isEqual(completeObjectState.obj_states[i].wheelAngle_.wheel_angle, angle))
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::WHEEL_ANGLE);
+                pkg.hdr.content_size = sizeof(angle);
+                pkg.content          = reinterpret_cast<char*>(&angle);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].wheelAngle_.wheel_angle = angle;
+                wheelAnPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteWheelRot(int obj_id, double rot)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (!isEqual(completeObjectState.obj_states[i].wheelRot_.wheel_rot, rot))
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::WHEEL_ROT);
+                pkg.hdr.content_size = sizeof(rot);
+                pkg.content          = reinterpret_cast<char*>(&rot);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].wheelRot_.wheel_rot = rot;
+                wheelRoPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteBB(int obj_id, float x, float y, float z, float length, float width, float height)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].boundingBox_.x != x ||
+                completeObjectState.obj_states[i].boundingBox_.y != y ||
+                completeObjectState.obj_states[i].boundingBox_.z != z ||
+                completeObjectState.obj_states[i].boundingBox_.height != height ||
+                completeObjectState.obj_states[i].boundingBox_.length != length ||
+                completeObjectState.obj_states[i].boundingBox_.width != width)
+            {
+                // create pkg
+                CommonPkg pkg;
+                BoundingBox bb;
+                bb.height = height;
+                bb.length = length;
+                bb.width = width;
+                bb.x = x;
+                bb.y = y;
+                bb.z = z;
+                pkg.hdr.id           = static_cast<int>(PackageId::BOUNDING_BOX);
+                pkg.hdr.content_size = sizeof(bb);
+                pkg.content          = reinterpret_cast<char*>(&bb);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].boundingBox_ = bb;
+                boundinPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteScaleMode(int obj_id, int mode)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].scaleMode_.scale_mode != mode)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::SCALE_MODE);
+                pkg.hdr.content_size = sizeof(mode);
+                pkg.content          = reinterpret_cast<char*>(&mode);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].scaleMode_.scale_mode = mode;
+                scaleMoPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteVisiblityMask(int obj_id, int mask)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].visibilityMask_.visibility_mask != mask)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::VISIBILITY_MASK);
+                pkg.hdr.content_size = sizeof(mask);
+                pkg.content          = reinterpret_cast<char*>(&mask);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].visibilityMask_.visibility_mask = mask;
+                visibilPkg += 1;
                 break;
             }
             else
@@ -80,19 +363,53 @@ int DatLogger::WriteTime(double t)
 
     if (data_file_.is_open())
     {
-        if (fabs(completeObjectState.time.time - t) > SMALL_NUMBER)
+        // create pkg
+        CommonPkg pkg;
+        pkg.hdr.id           = static_cast<int>(PackageId::TIME_SERIES);
+        pkg.hdr.content_size = sizeof(t);
+        pkg.content          = reinterpret_cast<char*>(&t);
+        writePackage(pkg);
+        completeObjectState.time.time = t;
+    }
+
+    return 0;
+}
+
+int DatLogger::WriteName(int obj_id, std::string name)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
         {
-            // create pkg
-            CommonPkg pkg;
-            pkg.hdr.id           = static_cast<int>(PackageId::TIME_SERIES);
-            pkg.hdr.content_size = sizeof(t);
-            pkg.content          = reinterpret_cast<char*>(&t);
-            writePackage(pkg);
-            completeObjectState.time.time = t;
-        }
-        else
-        {
-            totalPkgSkipped += 1;
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].name_.compare(name) != 0)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::NAME);
+                Name nameStr;
+                pkg.hdr.content_size   = static_cast<int>(name.size() + 1);
+                nameStr.string = new char[pkg.hdr.content_size];
+                StrCopy(nameStr.string, name.c_str(), static_cast<size_t>(pkg.hdr.content_size));
+
+                data_file_.write(reinterpret_cast<char*>(&pkg.hdr), sizeof(CommonPkgHdr));
+
+                data_file_.write(reinterpret_cast<char*>(&nameStr.string), pkg.hdr.content_size);
+
+                completeObjectState.obj_states[i].name_ = name;
+                namePkg += 1;
+                totalPkgProcessed +=1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
         }
     }
 
@@ -101,11 +418,11 @@ int DatLogger::WriteTime(double t)
 
 int DatLogger::WriteObjId(int obj_id)
 {
+
+    totalPkgReceived += 1;
+    objIdPkgs += 1;
     if (data_file_.is_open())
     {
-        totalPkgReceived += 1;
-        objIdPkgs += 1;
-
         // create pkg
         CommonPkg pkg;
         pkg.hdr.id           = static_cast<int>(PackageId::OBJ_ID);
@@ -313,6 +630,68 @@ std::string DatLogger::pkgIdTostring(PackageId id)
             return "Speed";
             break;
         }
+
+        case PackageId::BOUNDING_BOX:
+        {
+            return "Bounding_box";
+            break;
+        }
+
+        case PackageId::CTRL_TYPE:
+        {
+            return "Ctrl_type";
+            break;
+        }
+
+        case PackageId::MODEL_ID:
+        {
+            return "Model_Id";
+            break;
+        }
+
+        case PackageId::NAME:
+        {
+            return "Name";
+            break;
+        }
+
+        case PackageId::OBJ_CATEGORY:
+        {
+            return "Obj_Category";
+            break;
+        }
+
+        case PackageId::OBJ_TYPE:
+        {
+            return "Obj_Type";
+            break;
+        }
+
+        case PackageId::SCALE_MODE:
+        {
+            return "Scale_Mode";
+            break;
+        }
+
+        case PackageId::VISIBILITY_MASK:
+        {
+            return "Visibity_Mask";
+            break;
+        }
+
+        case PackageId::WHEEL_ANGLE:
+        {
+            return "Wheel_angle";
+            break;
+        }
+
+        case PackageId::WHEEL_ROT:
+        {
+            return "Wheel_Rot";
+            break;
+        }
+
+
         default:
         {
             std::cout << "Unknown package read->package id :" << std::endl;

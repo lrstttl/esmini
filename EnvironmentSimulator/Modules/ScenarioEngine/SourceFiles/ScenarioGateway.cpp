@@ -240,6 +240,7 @@ ScenarioGateway::ScenarioGateway()
 ScenarioGateway::~ScenarioGateway()
 {
     objectState_.clear();
+    delete datLogger;
 
     data_file_.flush();
     data_file_.close();
@@ -1072,6 +1073,21 @@ int ScenarioGateway::WriteStatesToFile()
                                objectState_[i]->state_.pos.GetP(),
                                objectState_[i]->state_.pos.GetR());
         datLogger->WriteObjSpeed(objectState_[i]->state_.info.id, objectState_[i]->state_.info.speed);
+        datLogger->WriteObjCategory(objId, objectState_[i]->state_.info.obj_category);
+        datLogger->WriteObjType(objId, objectState_[i]->state_.info.obj_type);
+        datLogger->WriteCtrlType(objId, objectState_[i]->state_.info.ctrl_type);
+        datLogger->WriteWheelAngle(objId, objectState_[i]->state_.info.wheel_angle);
+        datLogger->WriteWheelRot(objId, objectState_[i]->state_.info.wheel_rot);
+        datLogger->WriteBB(objId,
+                           objectState_[i]->state_.info.boundingbox.center_.x_,
+                           objectState_[i]->state_.info.boundingbox.center_.y_,
+                           objectState_[i]->state_.info.boundingbox.center_.z_,
+                           objectState_[i]->state_.info.boundingbox.dimensions_.length_,
+                           objectState_[i]->state_.info.boundingbox.dimensions_.width_,
+                           objectState_[i]->state_.info.boundingbox.dimensions_.height_);
+        datLogger->WriteScaleMode(objId, objectState_[i]->state_.info.scaleMode);
+        datLogger->WriteVisiblityMask(objId, objectState_[i]->state_.info.visibilityMask);
+        datLogger->WriteName(objId, objectState_[i]->state_.info.name);
     }
     return 0;
 }

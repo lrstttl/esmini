@@ -120,4 +120,5 @@ set(Replayer_sources
 unittest(
     Replayer_test
     "${Replayer_sources}"
+    esminiLib
     CommonMini)

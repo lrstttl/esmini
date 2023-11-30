@@ -101,9 +101,8 @@ int ShowGhosts(Replay* player, bool show)
 
     return 0;
 }
-
-// new parse
 #if 0
+// new parse
 int ParseEntities(viewer::Viewer* viewer, Replay* player)
 {
     double minTrajPointDist = 1;
@@ -120,10 +119,10 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     {
         OdoInfo               odo_entry;
 
-        // if (no_ghost && state->info.ctrl_type == GHOST_CTRL_TYPE)
-        // {
-        //     continue;
-        // }
+        if (no_ghost && player->GetCtrlType(player->scenarioState.obj_states[i].id) == GHOST_CTRL_TYPE)
+        {
+            continue;
+        }
 
         if (std::find(removeObjects.begin(), removeObjects.end(), player->scenarioState.obj_states[i].id) != removeObjects.end())
         {
@@ -145,18 +144,24 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
             new_sc.name           = "state_name"; // todo
             new_sc.visible        = true;
             std::string filename;
-            if (state->info.model_id >= 0)
+            if (player->GetModelID(player->scenarioState.obj_states[i].id) >= 0)
             {
-                filename = SE_Env::Inst().GetModelFilenameById(state->info.model_id);
+                filename = SE_Env::Inst().GetModelFilenameById(player->GetModelID(player->scenarioState.obj_states[i].id));
             }
+
+            std::string name;
+            player->GetName(player->scenarioState.obj_states[i].id, name);
+            OSCBoundingBox bb;
+            player->GetBB(player->scenarioState.obj_states[i].id, bb);
+
 
             if ((new_sc.entityModel = viewer->CreateEntityModel(filename.c_str(),
                                                                 osg::Vec4(0.5, 0.5, 0.5, 1.0),
                                                                 viewer::EntityModel::EntityType::VEHICLE,
                                                                 false,
-                                                                state->info.name,
-                                                                &state->info.boundingbox,
-                                                                static_cast<EntityScaleMode>(state->info.scaleMode))) == 0)
+                                                                name,
+                                                                &bb,
+                                                                static_cast<EntityScaleMode>(player->GetScaleMode(player->scenarioState.obj_states[i].id)))) == 0)
             {
                 return -1;
             }
@@ -168,12 +173,12 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
                 }
             }
 
-            if (state->info.ctrl_type == GHOST_CTRL_TYPE && no_ghost_model)
+            if (player->GetCtrlType(player->scenarioState.obj_states[i].id) == GHOST_CTRL_TYPE && no_ghost_model)
             {
                 new_sc.entityModel->txNode_->setNodeMask(0x0);
             }
 
-            new_sc.bounding_box = state->info.boundingbox;
+            new_sc.bounding_box = bb;
 
             // Add it to the list of scenario cars
             scenarioEntity.push_back(new_sc);
@@ -189,6 +194,7 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
 
     }
 }
+
 #endif
 int ParseEntities(viewer::Viewer* viewer, Replay* player)
 {

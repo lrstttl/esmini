@@ -39,7 +39,7 @@ typedef int64_t __int64;
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define SMALL_NUMBER                  (1E-6)
+#define SMALL_NUMBER                  (1E-9)
 #define SMALL_NUMBERF                 (1E-6f)
 #define LARGE_NUMBER                  (1E+10)
 #define LARGE_NUMBERF                 (1E+10f)
