@@ -101,7 +101,7 @@ int ShowGhosts(Replay* player, bool show)
 
     return 0;
 }
-#if 0
+
 // new parse
 int ParseEntities(viewer::Viewer* viewer, Replay* player)
 {
@@ -115,87 +115,155 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     };
     std::map<int, OdoInfo> odo_info;  // temporary keep track of entity odometers
 
-    for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
+    std::vector<ScenarioEntities> entities;
+    player->GetScenarioEntities(entities);
+
+    for (int j = 0; j < static_cast<int>(entities.size()); j++)
     {
-        OdoInfo               odo_entry;
-
-        if (no_ghost && player->GetCtrlType(player->scenarioState.obj_states[i].id) == GHOST_CTRL_TYPE)
+        if (!isEqualDouble(entities[static_cast<size_t>(j)].sim_time, player->scenarioState.sim_time)) // already in correct time
         {
-            continue;
+            player->MoveToTime(entities[static_cast<size_t>(j)].sim_time, false);
         }
 
-        if (std::find(removeObjects.begin(), removeObjects.end(), player->scenarioState.obj_states[i].id) != removeObjects.end())
+        for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
         {
-            continue;
-        }
-        ScenarioEntity* sc = getScenarioEntityById(player->scenarioState.obj_states[i].id);
+            OdoInfo               odo_entry;
+            int obj_id = player->scenarioState.obj_states[static_cast<size_t>(i)].id;
 
-        // If not available, create it
-        if (sc == 0)
-        {
-            ScenarioEntity new_sc;
-
-            new_sc.id             = player->scenarioState.obj_states[i].id;
-            new_sc.trajPoints     = 0;
-            new_sc.pos            = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0.0f, 0.0f, 0.0f};
-            new_sc.trajectory     = nullptr;
-            new_sc.wheel_angle    = 0.0f;
-            new_sc.wheel_rotation = 0.0f;
-            new_sc.name           = "state_name"; // todo
-            new_sc.visible        = true;
-            std::string filename;
-            if (player->GetModelID(player->scenarioState.obj_states[i].id) >= 0)
+            if (no_ghost && player->GetCtrlType(obj_id) == GHOST_CTRL_TYPE)
             {
-                filename = SE_Env::Inst().GetModelFilenameById(player->GetModelID(player->scenarioState.obj_states[i].id));
+                continue;
             }
 
-            std::string name;
-            player->GetName(player->scenarioState.obj_states[i].id, name);
-            OSCBoundingBox bb;
-            player->GetBB(player->scenarioState.obj_states[i].id, bb);
-
-
-            if ((new_sc.entityModel = viewer->CreateEntityModel(filename.c_str(),
-                                                                osg::Vec4(0.5, 0.5, 0.5, 1.0),
-                                                                viewer::EntityModel::EntityType::VEHICLE,
-                                                                false,
-                                                                name,
-                                                                &bb,
-                                                                static_cast<EntityScaleMode>(player->GetScaleMode(player->scenarioState.obj_states[i].id)))) == 0)
+            if (std::find(removeObjects.begin(), removeObjects.end(), obj_id) != removeObjects.end())
             {
-                return -1;
+                continue;
             }
-            else
+            ScenarioEntity* sc = getScenarioEntityById(obj_id);
+
+            // If not available, create it
+            if (sc == 0)
             {
-                if (viewer->AddEntityModel(new_sc.entityModel) != 0)
+                ScenarioEntity new_sc;
+
+                new_sc.id             = obj_id;
+                new_sc.trajPoints     = 0;
+                new_sc.pos            = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, 0, 0.0f, 0.0f, 0.0f};
+                new_sc.trajectory     = nullptr;
+                new_sc.wheel_angle    = 0.0f;
+                new_sc.wheel_rotation = 0.0f;
+                new_sc.name           = "state_name"; // todo
+                new_sc.visible        = true;
+                std::string filename;
+                if (player->GetModelID(obj_id) >= 0)
+                {
+                    filename = SE_Env::Inst().GetModelFilenameById(player->GetModelID(obj_id));
+                }
+
+                std::string name;
+                player->GetName(obj_id, name);
+                OSCBoundingBox bb;
+                player->GetBB(obj_id, bb);
+
+
+                if ((new_sc.entityModel = viewer->CreateEntityModel(filename.c_str(),
+                                                                    osg::Vec4(0.5, 0.5, 0.5, 1.0),
+                                                                    viewer::EntityModel::EntityType::VEHICLE,
+                                                                    false,
+                                                                    name,
+                                                                    &bb,
+                                                                    static_cast<EntityScaleMode>(player->GetScaleMode(obj_id)))) == 0)
                 {
                     return -1;
                 }
-            }
+                else
+                {
+                    if (viewer->AddEntityModel(new_sc.entityModel) != 0)
+                    {
+                        return -1;
+                    }
+                }
 
-            if (player->GetCtrlType(player->scenarioState.obj_states[i].id) == GHOST_CTRL_TYPE && no_ghost_model)
+                if (player->GetCtrlType(obj_id) == GHOST_CTRL_TYPE && no_ghost_model)
+                {
+                    new_sc.entityModel->txNode_->setNodeMask(0x0);
+                }
+
+                new_sc.bounding_box = bb;
+
+                // Add it to the list of scenario cars
+                scenarioEntity.push_back(new_sc);
+
+                sc = &scenarioEntity.back();
+
+                odo_entry.x        = player->GetX(obj_id);
+                odo_entry.y        = player->GetY(obj_id);
+                odo_entry.odometer = 0.0;
+
+                odo_info.insert(std::make_pair(new_sc.id, odo_entry));  // Set inital odometer value for the entity
+            }
+            if (sc->trajPoints == 0)
             {
-                new_sc.entityModel->txNode_->setNodeMask(0x0);
+                sc->trajPoints = new osg::Vec3Array;
             }
 
-            new_sc.bounding_box = bb;
+            if (sc->trajPoints->size() == 0)
+            {
+                sc->trajPoints->push_back(osg::Vec3d(player->GetX(obj_id),
+                                                    player->GetY(obj_id),
+                                                    player->GetZ(obj_id) + z_offset));
+            }
+            else
+            {
+                if (sc->trajPoints->size() > 2 && GetLengthOfLine2D(player->GetX(obj_id),
+                                                                    player->GetY(obj_id),
+                                                                    (*sc->trajPoints)[sc->trajPoints->size() - 2][0],
+                                                                    (*sc->trajPoints)[sc->trajPoints->size() - 2][1]) < minTrajPointDist)
+                {
+                    // Replace last point until distance is above threshold
+                    sc->trajPoints->back() = osg::Vec3d(player->GetX(obj_id),
+                                                        player->GetY(obj_id),
+                                                        player->GetZ(obj_id) + z_offset);
+                }
+                else
+                {
+                    sc->trajPoints->push_back(osg::Vec3d(player->GetX(obj_id),
+                                                        player->GetY(obj_id),
+                                                        player->GetZ(obj_id) + z_offset));
+                }
+            }
+            // calculate odometer
+            odo_entry    = odo_info[sc->id];
+            double delta = GetLengthOfLine2D(odo_entry.x, odo_entry.y, player->GetX(obj_id), player->GetY(obj_id));
+            odo_entry.x  = player->GetX(obj_id);
+            odo_entry.y  = player->GetY(obj_id);
+            odo_entry.odometer += delta;
+            odo_info[sc->id] = odo_entry;  // save updated odo info for next calculation
 
-            // Add it to the list of scenario cars
-            scenarioEntity.push_back(new_sc);
-
-            sc = &scenarioEntity.back();
-
-            odo_entry.x        = state->pos.x;
-            odo_entry.y        = state->pos.y;
-            odo_entry.odometer = 0.0;
-
-            odo_info.insert(std::make_pair(new_sc.id, odo_entry));  // Set inital odometer value for the entity
+            player->UpdateOdaMeter(odo_entry.odometer);  // update odometer
         }
-
     }
+
+    for (int i = 0; i < static_cast<int>(scenarioEntity.size()); i++)
+    {
+        osg::Vec4 color;
+        if (scenarioEntity[static_cast<unsigned int>(i)].id == 0)
+        {
+            color = osg::Vec4d(0.9, 0.8, 0.75, 1.0);
+        }
+        else
+        {
+            // color = osg::Vec4d(0.9, 0.3, 0.2, 1.0);
+            color = osg::Vec4d(0.9, 0.7, 0.3, 1.0);
+        }
+        scenarioEntity[static_cast<unsigned int>(i)].trajectory =
+            viewer->AddPolyLine(viewer->trajectoryLines_, scenarioEntity[static_cast<unsigned int>(i)].trajPoints, color, width);
+    }
+
+    return 0;
 }
 
-#endif
+#if 0
 int ParseEntities(viewer::Viewer* viewer, Replay* player)
 {
     double minTrajPointDist = 1;
@@ -336,7 +404,7 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
 
     return 0;
 }
-
+#endif
 int GetGhostIdx()
 {
     for (size_t i = 0; i < scenarioEntity.size(); i++)
@@ -527,6 +595,7 @@ int main(int argc, char** argv)
     {
         if (!arg_str.empty())
         {
+
             player = std::make_unique<Replay>(arg_str, opt.GetOptionArg("file"), save_merged);
 
             if (!save_merged.empty())
@@ -914,46 +983,46 @@ int main(int argc, char** argv)
         if (!start_time_str.empty())
         {
             double startTime = 1E-3 * strtod(start_time_str);
-            if (static_cast<float>(startTime) < player->data_[0].state.info.timeStamp)
+
+            if (startTime < *reinterpret_cast<double*>(player->pkgs_[1].content))
             {
                 printf("Specified start time (%.2f) < first timestamp (%.2f), adapting.\n",
                        startTime,
-                       static_cast<double>(player->data_[0].state.info.timeStamp));
-                startTime = static_cast<double>(player->data_[0].state.info.timeStamp);
+                       *reinterpret_cast<double*>(player->pkgs_[1].content));
+                startTime = *reinterpret_cast<double*>(player->pkgs_[1].content);
             }
-            else if (static_cast<float>(startTime) > player->data_.back().state.info.timeStamp)
+            else if (startTime > player->GetStopTime())
             {
                 printf("Specified start time (%.2f) > last timestamp (%.2f), adapting.\n",
                        startTime,
-                       static_cast<double>(player->data_.back().state.info.timeStamp));
-                startTime = static_cast<double>(player->data_.back().state.info.timeStamp);
+                       player->GetStopTime());
+                startTime = player->GetStopTime();
             }
 #if 0
             player->SetStartTime(startTime);
             player->GoToTime(startTime);
 #endif
-            player->SetStartTime(player->GetNearestTime(startTime));
-            player->InitiateStates(player->GetTimeFromCnt(1));
-            player->MoveToTime(player->GetNearestTime(startTime));
+            player->SetStartTime(startTime);
+            player->MoveToTime(startTime, true);
         }
 
         std::string stop_time_str = opt.GetOptionArg("stop_time");
         if (!stop_time_str.empty())
         {
             double stopTime = 1E-3 * strtod(stop_time_str);
-            if (static_cast<float>(stopTime) > player->data_.back().state.info.timeStamp)
+            if (stopTime > player->GetStopTime())
             {
                 printf("Specified stop time (%.2f) > last timestamp (%.2f), adapting.\n",
                        stopTime,
-                       static_cast<double>(player->data_.back().state.info.timeStamp));
-                stopTime = static_cast<double>(player->data_.back().state.info.timeStamp);
+                       player->GetStopTime());
+                stopTime = player->GetStopTime();
             }
             else if (static_cast<float>(stopTime) < player->data_[0].state.info.timeStamp)
             {
                 printf("Specified stop time (%.2f) < first timestamp (%.2f), adapting.\n",
                        stopTime,
-                       static_cast<double>(player->data_[0].state.info.timeStamp));
-                stopTime = static_cast<double>(player->data_[0].state.info.timeStamp);
+                       *reinterpret_cast<double*>(player->pkgs_[1].content));
+                stopTime = *reinterpret_cast<double*>(player->pkgs_[1].content);
             }
             player->SetStopTime(stopTime);
         }
@@ -973,7 +1042,7 @@ int main(int argc, char** argv)
             {
                 if (viewer->GetSaveImagesToFile())
                 {
-                    player->GoToNextFrame();
+                    player->MoveToNextFrame();
                 }
                 else
                 {
@@ -999,7 +1068,7 @@ int main(int argc, char** argv)
             {
                 if (!(pause_player || viewer->GetSaveImagesToFile()))
                 {
-                    player->GoToDeltaTime(deltaSimTime, true);
+                    player->MoveToDeltaTime(deltaSimTime);
                     simTime = player->GetTime();  // potentially wrapped for repeat
                 }
 
@@ -1010,17 +1079,7 @@ int main(int argc, char** argv)
                 {
                     ScenarioEntity* sc = &scenarioEntity[static_cast<unsigned int>(index)];
 
-                    entry = player->GetEntry(sc->id);
-                    if (entry)
-                    {
-                        state = &entry->state;
-                    }
-                    else
-                    {
-                        state = nullptr;
-                    }
-
-                    if (state == nullptr || (state->info.visibilityMask & 0x01) == 0)  // no state for given object (index) at this timeframe
+                    if ((player->GetVisibility(scenarioEntity[index].id) & 0x01) == 0)  // no state for given object (index) at this timeframe
                     {
                         setEntityVisibility(index, false);
 

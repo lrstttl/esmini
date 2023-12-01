@@ -43,8 +43,16 @@ namespace scenarioengine
     typedef struct
     {
         double                            sim_time;
+        double                            odometer = 0.0;
         std::vector<ObjectStateWithObjId> obj_states;
     } ScenarioState;
+
+    typedef struct
+    {
+        double               sim_time;
+        int     obj_id;
+    } ScenarioEntities;
+
 
     class Replay
     {
@@ -122,7 +130,15 @@ namespace scenarioengine
 
         bool IsObjAvailableInCache(int Idx);                     // check in current state
         bool IsObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
-        void MoveToTime(double time_frame);
+        void MoveToTime(double time_frame, bool set_index);
+        int  MoveToNextFrame();
+        void MoveToPreviousFrame();
+        void MoveToDeltaTime(double dt);
+        void GetScenarioEntities(std::vector<ScenarioEntities>& entities);
+        void SetPkgIndex(double time);
+
+
+
         int  GetObjCompleteState(double time, int obj_id, ScenarioState& state);
 
         double GetNearestTime(double time_frame);
@@ -133,9 +149,20 @@ namespace scenarioengine
         int    GetCtrlType(int obj_id);
         int    GetBB(int obj_id, OSCBoundingBox& bb);
         int    GetScaleMode(int obj_id);
+        int    GetVisibility(int obj_id);
         datLogger::Pos GetPos(int obj_id);
         double    GetX(int obj_id);
+        double    GetY(int obj_id);
+        double    GetZ(int obj_id);
+        double    GetH(int obj_id);
+        double    GetR(int obj_id);
+        double    GetP(int obj_id);
         int    GetName(int obj_id, std::string& name);
+        void UpdateOdaMeter(double value)
+        {
+            scenarioState.odometer = value;
+        }
+        void SetStopEntries();
 
     private:
         std::ifstream            file_;
@@ -149,6 +176,8 @@ namespace scenarioengine
         bool                     repeat_;
         bool                     clean_;
         std::string              create_datfile_;
+
+        unsigned int             pkg_index_;
 
         int FindIndexAtTimestamp(double timestamp, int startSearchIndex = 0);
     };

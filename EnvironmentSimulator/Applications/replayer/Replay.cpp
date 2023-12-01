@@ -31,6 +31,8 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
     }
 
     RecordPkgs(filename);
+    // initate the cache with first time frame
+    InitiateStates(GetTimeFromCnt(1));
 
     headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(pkgs_[0].content);
 
@@ -54,10 +56,10 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
         time_       = *reinterpret_cast<double*>(pkgs_[1].content);
         startTime_  = time_;
         startIndex_ = 1;
+        pkg_index_ = startIndex_;
 
         // Register last entry timestamp as stop time
-        stopTime_  = *reinterpret_cast<double*>(pkgs_.back().content);
-        stopIndex_ = static_cast<unsigned int>(pkgs_.size() - 1);
+        SetStopEntries();
     }
 }
 
@@ -1072,8 +1074,65 @@ bool Replay::IsObjAvailable(int idx, std::vector<int> Indices)  // check in the 
     return status;
 }
 
-void Replay::MoveToTime(double t)
+
+void Replay:: SetPkgIndex(double time)
 {
+    for (size_t i = 0; i < pkgs_.size(); i++)
+    {
+        if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
+        {
+            double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
+            if (isEqualDouble(timeTemp, time))
+            {
+                pkg_index_ = static_cast<unsigned int>(i);
+                break;
+            }
+        }
+    }
+}
+
+void Replay::MoveToDeltaTime(double dt)
+{
+    GoToTime(GetNearestTime(time_ + dt));
+}
+
+
+int Replay::MoveToNextFrame()
+{
+    for (size_t i = static_cast<size_t>(pkg_index_) + 1; i < pkgs_.size(); i++)
+    {
+        if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
+        {
+            double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
+            MoveToTime(timeTemp, false);
+            pkg_index_ = static_cast<unsigned int>(i);
+            break;
+        }
+    }
+    return 0;
+}
+
+void Replay::MoveToPreviousFrame()
+{
+    for (size_t i = static_cast<size_t>(pkg_index_) - 1; static_cast<int>(i) < 0; i--)
+    {
+        if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
+        {
+            double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
+            MoveToTime(timeTemp, false);
+            pkg_index_ = static_cast<unsigned int>(i);
+            break;
+        }
+    }
+}
+
+void Replay::MoveToTime(double t, bool set_index)
+{
+    if (set_index)
+    {
+        SetPkgIndex(t);
+    }
+    time_ = t;
     if (scenarioState.sim_time != t)  // already current object is in given time
     {
         scenarioState.sim_time = t;
@@ -1369,6 +1428,29 @@ int Replay::GetScaleMode(int obj_id)
     return scale_mode;
 }
 
+int Replay::GetVisibility(int obj_id)
+{
+    int vis = -1;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::VISIBILITY_MASK)
+            {
+               vis = *reinterpret_cast<int*>(pkg->content);
+            }
+        }
+    }
+
+    return vis;
+}
+
 datLogger::Pos Replay::GetPos(int obj_id)
 {
     datLogger::Pos pos;
@@ -1397,6 +1479,36 @@ double Replay::GetX(int obj_id)
     return pos.x;
 }
 
+double Replay::GetY(int obj_id)
+{
+    datLogger::Pos pos = GetPos(obj_id);
+    return pos.y;
+}
+
+double Replay::GetZ(int obj_id)
+{
+    datLogger::Pos pos = GetPos(obj_id);
+    return pos.z;
+}
+
+double Replay::GetH(int obj_id)
+{
+    datLogger::Pos pos = GetPos(obj_id);
+    return pos.h;
+}
+
+double Replay::GetR(int obj_id)
+{
+    datLogger::Pos pos = GetPos(obj_id);
+    return pos.r;
+}
+
+double Replay::GetP(int obj_id)
+{
+    datLogger::Pos pos = GetPos(obj_id);
+    return pos.r;
+}
+
 int Replay::GetName(int obj_id, std::string& name)
 {
     for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
@@ -1416,4 +1528,66 @@ int Replay::GetName(int obj_id, std::string& name)
         }
     }
     return 0;
+}
+
+void Replay::SetStopEntries()
+{
+    for (size_t i = pkgs_.size() - 1; i > 0; i--)
+    {
+        if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::TIME_SERIES)
+        {
+            stopTime_ = *reinterpret_cast<double*>(pkgs_[i].content);
+            stopIndex_ = static_cast<unsigned int>(i);
+            break;
+        }
+    }
+}
+
+bool IsObjAvailableInEntities(const std::vector<ScenarioEntities> entities, int id)
+{
+    bool status = false;
+    if (entities.size() == 0)
+    {
+        return status = false;
+    }
+    for (size_t i = 0; i < entities.size(); i++)
+    {
+        if (entities[i].obj_id == id)
+        {
+            status = true;
+            break;
+        }
+        else if ( i == entities.size() - 1) // last iteration
+        {
+            status = false;
+            break;
+        }
+    }
+    return status;
+}
+
+void Replay::GetScenarioEntities(std::vector<ScenarioEntities>& entities)
+{
+
+    double time = 0.0;
+    int id = -1.0;
+    for (size_t i = 0; i < pkgs_.size(); i++)
+    {
+        if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::TIME_SERIES)
+        {
+            time = *reinterpret_cast<double*>(pkgs_[i].content);
+        }
+
+        if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::OBJ_ID)
+        {
+            id = *reinterpret_cast<int*>(pkgs_[i].content);
+            if(!IsObjAvailableInEntities(entities, id))
+            {
+                ScenarioEntities entities_;
+                entities_.sim_time = time;
+                entities_.obj_id = id;
+                entities.push_back(entities_);
+            }
+        }
+    }
 }

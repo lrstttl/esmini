@@ -354,7 +354,7 @@ TEST(TestRecordInEsmini, Test1)
 
     replay->InitiateStates(replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 12);
-    replay->MoveToTime(replay->GetTimeFromCnt(15));
+    replay->MoveToTime(replay->GetTimeFromCnt(15), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 12);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[6].time_, replay->GetTimeFromCnt(1));
@@ -362,7 +362,7 @@ TEST(TestRecordInEsmini, Test1)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(15));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(15));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(30));
+    replay->MoveToTime(replay->GetTimeFromCnt(30), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 12);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[5].time_, replay->GetTimeFromCnt(1));

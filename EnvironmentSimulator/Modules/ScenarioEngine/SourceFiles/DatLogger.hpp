@@ -36,7 +36,12 @@ namespace datLogger
         BOUNDING_BOX = 22,
         SCALE_MODE = 23,
         VISIBILITY_MASK = 24,
-        NAME = 25
+        NAME = 25,
+        ROAD_ID = 26,
+        LANE_ID = 27,
+        POS_OFFSET = 28,
+        POS_T = 29,
+        POS_R = 30
     };
 
     // mandatory packages
@@ -268,6 +273,11 @@ namespace datLogger
         int         WriteScaleMode(int obj_id, int mode);
         int         WriteVisiblityMask(int obj_id, int mask);
         int         WriteName(int obj_id, std::string name);
+        int         WriteRoadId(int obj_id, int road_id);
+        int         WriteLaneId(int obj_id, int lane_id);
+        int         WritePosOffset(int obj_id, double pos_offset);
+        int         WritePosT(int obj_id, double t);
+        int         WritePosR(int obj_id, double r);
 
         std::string pkgIdTostring(PackageId id);
     };

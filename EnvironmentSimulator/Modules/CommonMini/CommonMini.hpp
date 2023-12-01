@@ -548,6 +548,11 @@ void R0R12EulerAngles(double h0, double p0, double r0, double h1, double p1, dou
 */
 void SwapByteOrder(unsigned char* buf, int data_type_size, int buf_size);
 
+/**
+       check two double values are equal with small margin
+*/
+bool isEqualDouble(double val1, double val2);
+
 #if (defined WINVER && WINVER == _WIN32_WINNT_WIN7)
 #else
 #include <thread>
