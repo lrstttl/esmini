@@ -157,7 +157,18 @@ namespace scenarioengine
         double    GetH(int obj_id);
         double    GetR(int obj_id);
         double    GetP(int obj_id);
+        int    GetRoadId(int obj_id);
+        int    GetLaneId(int obj_id);
+        double    GetPosOffset(int obj_id);
+        float    GetPosT(int obj_id);
+        float    GetPosS(int obj_id);
+        ObjectPositionStructDat GetComPletePos(int obj_id);
+        double    GetWheelAngle(int obj_id);
+        double    GetWheelRot(int obj_id);
+        double    GetSpeed(int obj_id);
+
         int    GetName(int obj_id, std::string& name);
+
         void UpdateOdaMeter(double value)
         {
             scenarioState.odometer = value;

@@ -1073,8 +1073,6 @@ int main(int argc, char** argv)
                 }
 
                 // Fetch states of scenario objects
-                ReplayEntry*          entry = nullptr;
-                ObjectStateStructDat* state = nullptr;
                 for (int index = 0; index < static_cast<int>(scenarioEntity.size()); index++)
                 {
                     ScenarioEntity* sc = &scenarioEntity[static_cast<unsigned int>(index)];
@@ -1102,23 +1100,26 @@ int main(int argc, char** argv)
                     // If not available, create it
                     if (sc == 0)
                     {
-                        throw std::runtime_error(std::string("Unexpected entity found: ").append(std::to_string(state->info.id)));
+                        throw std::runtime_error(std::string("Unexpected entity found: ").append(std::to_string(scenarioEntity[index].id)));
                     }
 
-                    sc->pos            = state->pos;
-                    sc->wheel_angle    = state->info.wheel_angle;
-                    sc->wheel_rotation = state->info.wheel_rot;
+                    sc->pos            = player->GetComPletePos(scenarioEntity[index].id);
+                    sc->wheel_angle    = player->GetWheelAngle(scenarioEntity[index].id);
+                    sc->wheel_rotation = player->GetWheelRot(scenarioEntity[index].id);
+
+                    std::string name;
+                    player->GetName(scenarioEntity[index].id, name);
 
                     // on screen text following each entity
                     snprintf(sc->entityModel->on_screen_info_.string_,
                              sizeof(sc->entityModel->on_screen_info_.string_),
                              " %s (%d) %.2fm\n %.2fkm/h road %d lane %d/%.2f s %.2f\n x %.2f y %.2f hdg %.2f\n osi x %.2f y %.2f \n|",
-                             state->info.name,
-                             state->info.id,
-                             entry->odometer,
-                             3.6 * static_cast<double>(state->info.speed),
-                             sc->pos.roadId,
-                             sc->pos.laneId,
+                             name,
+                             scenarioEntity[index].id,
+                             player->scenarioState.odometer,
+                             3.6 *  player->GetSpeed(scenarioEntity[index].id),
+                             player->GetRoadId(scenarioEntity[index].id),
+                             player->GetLaneId(scenarioEntity[index].id),
                              static_cast<double>(fabs(sc->pos.offset)) < SMALL_NUMBER ? 0 : static_cast<double>(sc->pos.offset),
                              static_cast<double>(sc->pos.s),
                              static_cast<double>(sc->pos.x),
@@ -1136,13 +1137,13 @@ int main(int argc, char** argv)
                                  "%.3fs entity[%d]: %s (%d) %.2fs %.2fkm/h %.2fm (%d, %d, %.2f, %.2f)/(%.2f, %.2f %.2f) tScale: %.2f ",
                                  simTime,
                                  viewer->currentCarInFocus_,
-                                 state->info.name,
-                                 state->info.id,
-                                 static_cast<double>(state->info.timeStamp),
-                                 3.6 * static_cast<double>(state->info.speed),
-                                 entry->odometer,
-                                 sc->pos.roadId,
-                                 sc->pos.laneId,
+                                 name,
+                                 scenarioEntity[index].id,
+                                 player->scenarioState.sim_time,
+                                 3.6 * player->GetSpeed(scenarioEntity[index].id),
+                                 player->scenarioState.odometer,
+                                 player->GetRoadId(scenarioEntity[index].id),
+                                 player->GetLaneId(scenarioEntity[index].id),
                                  static_cast<double>(fabs(sc->pos.offset)) < SMALL_NUMBER ? 0 : static_cast<double>(sc->pos.offset),
                                  static_cast<double>(sc->pos.s),
                                  static_cast<double>(sc->pos.x),
@@ -1152,7 +1153,7 @@ int main(int argc, char** argv)
                         viewer->SetInfoText(info_str_buf);
                     }
                 }
-
+#if 0
                 if (col_analysis && scenarioEntity.size() > 1)
                 {
                     state = player->GetState(scenarioEntity[0].id);
@@ -1201,7 +1202,7 @@ int main(int argc, char** argv)
                         }
                     }
                 }
-
+#endif
             } while (
                 !pause_player && simTime < player->GetStopTime() - SMALL_NUMBER &&                                // As long as time is < end
                 simTime > player->GetStartTime() + SMALL_NUMBER &&                                                // As long as time is > start time

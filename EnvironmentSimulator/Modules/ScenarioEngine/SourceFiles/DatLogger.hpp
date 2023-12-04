@@ -41,7 +41,7 @@ namespace datLogger
         LANE_ID = 27,
         POS_OFFSET = 28,
         POS_T = 29,
-        POS_R = 30
+        POS_S = 30
     };
 
     // mandatory packages
@@ -115,6 +115,31 @@ namespace datLogger
         int visibility_mask = -1;
     };
 
+    struct RoadId
+    {
+        int road_id = -1;
+    };
+
+    struct LaneId
+    {
+        int lane_id = -1;
+    };
+
+    struct PosOffset
+    {
+        double offset = SMALL_NUMBER;
+    };
+
+    struct PosT
+    {
+        float t = SMALL_NUMBERF;
+    };
+
+    struct PosS
+    {
+        float s = SMALL_NUMBERF;
+    };
+
     struct Name
     {
         char* string;
@@ -154,19 +179,24 @@ namespace datLogger
 
     struct ObjState
     {
-        ObjId obj_id_;
-        Speed speed_;
-        Pos   pos_;
-        ModelId   modelId_;
-        ObjType   objType_;
-        ObjCategory   objCategory_;
-        CtrlType   ctrlType_;
-        WheelAngle          wheelAngle_;
-        WheelRot          wheelRot_;
-        BoundingBox boundingBox_;
-        ScaleMode            scaleMode_;
-        VisibilityMask            visibilityMask_;
-        std::string name_;
+        ObjId           obj_id_;
+        Speed           speed_;
+        Pos             pos_;
+        ModelId         modelId_;
+        ObjType         objType_;
+        ObjCategory     objCategory_;
+        CtrlType        ctrlType_;
+        WheelAngle      wheelAngle_;
+        WheelRot        wheelRot_;
+        BoundingBox     boundingBox_;
+        ScaleMode       scaleMode_;
+        VisibilityMask  visibilityMask_;
+        std::string     name_;
+        RoadId          roadId_;
+        LaneId          laneId_;
+        PosOffset       posOffset_;
+        PosT            posT;
+        PosS            posS;
     };
 
     struct CompleteObjectState
@@ -224,6 +254,12 @@ namespace datLogger
             std::cout << "Total visibilPkg: " << visibilPkg << std::endl;
             std::cout << "Total namePkg: " << namePkg << std::endl;
 
+            std::cout << "Total raodIdPkg: " << roadIdPkg << std::endl;
+            std::cout << "Total laneIdPkg: " << laneIdPkg << std::endl;
+            std::cout << "Total posOffPkg: " << posOffPkg << std::endl;
+            std::cout << "Total posTPkg: " << posTPkg << std::endl;
+            std::cout << "Total posSPkg: " << posSPkg << std::endl;
+
             std::cout << "File closed successfully in destructure" << std::endl;
         }
 
@@ -241,6 +277,11 @@ namespace datLogger
         int scaleMoPkg = 0;
         int visibilPkg = 0;
         int namePkg = 0;
+        int roadIdPkg = 0;
+        int laneIdPkg = 0;
+        int posOffPkg = 0;
+        int posTPkg = 0;
+        int posSPkg = 0;
 
 
         bool isFirstEntry      = true;
@@ -277,7 +318,7 @@ namespace datLogger
         int         WriteLaneId(int obj_id, int lane_id);
         int         WritePosOffset(int obj_id, double pos_offset);
         int         WritePosT(int obj_id, double t);
-        int         WritePosR(int obj_id, double r);
+        int         WritePosR(int obj_id, double s);
 
         std::string pkgIdTostring(PackageId id);
     };

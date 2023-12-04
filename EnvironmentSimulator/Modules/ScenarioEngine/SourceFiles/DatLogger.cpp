@@ -499,6 +499,171 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
     return 0;
 }
 
+int DatLogger::WriteRoadId(int obj_id, int road_id)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].visibilityMask_.visibility_mask != road_id)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::ROAD_ID);
+                pkg.hdr.content_size = sizeof(road_id);
+                pkg.content          = reinterpret_cast<char*>(&road_id);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].roadId_.road_id = road_id;
+                roadIdPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WriteLaneId(int obj_id, int lane_id)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (completeObjectState.obj_states[i].laneId_.lane_id != lane_id)
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::LANE_ID);
+                pkg.hdr.content_size = sizeof(lane_id);
+                pkg.content          = reinterpret_cast<char*>(&lane_id);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].laneId_.lane_id = lane_id;
+                laneIdPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WritePosOffset(int obj_id, double offset)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (!isEqual(completeObjectState.obj_states[i].posOffset_.offset, offset))
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::POS_OFFSET);
+                pkg.hdr.content_size = sizeof(offset);
+                pkg.content          = reinterpret_cast<char*>(&offset);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].posOffset_.offset = offset;
+                posOffPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WritePosT(int obj_id, double t)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (!isEqual(completeObjectState.obj_states[i].posT.t, t))
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::POS_T);
+                pkg.hdr.content_size = sizeof(t);
+                pkg.content          = reinterpret_cast<char*>(&t);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].posT.t = t;
+                posTPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::WritePosR(int obj_id, double s)
+{
+    totalPkgReceived += 1;
+
+    if (data_file_.is_open())
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+        {
+            if (completeObjectState.obj_states[i].obj_id_.obj_id != obj_id)
+            {
+                continue;
+            }
+            if (!isEqual(completeObjectState.obj_states[i].posS.s, s))
+            {
+                // create pkg
+                CommonPkg pkg;
+                pkg.hdr.id           = static_cast<int>(PackageId::POS_S);
+                pkg.hdr.content_size = sizeof(s);
+                pkg.content          = reinterpret_cast<char*>(&s);
+                writePackage(pkg);
+                completeObjectState.obj_states[i].posS.s = s;
+                posSPkg += 1;
+                break;
+            }
+            else
+            {
+                totalPkgSkipped += 1;
+            }
+        }
+    }
+    return 0;
+}
+
 void DatLogger::writePackage(CommonPkg package)
 {
     if (data_file_.is_open())

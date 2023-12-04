@@ -904,6 +904,66 @@ int Replay::RecordPkgs(const std::string& fileName)
                 break;
             }
 
+            case datLogger::PackageId::ROAD_ID:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                datLogger::RoadId * road_id = new datLogger::RoadId;
+                file_Read_.read(reinterpret_cast<char*>(&road_id->road_id), pkg.hdr.content_size);
+                pkg.content = reinterpret_cast<char*>(road_id);
+                pkgs_.push_back(pkg);
+                break;
+            }
+
+            case datLogger::PackageId::LANE_ID:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                datLogger::LaneId * lane_id = new datLogger::LaneId;
+                file_Read_.read(reinterpret_cast<char*>(&lane_id->lane_id), pkg.hdr.content_size);
+                pkg.content = reinterpret_cast<char*>(lane_id);
+                pkgs_.push_back(pkg);
+                break;
+            }
+
+            case datLogger::PackageId::POS_OFFSET:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                datLogger::PosOffset * pos_offset = new datLogger::PosOffset;
+                file_Read_.read(reinterpret_cast<char*>(&pos_offset->offset), pkg.hdr.content_size);
+                pkg.content = reinterpret_cast<char*>(pos_offset);
+                pkgs_.push_back(pkg);
+                break;
+            }
+
+            case datLogger::PackageId::POS_T:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                datLogger::PosT * pos_t = new datLogger::PosT;
+                file_Read_.read(reinterpret_cast<char*>(&pos_t->t), pkg.hdr.content_size);
+                pkg.content = reinterpret_cast<char*>(pos_t);
+                pkgs_.push_back(pkg);
+                break;
+            }
+
+            case datLogger::PackageId::POS_S:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                datLogger::PosS * pos_s = new datLogger::PosS;
+                file_Read_.read(reinterpret_cast<char*>(&pos_s->s), pkg.hdr.content_size);
+                pkg.content = reinterpret_cast<char*>(pos_s);
+                pkgs_.push_back(pkg);
+                break;
+            }
+
             default:
             {
                 std::cout << "Unknown package read->package id :" << std::endl;
@@ -1093,7 +1153,7 @@ void Replay:: SetPkgIndex(double time)
 
 void Replay::MoveToDeltaTime(double dt)
 {
-    GoToTime(GetNearestTime(time_ + dt));
+    MoveToTime(GetNearestTime(time_ + dt), false);
 }
 
 
@@ -1507,6 +1567,209 @@ double Replay::GetP(int obj_id)
 {
     datLogger::Pos pos = GetPos(obj_id);
     return pos.r;
+}
+
+int Replay::GetRoadId(int obj_id)
+{
+    int road_id = -1;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::ROAD_ID)
+            {
+               road_id = *reinterpret_cast<int*>(pkg->content);
+            }
+        }
+    }
+
+    return road_id;
+}
+
+int Replay::GetLaneId(int obj_id)
+{
+    int lane_id = -1;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::LANE_ID)
+            {
+               lane_id = *reinterpret_cast<int*>(pkg->content);
+            }
+        }
+    }
+
+    return lane_id;
+}
+
+double Replay::GetPosOffset(int obj_id)
+{
+    double offset = 0.0;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POS_OFFSET)
+            {
+               offset = *reinterpret_cast<double*>(pkg->content);
+            }
+        }
+    }
+
+    return offset;
+}
+
+float Replay::GetPosT(int obj_id)
+{
+    double pos_t = 0.0;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POS_T)
+            {
+               pos_t = *reinterpret_cast<double*>(pkg->content);
+            }
+        }
+    }
+
+    return pos_t;
+}
+
+float Replay::GetPosS(int obj_id)
+{
+    double pos_s = 0.0;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POS_S)
+            {
+               pos_s = *reinterpret_cast<double*>(pkg->content);
+            }
+        }
+    }
+
+    return pos_s;
+}
+
+ObjectPositionStructDat Replay::GetComPletePos(int obj_id)
+{
+    ObjectPositionStructDat complete_pos;
+    datLogger::Pos pos;
+    pos = GetPos(obj_id);
+    complete_pos.h = static_cast<float>(pos.h);
+    complete_pos.x = static_cast<float>(pos.x);
+    complete_pos.y = static_cast<float>(pos.y);
+    complete_pos.z = static_cast<float>(pos.z);
+    complete_pos.p = static_cast<float>(pos.p);
+    complete_pos.r = static_cast<float>(pos.r);
+    complete_pos.laneId = GetLaneId(obj_id);
+    complete_pos.roadId = GetRoadId(obj_id);
+    complete_pos.offset = static_cast<float>(GetPosOffset(obj_id));
+    complete_pos.t = GetPosT(obj_id);
+    complete_pos.s = GetPosS(obj_id);
+    return complete_pos;
+}
+
+double Replay::GetWheelAngle(int obj_id)
+{
+    double wheel_angle = 0.0;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::WHEEL_ANGLE)
+            {
+               wheel_angle = *reinterpret_cast<double*>(pkg->content);
+            }
+        }
+    }
+
+    return wheel_angle;
+}
+
+double Replay::GetWheelRot(int obj_id)
+{
+    double wheel_rot = 0.0;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::WHEEL_ROT)
+            {
+               wheel_rot = *reinterpret_cast<double*>(pkg->content);
+            }
+        }
+    }
+
+    return wheel_rot;
+}
+
+double Replay::GetSpeed(int obj_id)
+{
+    double speed = 0.0;
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)
+    {
+        if (scenarioState.obj_states[i].id != obj_id)
+        {
+            continue;
+        }
+        for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
+        {
+            datLogger::CommonPkg* pkg;
+            pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
+            if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::SPEED)
+            {
+               speed = *reinterpret_cast<double*>(pkg->content);
+            }
+        }
+    }
+
+    return speed;
 }
 
 int Replay::GetName(int obj_id, std::string& name)
