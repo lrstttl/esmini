@@ -40,12 +40,12 @@ namespace scenarioengine
         std::vector<ObjectStateWithPkg> pkgs;
     } ObjectStateWithObjId;
 
-    typedef struct
+    struct ScenarioState
     {
         double                            sim_time;
         double                            odometer = 0.0;
         std::vector<ObjectStateWithObjId> obj_states;
-    } ScenarioState;
+    };
 
     typedef struct
     {

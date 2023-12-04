@@ -399,7 +399,7 @@ int DatLogger::WriteName(int obj_id, std::string name)
 
                 data_file_.write(reinterpret_cast<char*>(&pkg.hdr), sizeof(CommonPkgHdr));
 
-                data_file_.write(reinterpret_cast<char*>(&nameStr.string), pkg.hdr.content_size);
+                data_file_.write(nameStr.string, pkg.hdr.content_size);
 
                 completeObjectState.obj_states[i].name_ = name;
                 namePkg += 1;
@@ -618,7 +618,7 @@ int DatLogger::WritePosT(int obj_id, double t)
                 pkg.hdr.content_size = sizeof(t);
                 pkg.content          = reinterpret_cast<char*>(&t);
                 writePackage(pkg);
-                completeObjectState.obj_states[i].posT.t = t;
+                completeObjectState.obj_states[i].posT.t = static_cast<float>(t);
                 posTPkg += 1;
                 break;
             }
@@ -651,7 +651,7 @@ int DatLogger::WritePosR(int obj_id, double s)
                 pkg.hdr.content_size = sizeof(s);
                 pkg.content          = reinterpret_cast<char*>(&s);
                 writePackage(pkg);
-                completeObjectState.obj_states[i].posS.s = s;
+                completeObjectState.obj_states[i].posS.s = static_cast<float>(s);
                 posSPkg += 1;
                 break;
             }

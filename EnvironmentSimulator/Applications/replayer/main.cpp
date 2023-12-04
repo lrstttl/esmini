@@ -499,7 +499,7 @@ int main(int argc, char** argv)
     std::unique_ptr<Replay> player;
     double                  simTime   = 0;
     double                  view_mode = viewer::NodeMask::NODE_MASK_ENTITY_MODEL;
-    bool                    overlap   = false;
+//    bool                    overlap   = false;
     static char             info_str_buf[256];
     std::string             arg_str;
 
@@ -1114,7 +1114,7 @@ int main(int argc, char** argv)
                     snprintf(sc->entityModel->on_screen_info_.string_,
                              sizeof(sc->entityModel->on_screen_info_.string_),
                              " %s (%d) %.2fm\n %.2fkm/h road %d lane %d/%.2f s %.2f\n x %.2f y %.2f hdg %.2f\n osi x %.2f y %.2f \n|",
-                             name,
+                             name.c_str(),
                              scenarioEntity[index].id,
                              player->scenarioState.odometer,
                              3.6 *  player->GetSpeed(scenarioEntity[index].id),
@@ -1137,7 +1137,7 @@ int main(int argc, char** argv)
                                  "%.3fs entity[%d]: %s (%d) %.2fs %.2fkm/h %.2fm (%d, %d, %.2f, %.2f)/(%.2f, %.2f %.2f) tScale: %.2f ",
                                  simTime,
                                  viewer->currentCarInFocus_,
-                                 name,
+                                 name.c_str(),
                                  scenarioEntity[index].id,
                                  player->scenarioState.sim_time,
                                  3.6 * player->GetSpeed(scenarioEntity[index].id),

@@ -1658,7 +1658,7 @@ float Replay::GetPosT(int obj_id)
         }
     }
 
-    return pos_t;
+    return static_cast<float>(pos_t);
 }
 
 float Replay::GetPosS(int obj_id)
@@ -1681,7 +1681,7 @@ float Replay::GetPosS(int obj_id)
         }
     }
 
-    return pos_s;
+    return static_cast<float>(pos_s);
 }
 
 ObjectPositionStructDat Replay::GetComPletePos(int obj_id)
@@ -1786,7 +1786,7 @@ int Replay::GetName(int obj_id, std::string& name)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::NAME)
             {
-                name = *reinterpret_cast<std::string*>(pkg->content);
+                name = reinterpret_cast<datLogger::Name*>(pkg->content)->string;
             }
         }
     }
@@ -1833,7 +1833,7 @@ void Replay::GetScenarioEntities(std::vector<ScenarioEntities>& entities)
 {
 
     double time = 0.0;
-    int id = -1.0;
+    int id = -1;
     for (size_t i = 0; i < pkgs_.size(); i++)
     {
         if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::TIME_SERIES)
