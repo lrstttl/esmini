@@ -511,7 +511,7 @@ int DatLogger::WriteRoadId(int obj_id, int road_id)
             {
                 continue;
             }
-            if (completeObjectState.obj_states[i].visibilityMask_.visibility_mask != road_id)
+            if (completeObjectState.obj_states[i].roadId_.road_id != road_id)
             {
                 // create pkg
                 CommonPkg pkg;
@@ -631,7 +631,7 @@ int DatLogger::WritePosT(int obj_id, double t)
     return 0;
 }
 
-int DatLogger::WritePosR(int obj_id, double s)
+int DatLogger::WritePosS(int obj_id, double s)
 {
     totalPkgReceived += 1;
 

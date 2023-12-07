@@ -1068,7 +1068,7 @@ int ScenarioGateway::WriteStatesToFile()
         datLogger->WriteObjPos(objId,
                                objectState_[i]->state_.pos.GetX(),
                                objectState_[i]->state_.pos.GetY(),
-                               objectState_[i]->state_.pos.GetY(),
+                               objectState_[i]->state_.pos.GetZ(),
                                objectState_[i]->state_.pos.GetH(),
                                objectState_[i]->state_.pos.GetP(),
                                objectState_[i]->state_.pos.GetR());
@@ -1088,6 +1088,11 @@ int ScenarioGateway::WriteStatesToFile()
         datLogger->WriteScaleMode(objId, objectState_[i]->state_.info.scaleMode);
         datLogger->WriteVisiblityMask(objId, objectState_[i]->state_.info.visibilityMask);
         datLogger->WriteName(objId, objectState_[i]->state_.info.name);
+        datLogger->WriteRoadId(objId, objectState_[i]->state_.pos.GetTrackId());
+        datLogger->WriteLaneId(objId, objectState_[i]->state_.pos.GetLaneId());
+        datLogger->WritePosOffset(objId, objectState_[i]->state_.pos.GetOffset());
+        datLogger->WritePosT(objId, objectState_[i]->state_.pos.GetT());
+        datLogger->WritePosS(objId, objectState_[i]->state_.pos.GetS());
     }
     return 0;
 }

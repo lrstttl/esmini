@@ -117,12 +117,12 @@ namespace datLogger
 
     struct RoadId
     {
-        int road_id = -1;
+        int road_id = -LARGE_NUMBER_INT;
     };
 
     struct LaneId
     {
-        int lane_id = -1;
+        int lane_id = -LARGE_NUMBER_INT;
     };
 
     struct PosOffset
@@ -318,7 +318,7 @@ namespace datLogger
         int         WriteLaneId(int obj_id, int lane_id);
         int         WritePosOffset(int obj_id, double pos_offset);
         int         WritePosT(int obj_id, double t);
-        int         WritePosR(int obj_id, double s);
+        int         WritePosS(int obj_id, double s);
 
         std::string pkgIdTostring(PackageId id);
     };

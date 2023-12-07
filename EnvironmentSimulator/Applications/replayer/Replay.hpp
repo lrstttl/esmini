@@ -138,10 +138,7 @@ namespace scenarioengine
         void SetPkgIndex(double time);
 
 
-
-        int  GetObjCompleteState(double time, int obj_id, ScenarioState& state);
-
-        double GetNearestTime(double time_frame);
+        double GetNearestTime(double time_frame, bool stop_at_next_frame = false);
         double GetNextTime(double time_frame);
         double GetPreviousTime(double time_frame);
 

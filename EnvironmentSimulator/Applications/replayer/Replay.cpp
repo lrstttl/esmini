@@ -1153,7 +1153,9 @@ void Replay:: SetPkgIndex(double time)
 
 void Replay::MoveToDeltaTime(double dt)
 {
+    std::cout << "delta time : " << time_ + dt << std::endl;
     MoveToTime(GetNearestTime(time_ + dt), false);
+    std::cout << "cache time : " << time_ << std::endl;
 }
 
 
@@ -1193,6 +1195,7 @@ void Replay::MoveToTime(double t, bool set_index)
         SetPkgIndex(t);
     }
     time_ = t;
+
     if (scenarioState.sim_time != t)  // already current object is in given time
     {
         scenarioState.sim_time = t;
@@ -1330,8 +1333,9 @@ void Replay::InitiateStates(double t)
     }
 }
 
-double Replay::GetNearestTime(double t)
+double Replay::GetNearestTime(double t, bool stop_at_next_frame)
 {
+    std::cout << "Input time : " << t << std::endl;
     double timeTemp     = -1.0;
     double perviousTime = -1.0;
     for (size_t i = 0; i < pkgs_.size(); i++)
@@ -1339,18 +1343,30 @@ double Replay::GetNearestTime(double t)
         if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::TIME_SERIES)  // find time pkg for given pkg idx
         {
             timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            if (t == *reinterpret_cast<double*>(pkgs_[i].content))  // found exact match
+            if (stop_at_next_frame)
             {
-                break;
+                if (t == timeTemp)  // found exact match
+                {
+                    break;
+                }
+                else if (t < timeTemp)  // gone past to given time for first time. set the pervious time
+                {
+                    timeTemp = perviousTime;
+                    break;
+                }
             }
-            else if (t < *reinterpret_cast<double*>(pkgs_[i].content))  // gone past to given time for first time. set the pervious time
+            else
             {
-                timeTemp = perviousTime;
-                break;
+                if (time_ < timeTemp)// gone past current time
+                {
+                    break;
+                }
             }
+
         }
         perviousTime = timeTemp;
     }
+    std::cout << "Output time : " << timeTemp << std::endl;
     return timeTemp;
 }
 
