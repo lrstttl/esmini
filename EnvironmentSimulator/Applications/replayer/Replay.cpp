@@ -1200,7 +1200,7 @@ void Replay::MoveToTime(double t, bool set_index)
     {
         scenarioState.sim_time = t;
 
-        std::vector<int> objIdIndices = GetNumberOfObjectsAtTime(t);
+        std::vector<int> objIdIndices = GetNumberOfObjectsAtTime(GetNearestTime(t, true));
 
         for (size_t Index = 0; Index < objIdIndices.size(); Index++)
         {

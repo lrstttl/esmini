@@ -329,7 +329,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
 
 }
 
-TEST(TestRecordInEsmini, Test1)
+TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
 {
 
     const char* args[] =
@@ -368,6 +368,56 @@ TEST(TestRecordInEsmini, Test1)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[9].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(30));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(30));
+}
+
+TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
+{
+
+    const char* args[] =
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/speed_change.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
+
+    SE_AddPath("../../../resources/models");
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    while (SE_GetQuitFlag() == 0)
+    {
+        SE_StepDT(0.05f);
+    }
+
+    SE_Close();
+
+    std::filesystem::path cwd = std::filesystem::current_path();
+    std::cout << cwd << std::endl;
+
+    scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
+    ASSERT_EQ(replay->pkgs_.size(), 3974);
+
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    replay->MoveToTime(18, false);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.150000255554914); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 17.200000256299973); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
+
+    replay->MoveToTime(19.5, false);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.150000255554914); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 17.200000256299973); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
+
+    replay->MoveToTime(21, false);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 21.0); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 21.0); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
+
 }
 
 int main(int argc, char** argv)
