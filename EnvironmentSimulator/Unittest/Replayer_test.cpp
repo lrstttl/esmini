@@ -12,7 +12,6 @@
 
 using namespace datLogger;
 
-#if 0
 TEST(LogOperationsWithOneObject, TestLogInitAndStepWithOneObject)
 {
     std::string fileName    = "sim.dat";
@@ -90,15 +89,15 @@ TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
     ASSERT_DOUBLE_EQ(replay->GetTimeFromCnt(2), 1.122);
 
-    replay->MoveToTime(replay->GetTimeFromCnt(2));
+    replay->MoveToTime(replay->GetTimeFromCnt(2), false);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(2));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(4));
+    replay->MoveToTime(replay->GetTimeFromCnt(4), false);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(4));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(5));
+    replay->MoveToTime(replay->GetTimeFromCnt(5), false);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(5));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(4));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
@@ -183,21 +182,21 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
     ASSERT_DOUBLE_EQ(replay->GetTimeFromCnt(2), 1.122);
 
-    replay->MoveToTime(replay->GetTimeFromCnt(2));
+    replay->MoveToTime(replay->GetTimeFromCnt(2), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(2));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[1].time_, replay->GetTimeFromCnt(2));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(4));
+    replay->MoveToTime(replay->GetTimeFromCnt(4), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(4));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[1].time_, replay->GetTimeFromCnt(4));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(5));
+    replay->MoveToTime(replay->GetTimeFromCnt(5), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(5));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(4));
@@ -287,7 +286,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
     ASSERT_DOUBLE_EQ(replay->GetTimeFromCnt(2), 1.122);
 
-    replay->MoveToTime(replay->GetTimeFromCnt(2));
+    replay->MoveToTime(replay->GetTimeFromCnt(2), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(2));
@@ -296,7 +295,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[1].time_, replay->GetTimeFromCnt(2));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(3));
+    replay->MoveToTime(replay->GetTimeFromCnt(3), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2); // obj deleted
     ASSERT_EQ(replay->scenarioState.obj_states[0].id, 0);
     ASSERT_EQ(replay->scenarioState.obj_states[1].id, 1);
@@ -305,7 +304,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[1].time_, replay->GetTimeFromCnt(3));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(4));
+    replay->MoveToTime(replay->GetTimeFromCnt(4), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3); // obj added
     ASSERT_EQ(replay->scenarioState.obj_states[0].id, 0);
     ASSERT_EQ(replay->scenarioState.obj_states[1].id, 1);
@@ -317,7 +316,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[0].time_, replay->GetTimeFromCnt(4));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[1].time_, replay->GetTimeFromCnt(4));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(5));
+    replay->MoveToTime(replay->GetTimeFromCnt(5), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(5));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(4));
@@ -329,12 +328,12 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     delete replay;
 
 }
-#endif
+
 TEST(TestRecordInEsmini, Test1)
 {
 
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.05"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -350,13 +349,13 @@ TEST(TestRecordInEsmini, Test1)
     std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 315);
+    ASSERT_EQ(replay->pkgs_.size(), 3764);
 
-    replay->InitiateStates(replay->GetTimeFromCnt(1));
-    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 12);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     replay->MoveToTime(replay->GetTimeFromCnt(15), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
-    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 12);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[6].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[11].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(15));
@@ -364,7 +363,7 @@ TEST(TestRecordInEsmini, Test1)
 
     replay->MoveToTime(replay->GetTimeFromCnt(30), false);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
-    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 12);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[5].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[9].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(30));
