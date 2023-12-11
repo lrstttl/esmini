@@ -41,7 +41,9 @@ namespace datLogger
         LANE_ID = 27,
         POS_OFFSET = 28,
         POS_T = 29,
-        POS_S = 30
+        POS_S = 30,
+        OBJ_STATUS = 31,
+        END_OF_SCENARIO = 32
     };
 
     // mandatory packages
@@ -132,12 +134,12 @@ namespace datLogger
 
     struct PosT
     {
-        float t = SMALL_NUMBERF;
+        double t = SMALL_NUMBER;
     };
 
     struct PosS
     {
-        float s = SMALL_NUMBERF;
+        double s = SMALL_NUMBER;
     };
 
     struct Name
@@ -180,6 +182,7 @@ namespace datLogger
     struct ObjState
     {
         ObjId           obj_id_;
+        bool            active = false;
         Speed           speed_;
         Pos             pos_;
         ModelId         modelId_;
@@ -214,6 +217,15 @@ namespace datLogger
         DatLogger() = default;
         ~DatLogger()
         {
+            totalPkgProcessed += 2;
+            totalPkgReceived  += 2;
+            WriteTime(simTimeTemp);
+
+            CommonPkgHdr pkg;
+            pkg.id = static_cast<int>(PackageId::END_OF_SCENARIO);
+            pkg.content_size = 0;
+            data_file_.write(reinterpret_cast<char*>(&pkg), sizeof(CommonPkgHdr));
+
             data_file_.flush();
             data_file_.close();
             if (display_print)
@@ -290,6 +302,10 @@ namespace datLogger
         int  totalPkgProcessed = 0;
         int  totalPkgReceived  = 0;
         int  totalPkgSkipped   = 0;
+        bool TimePkgAdded = false;
+        bool ObjIdPkgAdded = false;
+
+        double simTimeTemp = SMALL_NUMBER;
 
         CompleteObjectState completeObjectState;
 
@@ -298,6 +314,8 @@ namespace datLogger
 
 
         void writePackage(CommonPkg package);  // will just write package
+        int  AddObject(int obj_id);
+        int  deleteObject();
 
         int         WriteObjSpeed(int obj_id, double speed);
         int         WriteTime(double t);

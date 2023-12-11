@@ -1062,8 +1062,8 @@ int ScenarioGateway::WriteStatesToFile()
     for (size_t i = 0; i < objectState_.size(); i++)
     {
         int objId = objectState_[i]->state_.info.id;
-        datLogger->WriteTime(objectState_[i]->state_.info.timeStamp);
-        datLogger->WriteObjId(objId);
+        datLogger->simTimeTemp = objectState_[i]->state_.info.timeStamp;
+        datLogger->AddObject(objId);
         datLogger->WriteModelId(objId, objectState_[i]->state_.info.model_id);
         datLogger->WriteObjPos(objId,
                                objectState_[i]->state_.pos.GetX(),
@@ -1093,7 +1093,10 @@ int ScenarioGateway::WriteStatesToFile()
         datLogger->WritePosOffset(objId, objectState_[i]->state_.pos.GetOffset());
         datLogger->WritePosT(objId, objectState_[i]->state_.pos.GetT());
         datLogger->WritePosS(objId, objectState_[i]->state_.pos.GetS());
+        datLogger->ObjIdPkgAdded = false;
     }
+    datLogger->deleteObject();
+    datLogger->TimePkgAdded = false;
     return 0;
 }
 

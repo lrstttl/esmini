@@ -56,7 +56,6 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
         time_       = *reinterpret_cast<double*>(pkgs_[1].content);
         startTime_  = time_;
         startIndex_ = 1;
-        pkg_index_ = startIndex_;
 
         // Register last entry timestamp as stop time
         SetStopEntries();
@@ -289,13 +288,15 @@ Replay::~Replay()
     data_.clear();
 }
 
-void Replay::GoToStart()
+void Replay::MoveToStart()
 {
     index_ = startIndex_;
     time_  = startTime_;
+    MoveToTime(time_, true);
+
 }
 
-void Replay::GoToEnd()
+void Replay::MoveToEnd(bool updateCache)
 {
     if (repeat_)
     {
@@ -307,99 +308,11 @@ void Replay::GoToEnd()
         index_ = stopIndex_;
         time_  = stopTime_;
     }
-}
-
-void Replay::GoToTime(double time, bool stop_at_next_frame)
-{
-    if (!stop_at_next_frame)
+    if (updateCache)
     {
-        if (time > stopTime_)
-        {
-            GoToEnd();
-        }
-        else if (time < GetStartTime())
-        {
-            GoToStart();
-        }
-        else
-        {
-            index_ = static_cast<unsigned int>(FindIndexAtTimestamp(time, static_cast<int>(index_)));
-            time_  = time;
-        }
+        MoveToTime(time_, true);
     }
-    else
-    {
-        size_t next_index = index_;
 
-        if (time > time_)
-        {
-            next_index = FindNextTimestamp();
-            if (next_index > index_ && time > static_cast<double>(data_[next_index].state.info.timeStamp) &&
-                static_cast<double>(data_[next_index].state.info.timeStamp) <= GetStopTime())
-            {
-                index_ = static_cast<unsigned int>(next_index);
-                time_  = data_[index_].state.info.timeStamp;
-            }
-            else
-            {
-                if (time > GetStopTime())
-                {
-                    GoToEnd();
-                }
-                else
-                {
-                    time_ = time;
-                }
-            }
-        }
-        else if (time < time_)
-        {
-            next_index = FindPreviousTimestamp();
-            if (next_index < index_ && time < static_cast<double>(data_[next_index].state.info.timeStamp))
-            {
-                index_ = static_cast<unsigned int>(next_index);
-                time_  = data_[index_].state.info.timeStamp;
-            }
-            else
-            {
-                if (time < GetStartTime())
-                {
-                    GoToStart();
-                }
-                else
-                {
-                    time_ = time;
-                }
-            }
-        }
-    }
-}
-
-void Replay::GoToDeltaTime(double dt, bool stop_at_next_frame)
-{
-    GoToTime(time_ + dt, stop_at_next_frame);
-}
-
-int Replay::GoToNextFrame()
-{
-    float ctime = data_[index_].state.info.timeStamp;
-    for (size_t i = index_ + 1; i < data_.size(); i++)
-    {
-        if (data_[i].state.info.timeStamp > ctime)
-        {
-            GoToTime(data_[i].state.info.timeStamp);
-            return static_cast<int>(i);
-        }
-    }
-    return -1;
-}
-
-void Replay::GoToPreviousFrame()
-{
-    if (index_ > 0)
-    {
-        GoToTime(data_[index_ - 1].state.info.timeStamp);
-    }
 }
 
 int Replay::FindIndexAtTimestamp(double timestamp, int startSearchIndex)
@@ -408,7 +321,7 @@ int Replay::FindIndexAtTimestamp(double timestamp, int startSearchIndex)
 
     if (timestamp > stopTime_)
     {
-        GoToEnd();
+        MoveToEnd(false);
         return static_cast<int>(index_);
     }
     else if (timestamp < GetStartTime())
@@ -422,29 +335,37 @@ int Replay::FindIndexAtTimestamp(double timestamp, int startSearchIndex)
         startSearchIndex = 0;
     }
 
-    for (i = startSearchIndex; i < static_cast<int>(data_.size()); i++)
+    for (i = startSearchIndex; i < static_cast<int>(pkgs_.size()); i++)
     {
-        if (static_cast<double>(data_[static_cast<unsigned int>(i)].state.info.timeStamp) >= timestamp)
+        if (static_cast<datLogger::PackageId>(pkgs_[static_cast<unsigned int>(i)].hdr.id) == datLogger::PackageId::TIME_SERIES)
         {
-            break;
+            if (*reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(i)].content) >= timestamp)
+            {
+                break;
+            }
         }
+
     }
 
-    return MIN(i, static_cast<int>(data_.size()) - 1);
+    return MIN(i, static_cast<int>(pkgs_.size()) - 1);
 }
 
 unsigned int Replay::FindNextTimestamp(bool wrap)
 {
     unsigned int index = index_ + 1;
-    for (; index < data_.size(); index++)
+    for (; index < pkgs_.size(); index++)
     {
-        if (data_[index].state.info.timeStamp > data_[index_].state.info.timeStamp)
+        if (static_cast<datLogger::PackageId>(pkgs_[index].hdr.id) == datLogger::PackageId::TIME_SERIES)
         {
-            break;
+
+            if (*reinterpret_cast<double*>(pkgs_[index].content) > *reinterpret_cast<double*>(pkgs_[index_].content))
+            {
+                break;
+            }
         }
     }
 
-    if (index >= data_.size())
+    if (index >= pkgs_.size())
     {
         if (wrap)
         {
@@ -467,7 +388,7 @@ unsigned int Replay::FindPreviousTimestamp(bool wrap)
     {
         if (wrap)
         {
-            index = static_cast<int>(data_.size()) - 1;
+            index = static_cast<int>(pkgs_.size()) - 1;
         }
         else
         {
@@ -477,45 +398,18 @@ unsigned int Replay::FindPreviousTimestamp(bool wrap)
 
     for (int i = index - 1; i >= 0; i--)
     {
-        // go backwards until we identify the first entry with same timestamp
-        if (data_[static_cast<unsigned int>(i)].state.info.timeStamp < data_[static_cast<unsigned int>(index)].state.info.timeStamp)
+        if (static_cast<datLogger::PackageId>(pkgs_[static_cast<unsigned int>(index)].hdr.id) == datLogger::PackageId::TIME_SERIES)
         {
-            break;
+            // go backwards until we identify the first entry with same timestamp
+            if (*reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(i)].content) < *reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(index)].content))
+            {
+                break;
+            }
         }
         index = i;
     }
 
     return static_cast<unsigned int>(index);
-}
-
-ReplayEntry* Replay::GetEntry(int id)
-{
-    // Read all vehicles at current timestamp
-    float timestamp = data_[index_].state.info.timeStamp;
-    int   i         = 0;
-    while (index_ + static_cast<unsigned int>(i) < data_.size() && !(data_[index_ + static_cast<unsigned int>(i)].state.info.timeStamp > timestamp))
-    {
-        if (data_[index_ + static_cast<unsigned int>(i)].state.info.id == id)
-        {
-            return &data_[index_ + static_cast<unsigned int>(i)];
-        }
-        i++;
-    }
-
-    return nullptr;
-}
-
-ObjectStateStructDat* Replay::GetState(int id)
-{
-    ReplayEntry* entry = GetEntry(id);
-    if (entry != nullptr)
-    {
-        return &entry->state;
-    }
-    else
-    {
-        return nullptr;
-    }
 }
 
 void Replay::SetStartTime(double time)
@@ -963,6 +857,25 @@ int Replay::RecordPkgs(const std::string& fileName)
                 pkgs_.push_back(pkg);
                 break;
             }
+            case datLogger::PackageId::OBJ_STATUS:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                pkg.content = nullptr;
+                pkgs_.push_back(pkg);
+                break;
+            }
+
+            case datLogger::PackageId::END_OF_SCENARIO:
+            {
+                datLogger::CommonPkg pkg;
+                pkg.hdr = cmnHdrPkgRead;
+
+                pkg.content = nullptr;
+                pkgs_.push_back(pkg);
+                break;
+            }
 
             default:
             {
@@ -1007,7 +920,7 @@ std::vector<int> Replay::GetNumberOfObjectsAtTime(double t)
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES) && !timeFound)
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            if (timeTemp == t)
+            if (isEqualDouble(timeTemp, t))
             {
                 timeFound = true;
             }
@@ -1144,7 +1057,7 @@ void Replay:: SetPkgIndex(double time)
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
             if (isEqualDouble(timeTemp, time))
             {
-                pkg_index_ = static_cast<unsigned int>(i);
+                index_ = static_cast<unsigned int>(i);
                 break;
             }
         }
@@ -1153,21 +1066,19 @@ void Replay:: SetPkgIndex(double time)
 
 void Replay::MoveToDeltaTime(double dt)
 {
-    std::cout << "delta time : " << time_ + dt << std::endl;
-    MoveToTime(GetNearestTime(time_ + dt), false);
-    std::cout << "cache time : " << time_ << std::endl;
+    MoveToTime(GetNearestTime(time_ + dt, false), true);
 }
 
 
 int Replay::MoveToNextFrame()
 {
-    for (size_t i = static_cast<size_t>(pkg_index_) + 1; i < pkgs_.size(); i++)
+    for (size_t i = static_cast<size_t>(index_) + 1; i < pkgs_.size(); i++)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            MoveToTime(timeTemp, false);
-            pkg_index_ = static_cast<unsigned int>(i);
+            MoveToTime(timeTemp, true);
+            index_ = static_cast<unsigned int>(i);
             break;
         }
     }
@@ -1176,13 +1087,13 @@ int Replay::MoveToNextFrame()
 
 void Replay::MoveToPreviousFrame()
 {
-    for (size_t i = static_cast<size_t>(pkg_index_) - 1; static_cast<int>(i) < 0; i--)
+     for (size_t i = static_cast<size_t>(index_) - 1; static_cast<int>(i) > 0; i--)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            MoveToTime(timeTemp, false);
-            pkg_index_ = static_cast<unsigned int>(i);
+            MoveToTime(timeTemp, true);
+            index_ = static_cast<unsigned int>(i);
             break;
         }
     }
@@ -1200,7 +1111,7 @@ void Replay::MoveToTime(double t, bool set_index)
     {
         scenarioState.sim_time = t;
 
-        std::vector<int> objIdIndices = GetNumberOfObjectsAtTime(GetNearestTime(t, true));
+        std::vector<int> objIdIndices = GetNumberOfObjectsAtTime(t);
 
         for (size_t Index = 0; Index < objIdIndices.size(); Index++)
         {
@@ -1332,6 +1243,76 @@ void Replay::InitiateStates(double t)
         AddObjState(static_cast<size_t>(objIdIndices[Index]), t);
     }
 }
+#if (0)
+double Replay::GetNearestTime(double time , bool stop_at_next_frame)
+{
+
+    if (!stop_at_next_frame)
+    {
+        if (time > stopTime_)
+        {
+            MoveToEnd();
+        }
+        else if (time < GetStartTime())
+        {
+            MoveToStart();
+        }
+        else
+        {
+            index_ = static_cast<unsigned int>(FindIndexAtTimestamp(time, static_cast<int>(index_)));
+            time_  = time;
+        }
+    }
+    else
+    {
+        size_t next_index = index_;
+
+        if (time > time_)
+        {
+            next_index = FindNextTimestamp();
+            if (next_index > index_ && time > *reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(next_index)].content) &&
+                *reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(next_index)].content) <= GetStopTime())
+            {
+                index_ = static_cast<unsigned int>(next_index);
+                time_  = *reinterpret_cast<double*>(pkgs_[index_].content);
+            }
+            else
+            {
+                if (time > GetStopTime())
+                {
+                    MoveToEnd();
+                }
+                else
+                {
+                    time_ = time;
+                }
+            }
+        }
+        else if (time < time_)
+        {
+            next_index = FindPreviousTimestamp();
+            if (next_index < index_ && time < *reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(next_index)].content))
+            {
+                index_ = static_cast<unsigned int>(next_index);
+                time_  = *reinterpret_cast<double*>(pkgs_[index_].content);
+            }
+            else
+            {
+                if (time < GetStartTime())
+                {
+                    MoveToStart();
+                }
+                else
+                {
+                    time_ = time;
+                }
+            }
+        }
+    }
+
+    return time_;
+}
+#endif
 
 double Replay::GetNearestTime(double t, bool stop_at_next_frame)
 {
@@ -1345,11 +1326,7 @@ double Replay::GetNearestTime(double t, bool stop_at_next_frame)
             timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
             if (stop_at_next_frame)
             {
-                if (t == timeTemp)  // found exact match
-                {
-                    break;
-                }
-                else if (t < timeTemp)  // gone past to given time for first time. set the pervious time
+                if (t < timeTemp)  // gone past to given time for first time. set the pervious time
                 {
                     timeTemp = perviousTime;
                     break;
@@ -1357,12 +1334,17 @@ double Replay::GetNearestTime(double t, bool stop_at_next_frame)
             }
             else
             {
-                if (time_ < timeTemp)// gone past current time
+                // if (time_ < timeTemp)// gone past current time
+                // {
+                //     break;
+                // }
+
+                if (t < timeTemp)  // gone past to given time for first time. set the pervious time
                 {
+                    timeTemp = perviousTime;
                     break;
                 }
             }
-
         }
         perviousTime = timeTemp;
     }

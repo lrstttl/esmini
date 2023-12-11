@@ -74,18 +74,11 @@ namespace scenarioengine
                 @param time timestamp (0 = beginning, -1 end)
                 @param stop_at_next_frame If true move max to next/previous time frame
         */
-        void                  GoToTime(double time, bool stop_at_next_frame = false);
-        void                  GoToDeltaTime(double dt, bool stop_at_next_frame = false);
         void                  GetReplaysFromDirectory(const std::string dir, const std::string sce);
         size_t                GetNumberOfScenarios();
-        void                  GoToStart();
-        void                  GoToEnd();
-        int                   GoToNextFrame();
-        void                  GoToPreviousFrame();
+
         unsigned int          FindNextTimestamp(bool wrap = false);
         unsigned int          FindPreviousTimestamp(bool wrap = false);
-        ReplayEntry*          GetEntry(int id);
-        ObjectStateStructDat* GetState(int id);
         void                  SetStartTime(double time);
         void                  SetStopTime(double time);
         double                GetStartTime()
@@ -134,11 +127,14 @@ namespace scenarioengine
         int  MoveToNextFrame();
         void MoveToPreviousFrame();
         void MoveToDeltaTime(double dt);
+        void                  MoveToStart();
+        void                  MoveToEnd(bool updateCache = true);
+
         void GetScenarioEntities(std::vector<ScenarioEntities>& entities);
         void SetPkgIndex(double time);
 
 
-        double GetNearestTime(double time_frame, bool stop_at_next_frame = false);
+        double GetNearestTime(double t, bool stop_at_next_frame);
         double GetNextTime(double time_frame);
         double GetPreviousTime(double time_frame);
 
@@ -163,7 +159,6 @@ namespace scenarioengine
         double    GetWheelAngle(int obj_id);
         double    GetWheelRot(int obj_id);
         double    GetSpeed(int obj_id);
-
         int    GetName(int obj_id, std::string& name);
 
         void UpdateOdaMeter(double value)
@@ -185,7 +180,6 @@ namespace scenarioengine
         bool                     clean_;
         std::string              create_datfile_;
 
-        unsigned int             pkg_index_;
 
         int FindIndexAtTimestamp(double timestamp, int startSearchIndex = 0);
     };

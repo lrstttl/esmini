@@ -26,8 +26,19 @@ int DatLogger::WriteObjSpeed(int obj_id, double speed)
         {
             continue;
         }
+        completeObjectState.obj_states[i].active = true;
         if (!isEqual(completeObjectState.obj_states[i].speed_.speed_, speed))
         {
+            if (!TimePkgAdded)
+            {
+                WriteTime(simTimeTemp);
+                TimePkgAdded = true;
+            }
+            if (!ObjIdPkgAdded)
+            {
+                WriteObjId(obj_id);
+                ObjIdPkgAdded = true;
+            }
             speedPkgs += 1;
             // create pkg
             CommonPkg pkg;
@@ -61,6 +72,12 @@ int DatLogger::WriteModelId(int obj_id, int model_id)
             }
             if (completeObjectState.obj_states[i].modelId_.model_id != model_id)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::MODEL_ID);
@@ -94,6 +111,12 @@ int DatLogger::WriteObjType(int obj_id, int obj_type)
             }
             if (completeObjectState.obj_states[i].objType_.obj_type != obj_type)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::OBJ_TYPE);
@@ -127,6 +150,12 @@ int DatLogger::WriteObjCategory(int obj_id, int obj_category)
             }
             if (completeObjectState.obj_states[i].objCategory_.obj_category != obj_category)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::OBJ_CATEGORY);
@@ -160,6 +189,12 @@ int DatLogger::WriteCtrlType(int obj_id, int ctrl_type)
             }
             if (completeObjectState.obj_states[i].ctrlType_.ctrl_type != ctrl_type)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::CTRL_TYPE);
@@ -193,6 +228,12 @@ int DatLogger::WriteWheelAngle(int obj_id, double angle)
             }
             if (!isEqual(completeObjectState.obj_states[i].wheelAngle_.wheel_angle, angle))
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::WHEEL_ANGLE);
@@ -226,6 +267,12 @@ int DatLogger::WriteWheelRot(int obj_id, double rot)
             }
             if (!isEqual(completeObjectState.obj_states[i].wheelRot_.wheel_rot, rot))
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::WHEEL_ROT);
@@ -264,6 +311,12 @@ int DatLogger::WriteBB(int obj_id, float x, float y, float z, float length, floa
                 completeObjectState.obj_states[i].boundingBox_.length != length ||
                 completeObjectState.obj_states[i].boundingBox_.width != width)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 BoundingBox bb;
@@ -304,6 +357,12 @@ int DatLogger::WriteScaleMode(int obj_id, int mode)
             }
             if (completeObjectState.obj_states[i].scaleMode_.scale_mode != mode)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::SCALE_MODE);
@@ -337,6 +396,12 @@ int DatLogger::WriteVisiblityMask(int obj_id, int mask)
             }
             if (completeObjectState.obj_states[i].visibilityMask_.visibility_mask != mask)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::VISIBILITY_MASK);
@@ -359,17 +424,25 @@ int DatLogger::WriteVisiblityMask(int obj_id, int mask)
 int DatLogger::WriteTime(double t)
 {
     totalPkgReceived += 1;
-    timePkgs += 1;
 
     if (data_file_.is_open())
     {
-        // create pkg
-        CommonPkg pkg;
-        pkg.hdr.id           = static_cast<int>(PackageId::TIME_SERIES);
-        pkg.hdr.content_size = sizeof(t);
-        pkg.content          = reinterpret_cast<char*>(&t);
-        writePackage(pkg);
-        completeObjectState.time.time = t;
+        if( !isEqual( completeObjectState.time.time, t))
+        {
+            timePkgs += 1;
+            // create pkg
+            CommonPkg pkg;
+            pkg.hdr.id           = static_cast<int>(PackageId::TIME_SERIES);
+            pkg.hdr.content_size = sizeof(t);
+            pkg.content          = reinterpret_cast<char*>(&t);
+            writePackage(pkg);
+            completeObjectState.time.time = t;
+        }
+        else
+        {
+            totalPkgSkipped += 1;
+        }
+
     }
 
     return 0;
@@ -389,6 +462,12 @@ int DatLogger::WriteName(int obj_id, std::string name)
             }
             if (completeObjectState.obj_states[i].name_.compare(name) != 0)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::NAME);
@@ -418,7 +497,6 @@ int DatLogger::WriteName(int obj_id, std::string name)
 
 int DatLogger::WriteObjId(int obj_id)
 {
-
     totalPkgReceived += 1;
     objIdPkgs += 1;
     if (data_file_.is_open())
@@ -429,28 +507,58 @@ int DatLogger::WriteObjId(int obj_id)
         pkg.hdr.content_size = sizeof(obj_id);
         pkg.content          = reinterpret_cast<char*>(&obj_id);
         writePackage(pkg);
+    }
+    return 0;
+}
 
-        if (completeObjectState.obj_states.size() == 0)  // first time
+int DatLogger::AddObject( int obj_id)
+{
+    if (completeObjectState.obj_states.size() == 0)  // first time
+    {
+        ObjState objState_;
+        objState_.obj_id_.obj_id = obj_id;
+        completeObjectState.obj_states.push_back(objState_);
+    }
+    else
+    {
+        for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
         {
-            ObjState objState_;
-            objState_.obj_id_.obj_id = obj_id;
-            completeObjectState.obj_states.push_back(objState_);
+            if (completeObjectState.obj_states[i].obj_id_.obj_id == obj_id)
+            {
+                break;  // object already available in cache
+            }
+            if (i == completeObjectState.obj_states.size() - 1)  // reached last iteration so add object in cache
+            {
+                ObjState objState_;
+                objState_.obj_id_.obj_id = obj_id;
+                completeObjectState.obj_states.push_back(objState_);
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
+int DatLogger::deleteObject()
+{
+    for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
+    {
+        if (completeObjectState.obj_states[i].active == false)
+        {
+            totalPkgReceived += 1;
+            if (!TimePkgAdded)
+            {
+                WriteTime(completeObjectState.time.time);
+            }
+            CommonPkgHdr pkg;
+            pkg.id = static_cast<int>(PackageId::OBJ_STATUS);
+            pkg.content_size = 0;
+            data_file_.write(reinterpret_cast<char*>(&pkg), sizeof(CommonPkgHdr));
+            completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
         }
         else
         {
-            for (size_t i = 0; i < completeObjectState.obj_states.size(); i++)
-            {
-                if (completeObjectState.obj_states[i].obj_id_.obj_id == obj_id)
-                {
-                    break;  // object already available
-                }
-                if (i == completeObjectState.obj_states.size() - 1)  // reached last iteration so add object
-                {
-                    ObjState objState_;
-                    objState_.obj_id_.obj_id = obj_id;
-                    completeObjectState.obj_states.push_back(objState_);
-                }
-            }
+            completeObjectState.obj_states[i].active = false; // reset for next time frame
         }
     }
     return 0;
@@ -467,10 +575,21 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].pos_.h != h || completeObjectState.obj_states[i].pos_.p != p ||
                 completeObjectState.obj_states[i].pos_.r != r || completeObjectState.obj_states[i].pos_.x != x ||
                 completeObjectState.obj_states[i].pos_.y != y || completeObjectState.obj_states[i].pos_.z != z)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(simTimeTemp);
+                    TimePkgAdded = true;
+                }
+                if (!ObjIdPkgAdded)
+                {
+                    WriteObjId(obj_id);
+                    ObjIdPkgAdded = true;
+                }
                 posPkgs += 1;
                 // create pkg
                 CommonPkg pkg;
@@ -513,6 +632,12 @@ int DatLogger::WriteRoadId(int obj_id, int road_id)
             }
             if (completeObjectState.obj_states[i].roadId_.road_id != road_id)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::ROAD_ID);
@@ -546,6 +671,12 @@ int DatLogger::WriteLaneId(int obj_id, int lane_id)
             }
             if (completeObjectState.obj_states[i].laneId_.lane_id != lane_id)
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::LANE_ID);
@@ -579,6 +710,12 @@ int DatLogger::WritePosOffset(int obj_id, double offset)
             }
             if (!isEqual(completeObjectState.obj_states[i].posOffset_.offset, offset))
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::POS_OFFSET);
@@ -612,13 +749,19 @@ int DatLogger::WritePosT(int obj_id, double t)
             }
             if (!isEqual(completeObjectState.obj_states[i].posT.t, t))
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::POS_T);
                 pkg.hdr.content_size = sizeof(t);
                 pkg.content          = reinterpret_cast<char*>(&t);
                 writePackage(pkg);
-                completeObjectState.obj_states[i].posT.t = static_cast<float>(t);
+                completeObjectState.obj_states[i].posT.t = t;
                 posTPkg += 1;
                 break;
             }
@@ -645,13 +788,19 @@ int DatLogger::WritePosS(int obj_id, double s)
             }
             if (!isEqual(completeObjectState.obj_states[i].posS.s, s))
             {
+                if (!TimePkgAdded)
+                {
+                    WriteTime(completeObjectState.time.time);
+                    WriteObjId(obj_id);
+                    TimePkgAdded = true;
+                }
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::POS_S);
                 pkg.hdr.content_size = sizeof(s);
                 pkg.content          = reinterpret_cast<char*>(&s);
                 writePackage(pkg);
-                completeObjectState.obj_states[i].posS.s = static_cast<float>(s);
+                completeObjectState.obj_states[i].posS.s = s;
                 posSPkg += 1;
                 break;
             }
