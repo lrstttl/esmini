@@ -77,6 +77,46 @@ namespace scenarioengine
         void                  GetReplaysFromDirectory(const std::string dir, const std::string sce);
         size_t                GetNumberOfScenarios();
 
+
+        void SetRepeat(bool repeat)
+        {
+            repeat_ = repeat;
+        }
+        void CleanEntries(std::vector<ReplayEntry>& entries);
+        void BuildData(std::vector<std::pair<std::string, std::vector<ReplayEntry>>>& scenarios);
+        void CreateMergedDatfile(const std::string filename);
+
+        // vector and method for record and read pkg
+        std::vector<datLogger::CommonPkg> pkgs_;
+        ScenarioState                     scenarioState;
+        int                  RecordPkgs(const std::string& fileName);  // check package can be recorded or not
+        void GetScenarioEntities(std::vector<ScenarioEntities>& entities); // get all the entities in complete scenario
+        std::vector<int>     GetNumberOfObjectsAtTime(double t);       // till next time forward
+        int                  GetPkgCntBtwObj(size_t idx);              // till next time forward
+        double               GetTimeFromPkgIdx(size_t idx);
+        datLogger::PackageId ReadPkgHdr(char* package);
+        double GetTimeFromCnt(int count);            // give time for the time
+
+
+        // method for cache
+        void                 InitiateStates(double time_frame);
+        void   AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
+        void deleteObjState(int objId);
+        int    SearchAndReplacePkg(int idx1, int idx2, int idx3, double time);
+        void MoveToTime(double time_frame);
+        int  MoveToNextFrame();
+        void MoveToPreviousFrame();
+        void MoveToDeltaTime(double dt);
+        void                  MoveToStart();
+        void                  MoveToEnd(bool updateCache = true);
+        bool IsObjAvailableInCache(int Idx);                     // check in current state
+
+
+        bool IsObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
+
+
+        // method to handle time and index
+        double GetNearestTime(double t, bool stop_at_next_frame);
         unsigned int          FindNextTimestamp(bool wrap = false);
         unsigned int          FindPreviousTimestamp(bool wrap = false);
         void                  SetStartTime(double time);
@@ -97,47 +137,10 @@ namespace scenarioengine
         {
             return static_cast<int>(index_);
         }
-        void SetRepeat(bool repeat)
-        {
-            repeat_ = repeat;
-        }
-        void CleanEntries(std::vector<ReplayEntry>& entries);
-        void BuildData(std::vector<std::pair<std::string, std::vector<ReplayEntry>>>& scenarios);
-        void CreateMergedDatfile(const std::string filename);
-
-        // new replayer
-
-        std::vector<datLogger::CommonPkg> pkgs_;
-        ScenarioState                     scenarioState;
-
-        void                 InitiateStates(double time_frame);
-        datLogger::PackageId ReadPkgHdr(char* package);
-        int                  RecordPkgs(const std::string& fileName);  // check package can be recorded or not
-        std::vector<int>     GetNumberOfObjectsAtTime(double t);       // till next time forward
-        int                  GetPkgCntBtwObj(size_t idx);              // till next time forward
-        double               GetTimeFromPkgIdx(size_t idx);
-
-        double GetTimeFromCnt(int count);            // give time for the time
-        void   AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
-        int    SearchAndReplacePkg(int idx1, int idx2, int idx3, double time);
-
-        bool IsObjAvailableInCache(int Idx);                     // check in current state
-        bool IsObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
-        void MoveToTime(double time_frame, bool set_index);
-        int  MoveToNextFrame();
-        void MoveToPreviousFrame();
-        void MoveToDeltaTime(double dt);
-        void                  MoveToStart();
-        void                  MoveToEnd(bool updateCache = true);
-
-        void GetScenarioEntities(std::vector<ScenarioEntities>& entities);
-        void SetPkgIndex(double time);
 
 
-        double GetNearestTime(double t, bool stop_at_next_frame);
-        double GetNextTime(double time_frame);
-        double GetPreviousTime(double time_frame);
 
+        // method to read data from cache
         int    GetModelID(int obj_id);
         int    GetCtrlType(int obj_id);
         int    GetBB(int obj_id, OSCBoundingBox& bb);

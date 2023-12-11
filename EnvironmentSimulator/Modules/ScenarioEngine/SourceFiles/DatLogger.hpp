@@ -314,6 +314,7 @@ namespace datLogger
 
 
         void writePackage(CommonPkg package);  // will just write package
+        void WriteManPkg(int obj_id);
         int  AddObject(int obj_id);
         int  deleteObject();
 

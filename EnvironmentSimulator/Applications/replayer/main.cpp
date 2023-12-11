@@ -119,7 +119,7 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     {
         if (!isEqualDouble(entities[static_cast<size_t>(j)].sim_time, player->scenarioState.sim_time)) // already in correct time
         {
-            player->MoveToTime(entities[static_cast<size_t>(j)].sim_time, true);
+            player->MoveToTime(entities[static_cast<size_t>(j)].sim_time);
         }
 
         for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
@@ -240,6 +240,8 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
             player->UpdateOdaMeter(odo_entry.odometer);  // update odometer
         }
     }
+    // reset the cache
+    player->InitiateStates(player->GetTimeFromCnt(1));
 
     for (int i = 0; i < static_cast<int>(scenarioEntity.size()); i++)
     {
@@ -852,7 +854,7 @@ int main(int argc, char** argv)
             }
 
             player->SetStartTime(startTime);
-            player->MoveToTime(startTime, true);
+            player->MoveToTime(startTime);
         }
 
         std::string stop_time_str = opt.GetOptionArg("stop_time");
@@ -881,8 +883,7 @@ int main(int argc, char** argv)
         {
             simTime              = player->GetTime();  // potentially wrapped for repeat
             double targetSimTime = simTime;
-            std::cout << "Specified sim time : " << simTime << std::endl;
-
+ 
             if (!pause_player)
             {
                 if (viewer->GetSaveImagesToFile())

@@ -17,6 +17,19 @@ using namespace datLogger;
  }
 
 
+void DatLogger::WriteManPkg(int obj_id)
+{
+    if (!TimePkgAdded)
+    {
+        WriteTime(simTimeTemp);
+        TimePkgAdded = true;
+    }
+    if (!ObjIdPkgAdded)
+    {
+        WriteObjId(obj_id);
+        ObjIdPkgAdded = true;
+    }
+}
 int DatLogger::WriteObjSpeed(int obj_id, double speed)
 {
     totalPkgReceived += 1;
@@ -29,16 +42,8 @@ int DatLogger::WriteObjSpeed(int obj_id, double speed)
         completeObjectState.obj_states[i].active = true;
         if (!isEqual(completeObjectState.obj_states[i].speed_.speed_, speed))
         {
-            if (!TimePkgAdded)
-            {
-                WriteTime(simTimeTemp);
-                TimePkgAdded = true;
-            }
-            if (!ObjIdPkgAdded)
-            {
-                WriteObjId(obj_id);
-                ObjIdPkgAdded = true;
-            }
+            WriteManPkg(obj_id);
+
             speedPkgs += 1;
             // create pkg
             CommonPkg pkg;
@@ -70,14 +75,10 @@ int DatLogger::WriteModelId(int obj_id, int model_id)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].modelId_.model_id != model_id)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::MODEL_ID);
@@ -109,14 +110,10 @@ int DatLogger::WriteObjType(int obj_id, int obj_type)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].objType_.obj_type != obj_type)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::OBJ_TYPE);
@@ -148,14 +145,10 @@ int DatLogger::WriteObjCategory(int obj_id, int obj_category)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].objCategory_.obj_category != obj_category)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::OBJ_CATEGORY);
@@ -187,14 +180,10 @@ int DatLogger::WriteCtrlType(int obj_id, int ctrl_type)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].ctrlType_.ctrl_type != ctrl_type)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::CTRL_TYPE);
@@ -226,14 +215,10 @@ int DatLogger::WriteWheelAngle(int obj_id, double angle)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (!isEqual(completeObjectState.obj_states[i].wheelAngle_.wheel_angle, angle))
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::WHEEL_ANGLE);
@@ -265,14 +250,10 @@ int DatLogger::WriteWheelRot(int obj_id, double rot)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (!isEqual(completeObjectState.obj_states[i].wheelRot_.wheel_rot, rot))
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::WHEEL_ROT);
@@ -304,6 +285,7 @@ int DatLogger::WriteBB(int obj_id, float x, float y, float z, float length, floa
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].boundingBox_.x != x ||
                 completeObjectState.obj_states[i].boundingBox_.y != y ||
                 completeObjectState.obj_states[i].boundingBox_.z != z ||
@@ -311,12 +293,7 @@ int DatLogger::WriteBB(int obj_id, float x, float y, float z, float length, floa
                 completeObjectState.obj_states[i].boundingBox_.length != length ||
                 completeObjectState.obj_states[i].boundingBox_.width != width)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 BoundingBox bb;
@@ -355,14 +332,10 @@ int DatLogger::WriteScaleMode(int obj_id, int mode)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].scaleMode_.scale_mode != mode)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::SCALE_MODE);
@@ -394,14 +367,10 @@ int DatLogger::WriteVisiblityMask(int obj_id, int mask)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].visibilityMask_.visibility_mask != mask)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::VISIBILITY_MASK);
@@ -460,14 +429,10 @@ int DatLogger::WriteName(int obj_id, std::string name)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].name_.compare(name) != 0)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::NAME);
@@ -576,20 +541,12 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
                 continue;
             }
             completeObjectState.obj_states[i].active = true;
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].pos_.h != h || completeObjectState.obj_states[i].pos_.p != p ||
                 completeObjectState.obj_states[i].pos_.r != r || completeObjectState.obj_states[i].pos_.x != x ||
                 completeObjectState.obj_states[i].pos_.y != y || completeObjectState.obj_states[i].pos_.z != z)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(simTimeTemp);
-                    TimePkgAdded = true;
-                }
-                if (!ObjIdPkgAdded)
-                {
-                    WriteObjId(obj_id);
-                    ObjIdPkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 posPkgs += 1;
                 // create pkg
                 CommonPkg pkg;
@@ -630,14 +587,10 @@ int DatLogger::WriteRoadId(int obj_id, int road_id)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].roadId_.road_id != road_id)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::ROAD_ID);
@@ -669,14 +622,10 @@ int DatLogger::WriteLaneId(int obj_id, int lane_id)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].laneId_.lane_id != lane_id)
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::LANE_ID);
@@ -708,14 +657,10 @@ int DatLogger::WritePosOffset(int obj_id, double offset)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (!isEqual(completeObjectState.obj_states[i].posOffset_.offset, offset))
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::POS_OFFSET);
@@ -747,14 +692,10 @@ int DatLogger::WritePosT(int obj_id, double t)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (!isEqual(completeObjectState.obj_states[i].posT.t, t))
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::POS_T);
@@ -786,14 +727,10 @@ int DatLogger::WritePosS(int obj_id, double s)
             {
                 continue;
             }
+            completeObjectState.obj_states[i].active = true;
             if (!isEqual(completeObjectState.obj_states[i].posS.s, s))
             {
-                if (!TimePkgAdded)
-                {
-                    WriteTime(completeObjectState.time.time);
-                    WriteObjId(obj_id);
-                    TimePkgAdded = true;
-                }
+                WriteManPkg(obj_id);
                 // create pkg
                 CommonPkg pkg;
                 pkg.hdr.id           = static_cast<int>(PackageId::POS_S);
@@ -989,7 +926,7 @@ std::string DatLogger::pkgIdTostring(PackageId id)
 
         case PackageId::VISIBILITY_MASK:
         {
-            return "Visibity_Mask";
+            return "Visiblity_Mask";
             break;
         }
 
