@@ -515,6 +515,7 @@ int DatLogger::deleteObject()
             {
                 WriteTime(completeObjectState.time.time);
             }
+            WriteObjId(completeObjectState.obj_states[i].obj_id_.obj_id);
             CommonPkgHdr pkg;
             pkg.id = static_cast<int>(PackageId::OBJ_STATUS);
             pkg.content_size = 0;

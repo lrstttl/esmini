@@ -96,19 +96,19 @@ namespace scenarioengine
         double               GetTimeFromPkgIdx(size_t idx);
         datLogger::PackageId ReadPkgHdr(char* package);
         double GetTimeFromCnt(int count);            // give time for the time
-
+        int FindDeltaTime();
 
         // method for cache
         void                 InitiateStates(double time_frame);
         void   AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
         void deleteObjState(int objId);
         int    SearchAndReplacePkg(int idx1, int idx2, int idx3, double time);
-        void MoveToTime(double time_frame);
+        int MoveToTime(double time_frame);
         int  MoveToNextFrame();
         void MoveToPreviousFrame();
         void MoveToDeltaTime(double dt);
         void                  MoveToStart();
-        void                  MoveToEnd(bool updateCache = true);
+        void                  MoveToEnd();
         bool IsObjAvailableInCache(int Idx);                     // check in current state
 
 
@@ -182,6 +182,7 @@ namespace scenarioengine
         bool                     repeat_;
         bool                     clean_;
         std::string              create_datfile_;
+        double                   deltaTime_;
 
 
         int FindIndexAtTimestamp(double timestamp, int startSearchIndex = 0);
