@@ -297,7 +297,7 @@ void ReportKeyEvent(viewer::KeyEvent* keyEvent, void* data)
             }
             else
             {
-                player->MoveToNextFrame();
+                player->MoveToDeltaTime(0.01);
             }
 
             pause_player = true;  // step by step
@@ -320,7 +320,7 @@ void ReportKeyEvent(viewer::KeyEvent* keyEvent, void* data)
             }
             else
             {
-                player->MoveToPreviousFrame();
+                player->MoveToDeltaTime(-0.01);
             }
 
             pause_player = true;  // step by step
@@ -730,9 +730,6 @@ int main(int argc, char** argv)
         }
         viewer->SetWindowTitle("esmini - " + FileNameWithoutExtOf(argv[0]) + " " + (FileNameOf(opt.GetOptionArg("file"))));
 
-        __int64 now           = 0;
-        __int64 lastTimeStamp = 0;
-
         if (opt.GetOptionSet("time_scale"))
         {
             time_scale = atof(opt.GetOptionArg("time_scale").c_str());
@@ -882,39 +879,10 @@ int main(int argc, char** argv)
         while (!(viewer->osgViewer_->done() || (opt.GetOptionSet("quit_at_end") && simTime >= (player->GetStopTime() - SMALL_NUMBER))))
         {
             simTime              = player->GetTime();  // potentially wrapped for repeat
-            double targetSimTime = simTime;
-
-            if (!pause_player)
-            {
-                if (viewer->GetSaveImagesToFile())
-                {
-                    player->MoveToNextFrame();
-                }
-                else
-                {
-                    // Get milliseconds since Jan 1 1970
-                    now           = SE_getSystemTime();
-                    deltaSimTime  = static_cast<double>(now - lastTimeStamp) / 1000.0;  // step size in seconds
-                    lastTimeStamp = now;
-                    if (deltaSimTime > maxStepSize)  // limit step size
-                    {
-                        deltaSimTime = maxStepSize;
-                    }
-                    else if (deltaSimTime < minStepSize)  // avoid CPU rush, sleep for a while
-                    {
-                        SE_sleep(static_cast<unsigned int>(minStepSize - deltaSimTime));
-                        deltaSimTime = minStepSize;
-                    }
-                    deltaSimTime *= time_scale;
-                    targetSimTime = simTime + deltaSimTime;
-                }
-            }
-
-            printf("Time %.2f Target time %.2f\n", simTime, targetSimTime);
 
             if (!(pause_player || viewer->GetSaveImagesToFile()))
             {
-                player->MoveToTime(targetSimTime);
+                player->MoveToDeltaTime(0.01 * time_scale);
                 simTime = player->GetTime();  // potentially wrapped for repeat
             }
 
@@ -1011,7 +979,6 @@ int main(int argc, char** argv)
 
                     if (c->entityModel->GetType() == viewer::EntityModel::EntityType::VEHICLE)
                     {
-                        std::cout << "Inside Visualize" << std::endl;
                         (static_cast<viewer::CarModel*>(c->entityModel))->UpdateWheels(c->wheel_angle, c->wheel_rotation);
                     }
                 }

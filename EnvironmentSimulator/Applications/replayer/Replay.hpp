@@ -87,38 +87,29 @@ namespace scenarioengine
         void CreateMergedDatfile(const std::string filename);
 
         // vector and method for record and read pkg
-        std::vector<datLogger::CommonPkg> pkgs_;
-        ScenarioState                     scenarioState;
-        int                  RecordPkgs(const std::string& fileName);  // check package can be recorded or not
-        void GetScenarioEntities(std::vector<ScenarioEntities>& entities); // get all the entities in complete scenario
-        std::vector<int>     GetNumberOfObjectsAtTime(double t);       // till next time forward
-        int                  GetPkgCntBtwObj(size_t idx);              // till next time forward
-        double               GetTimeFromPkgIdx(size_t idx);
-        datLogger::PackageId ReadPkgHdr(char* package);
-        double GetTimeFromCnt(int count);            // give time for the time
-        int FindDeltaTime();
+        std::vector<datLogger::CommonPkg>   pkgs_;
+        ScenarioState                       scenarioState;
+        int                                 RecordPkgs(const std::string& fileName);  // check package can be recorded or not
+        void                                GetScenarioEntities(std::vector<ScenarioEntities>& entities); // get all the entities in complete scenario
+        std::vector<int>                    GetNumberOfObjectsAtTime();       // till next time forward
+        int                                 GetPkgCntBtwObj(size_t idx);              // till next time forward
+        datLogger::PackageId                ReadPkgHdr(char* package);
+        double                              GetTimeFromCnt(int count);            // give time for the time
+
 
         // method for cache
-        void                 InitiateStates(double time_frame);
-        void   AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
-        void deleteObjState(int objId);
-        int    SearchAndReplacePkg(int idx1, int idx2, int idx3, double time);
-        int MoveToTime(double time_frame);
-        int  MoveToNextFrame();
-        void MoveToPreviousFrame();
-        void MoveToDeltaTime(double dt);
-        void                  MoveToStart();
-        void                  MoveToEnd();
-        bool IsObjAvailableInCache(int Idx);                     // check in current state
-
-
-        bool IsObjAvailable(int idx, std::vector<int> Indices);  // check in the object in the given new time
-
+        void    InitiateStates();
+        void    AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
+        void    deleteObjState(int objId);
+        int     MoveToTime(double time_frame);
+        void    MoveToNextFrame();
+        void    MoveToPreviousFrame();
+        void    MoveToDeltaTime(double dt);
+        void    MoveToStart();
+        void    MoveToEnd();
+        bool    IsObjAvailableInCache(int Idx);                     // check in current state
 
         // method to handle time and index
-        double GetNearestTime(double t, bool stop_at_next_frame);
-        unsigned int          FindNextTimestamp(bool wrap = false);
-        unsigned int          FindPreviousTimestamp(bool wrap = false);
         void                  SetStartTime(double time);
         void                  SetStopTime(double time);
         double                GetStartTime()
@@ -141,34 +132,35 @@ namespace scenarioengine
 
 
         // method to read data from cache
-        int    GetModelID(int obj_id);
-        int    GetCtrlType(int obj_id);
-        int    GetBB(int obj_id, OSCBoundingBox& bb);
-        int    GetScaleMode(int obj_id);
-        int    GetVisibility(int obj_id);
-        datLogger::Pos GetPos(int obj_id);
-        double    GetX(int obj_id);
-        double    GetY(int obj_id);
-        double    GetZ(int obj_id);
-        double    GetH(int obj_id);
-        double    GetR(int obj_id);
-        double    GetP(int obj_id);
-        int    GetRoadId(int obj_id);
-        int    GetLaneId(int obj_id);
-        double    GetPosOffset(int obj_id);
-        float    GetPosT(int obj_id);
-        float    GetPosS(int obj_id);
+        int             GetModelID(int obj_id);
+        int             GetCtrlType(int obj_id);
+        int             GetBB(int obj_id, OSCBoundingBox& bb);
+        int             GetScaleMode(int obj_id);
+        int             GetVisibility(int obj_id);
+        datLogger::Pos  GetPos(int obj_id);
+        double          GetX(int obj_id);
+        double          GetY(int obj_id);
+        double          GetZ(int obj_id);
+        double          GetH(int obj_id);
+        double          GetR(int obj_id);
+        double          GetP(int obj_id);
+        int             GetRoadId(int obj_id);
+        int             GetLaneId(int obj_id);
+        double          GetPosOffset(int obj_id);
+        float           GetPosT(int obj_id);
+        float           GetPosS(int obj_id);
         ObjectPositionStructDat GetComPletePos(int obj_id);
-        double    GetWheelAngle(int obj_id);
-        double    GetWheelRot(int obj_id);
-        double    GetSpeed(int obj_id);
-        int    GetName(int obj_id, std::string& name);
+        double          GetWheelAngle(int obj_id);
+        double          GetWheelRot(int obj_id);
+        double          GetSpeed(int obj_id);
+        int             GetName(int obj_id, std::string& name);
 
         void UpdateOdaMeter(double value)
         {
             scenarioState.odometer = value;
         }
         void SetStopEntries();
+        double                   deltaTime_ = LARGE_NUMBER;
 
     private:
         std::ifstream            file_;
@@ -182,7 +174,9 @@ namespace scenarioengine
         bool                     repeat_;
         bool                     clean_;
         std::string              create_datfile_;
-        double                   deltaTime_;
+
+        double                   perviousTime_ = SMALL_NUMBER;
+
 
 
         int FindIndexAtTimestamp(double timestamp, int startSearchIndex = 0);
