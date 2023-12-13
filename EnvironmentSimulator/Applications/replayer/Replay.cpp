@@ -748,7 +748,7 @@ bool Replay::IsObjAvailableInCache(int idx)  // check in current state
 
 void Replay::MoveToDeltaTime(double dt)
 {
-    MoveToTime(time_ + dt);
+    MoveToTime(scenarioState.sim_time + dt);
 }
 
 
@@ -905,8 +905,8 @@ int Replay::MoveToTime(double t)
                 }
             }
         }
-    scenarioState.sim_time = t;
     }
+    scenarioState.sim_time = t;
     printf("Time %.2f Target time %.2f scenario time %.2f\n", time_, t, scenarioState.sim_time);
     return 0;
 }

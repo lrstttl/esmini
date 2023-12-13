@@ -297,7 +297,7 @@ void ReportKeyEvent(viewer::KeyEvent* keyEvent, void* data)
             }
             else
             {
-                player->MoveToDeltaTime(0.01);
+                player->MoveToDeltaTime(player->deltaTime_);
             }
 
             pause_player = true;  // step by step
@@ -320,7 +320,7 @@ void ReportKeyEvent(viewer::KeyEvent* keyEvent, void* data)
             }
             else
             {
-                player->MoveToDeltaTime(-0.01);
+                player->MoveToDeltaTime(-player->deltaTime_);
             }
 
             pause_player = true;  // step by step
@@ -882,7 +882,7 @@ int main(int argc, char** argv)
 
             if (!(pause_player || viewer->GetSaveImagesToFile()))
             {
-                player->MoveToDeltaTime(0.01 * time_scale);
+                player->MoveToDeltaTime(player->deltaTime_ * time_scale);
                 simTime = player->GetTime();  // potentially wrapped for repeat
             }
 
