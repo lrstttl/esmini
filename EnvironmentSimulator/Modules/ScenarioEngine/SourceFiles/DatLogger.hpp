@@ -42,8 +42,9 @@ namespace datLogger
         POS_OFFSET = 28,
         POS_T = 29,
         POS_S = 30,
-        OBJ_STATUS = 31,
-        END_OF_SCENARIO = 32
+        OBJ_DELETED = 31,
+        OBJ_ADDED = 32,
+        END_OF_SCENARIO = 33
     };
 
     // mandatory packages
@@ -208,6 +209,12 @@ namespace datLogger
         std::vector<ObjState> obj_states;
     };
 
+    struct ObjIdAdded
+    {
+        int id;
+        bool status = false;
+    };
+
     class DatLogger
     {
     private:
@@ -308,6 +315,7 @@ namespace datLogger
         double simTimeTemp = SMALL_NUMBER;
 
         CompleteObjectState completeObjectState;
+        std::vector<ObjIdAdded> objIdAdded_;
 
         int  init(std::string fileName, int ver, std::string odrName, std::string modelName);
         void deleteObjState(int objId);
@@ -317,6 +325,8 @@ namespace datLogger
         void WriteManPkg(int obj_id);
         int  AddObject(int obj_id);
         int  deleteObject();
+        bool IsObjIdAddPkgWritten(int id);
+        void SetObjIdAddPkgWritten(int id, bool status);
 
         int         WriteObjSpeed(int obj_id, double speed);
         int         WriteTime(double t);

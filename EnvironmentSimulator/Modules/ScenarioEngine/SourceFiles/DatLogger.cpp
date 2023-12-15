@@ -460,6 +460,37 @@ int DatLogger::WriteName(int obj_id, std::string name)
     return 0;
 }
 
+bool DatLogger::IsObjIdAddPkgWritten(int id)
+{
+    bool status = false;
+    for (size_t i = 0; i < objIdAdded_.size(); i++)
+    {
+        if (objIdAdded_[i].id == id)
+        {
+            if (objIdAdded_[i].status == true)
+            {
+                status = true;
+                break;
+            }
+        }
+    }
+    return status;
+}
+
+void DatLogger::SetObjIdAddPkgWritten(int id, bool status)
+{
+
+    for (size_t i = 0; i < objIdAdded_.size(); i++)
+    {
+        if (objIdAdded_[i].id == id)
+        {
+            objIdAdded_[i].status = status;
+            break;
+        }
+    }
+
+}
+
 int DatLogger::WriteObjId(int obj_id)
 {
     totalPkgReceived += 1;
@@ -472,6 +503,14 @@ int DatLogger::WriteObjId(int obj_id)
         pkg.hdr.content_size = sizeof(obj_id);
         pkg.content          = reinterpret_cast<char*>(&obj_id);
         writePackage(pkg);
+        if (!IsObjIdAddPkgWritten(obj_id))
+        {
+            CommonPkgHdr pkg1;
+            pkg1.id = static_cast<int>(PackageId::OBJ_ADDED);
+            pkg1.content_size = 0;
+            data_file_.write(reinterpret_cast<char*>(&pkg1), sizeof(CommonPkgHdr));
+            SetObjIdAddPkgWritten(obj_id, true);
+        }
     }
     return 0;
 }
@@ -483,6 +522,9 @@ int DatLogger::AddObject( int obj_id)
         ObjState objState_;
         objState_.obj_id_.obj_id = obj_id;
         completeObjectState.obj_states.push_back(objState_);
+        ObjIdAdded objIdAdded;
+        objIdAdded.id = obj_id;
+        objIdAdded_.push_back(objIdAdded);
     }
     else
     {
@@ -497,6 +539,9 @@ int DatLogger::AddObject( int obj_id)
                 ObjState objState_;
                 objState_.obj_id_.obj_id = obj_id;
                 completeObjectState.obj_states.push_back(objState_);
+                ObjIdAdded objIdAdded;
+                objIdAdded.id = obj_id;
+                objIdAdded_.push_back(objIdAdded);
                 break;
             }
         }
@@ -517,10 +562,11 @@ int DatLogger::deleteObject()
             }
             WriteObjId(completeObjectState.obj_states[i].obj_id_.obj_id);
             CommonPkgHdr pkg;
-            pkg.id = static_cast<int>(PackageId::OBJ_STATUS);
+            pkg.id = static_cast<int>(PackageId::OBJ_DELETED);
             pkg.content_size = 0;
             data_file_.write(reinterpret_cast<char*>(&pkg), sizeof(CommonPkgHdr));
             completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
+            SetObjIdAddPkgWritten(completeObjectState.obj_states[i].obj_id_.obj_id, false);
         }
         else
         {

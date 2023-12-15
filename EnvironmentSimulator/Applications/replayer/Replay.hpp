@@ -37,6 +37,7 @@ namespace scenarioengine
     typedef struct
     {
         int                             id;
+        bool                            active;
         std::vector<ObjectStateWithPkg> pkgs;
     } ObjectStateWithObjId;
 
@@ -90,7 +91,7 @@ namespace scenarioengine
         std::vector<datLogger::CommonPkg>   pkgs_;
         ScenarioState                       scenarioState;
         int                                 RecordPkgs(const std::string& fileName);  // check package can be recorded or not
-        void                                GetScenarioEntities(std::vector<ScenarioEntities>& entities); // get all the entities in complete scenario
+        void                                GetScenarioEntities(); // get all the entities in complete scenario
         std::vector<int>                    GetNumberOfObjectsAtTime();       // till next time forward
         int                                 GetPkgCntBtwObj(size_t idx);              // till next time forward
         datLogger::PackageId                ReadPkgHdr(char* package);
@@ -99,6 +100,7 @@ namespace scenarioengine
 
         // method for cache
         void    InitiateStates();
+        void    UpdateCache();
         void    AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
         void    deleteObjState(int objId);
         int     MoveToTime(double time_frame);
@@ -107,7 +109,11 @@ namespace scenarioengine
         void    MoveToDeltaTime(double dt);
         void    MoveToStart();
         void    MoveToEnd();
-        bool    IsObjAvailableInCache(int Idx);                     // check in current state
+        bool    IsObjAvailableInCache(int Id);  // check in cache
+        bool    IsObjAvailableActive(int id);
+        int     UpdateObjStatus( int id, bool status);
+        std::vector<ScenarioEntities> entities;
+        double GetTimeFromEntities(int id);
 
         // method to handle time and index
         void                  SetStartTime(double time);

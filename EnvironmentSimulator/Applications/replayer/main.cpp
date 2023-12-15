@@ -112,14 +112,14 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     };
     std::map<int, OdoInfo> odo_info;  // temporary keep track of entity odometers
 
-    std::vector<ScenarioEntities> entities;
-    player->GetScenarioEntities(entities);
 
-    for (int j = 0; j < static_cast<int>(entities.size()); j++)
+    player->GetScenarioEntities();
+
+    for (int j = 0; j < static_cast<int>(player->entities.size()); j++)
     {
-        if (!isEqualDouble(entities[static_cast<size_t>(j)].sim_time, player->scenarioState.sim_time)) // already in correct time
+        if (!isEqualDouble(player->entities[static_cast<size_t>(j)].sim_time, player->scenarioState.sim_time)) // already in correct time
         {
-            player->MoveToTime(entities[static_cast<size_t>(j)].sim_time);
+            player->MoveToTime(player->entities[static_cast<size_t>(j)].sim_time);
         }
 
         for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
@@ -889,9 +889,10 @@ int main(int argc, char** argv)
             // Fetch states of scenario objects
             for (int index = 0; index < static_cast<int>(scenarioEntity.size()); index++)
             {
-                ScenarioEntity* sc = &scenarioEntity[static_cast<unsigned int>(index)];
+                 ScenarioEntity* sc = &scenarioEntity[static_cast<unsigned int>(index)];
 
-                if ((player->GetVisibility(scenarioEntity[static_cast<unsigned int>(index)].id) & 0x01) == 0)  // no state for given object (index) at this timeframe
+                if (!player->IsObjAvailableActive(sc->id)||
+                   (player->GetVisibility(scenarioEntity[static_cast<unsigned int>(index)].id) & 0x01) == 0)  // no state for given object (index) at this timeframe
                 {
                     setEntityVisibility(index, false);
 
@@ -901,7 +902,7 @@ int main(int argc, char** argv)
                         snprintf(info_str_buf,
                                 sizeof(info_str_buf),
                                 "%.3fs entity[%d]: %s (%d) NO INFO",
-                                simTime,
+                                player->scenarioState.sim_time,
                                 viewer->currentCarInFocus_,
                                 sc->name.c_str(),
                                 sc->id);
@@ -949,7 +950,7 @@ int main(int argc, char** argv)
                     snprintf(info_str_buf,
                             sizeof(info_str_buf),
                             "%.3fs entity[%d]: %s (%d) %.2fs %.2fkm/h %.2fm (%d, %d, %.2f, %.2f)/(%.2f, %.2f %.2f) tScale: %.2f ",
-                            simTime,
+                            player->scenarioState.sim_time,
                             viewer->currentCarInFocus_,
                             name.c_str(),
                             scenarioEntity[static_cast<unsigned int>(index)].id,
