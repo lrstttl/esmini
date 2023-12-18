@@ -748,6 +748,9 @@ int main(int argc, char** argv)
         }
         viewer->SetWindowTitle("esmini - " + FileNameWithoutExtOf(argv[0]) + " " + (FileNameOf(opt.GetOptionArg("file"))));
 
+        __int64 now           = 0;
+        __int64 lastTimeStamp = 0;
+
         if (opt.GetOptionSet("time_scale"))
         {
             time_scale = atof(opt.GetOptionArg("time_scale").c_str());
@@ -902,10 +905,26 @@ int main(int argc, char** argv)
         while (!(viewer->osgViewer_->done() || (opt.GetOptionSet("quit_at_end") && simTime >= (player->GetStopTime() - SMALL_NUMBER))))
         {
             simTime              = player->GetTime();  // potentially wrapped for repeat
+            // double targetSimTime = simTime;
+            // Get milliseconds since Jan 1 1970
+            now           = SE_getSystemTime();
+            deltaSimTime  = static_cast<double>(now - lastTimeStamp) / 1000.0;  // step size in seconds
+            lastTimeStamp = now;
+            if (deltaSimTime > maxStepSize)  // limit step size
+            {
+                deltaSimTime = maxStepSize;
+            }
+            else if (deltaSimTime < minStepSize)  // avoid CPU rush, sleep for a while
+            {
+                SE_sleep(static_cast<unsigned int>(minStepSize - deltaSimTime));
+                deltaSimTime = minStepSize;
+            }
+            deltaSimTime *= time_scale;
+            // targetSimTime = simTime + deltaSimTime;
 
             if (!(pause_player || viewer->GetSaveImagesToFile()))
             {
-                player->MoveToDeltaTime(player->deltaTime_ * time_scale);
+                player->MoveToDeltaTime(deltaSimTime);
                 simTime = player->GetTime();  // potentially wrapped for repeat
             }
 
