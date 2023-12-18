@@ -199,6 +199,32 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
 
                 odo_info.insert(std::make_pair(new_sc.id, odo_entry));  // Set inital odometer value for the entity
             }
+            // calculate odometer
+            odo_entry    = odo_info[sc->id];
+            double delta = GetLengthOfLine2D(odo_entry.x, odo_entry.y, player->GetX(obj_id), player->GetY(obj_id));
+            odo_entry.x  = player->GetX(obj_id);
+            odo_entry.y  = player->GetY(obj_id);
+            odo_entry.odometer += delta;
+            odo_info[sc->id] = odo_entry;  // save updated odo info for next calculation
+
+            player->UpdateOdaMeter(odo_entry.odometer);  // update odometer
+        }
+    }
+
+    // reset the cache
+    player->MoveToTime((player->GetTimeFromCnt(1)));
+
+    // calculate trajectory points
+    double sim_time = 0.0;
+    while (sim_time <= (player->GetStopTime() - SMALL_NUMBER))
+    {
+        sim_time              = player->GetTime();  // potentially wrapped for repeat
+        player->MoveToDeltaTime(player->deltaTime_);
+        for (size_t i = 0; i < scenarioEntity.size(); i++)
+        {
+            int obj_id = player->scenarioState.obj_states[i].id;
+            ScenarioEntity* sc = getScenarioEntityById(obj_id);
+
             if (sc->trajPoints == 0)
             {
                 sc->trajPoints = new osg::Vec3Array;
@@ -229,17 +255,9 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
                                                         player->GetZ(obj_id) + z_offset));
                 }
             }
-            // calculate odometer
-            odo_entry    = odo_info[sc->id];
-            double delta = GetLengthOfLine2D(odo_entry.x, odo_entry.y, player->GetX(obj_id), player->GetY(obj_id));
-            odo_entry.x  = player->GetX(obj_id);
-            odo_entry.y  = player->GetY(obj_id);
-            odo_entry.odometer += delta;
-            odo_info[sc->id] = odo_entry;  // save updated odo info for next calculation
-
-            player->UpdateOdaMeter(odo_entry.odometer);  // update odometer
         }
     }
+
     // reset the cache
     player->MoveToTime((player->GetTimeFromCnt(1)));
 
@@ -875,6 +893,11 @@ int main(int argc, char** argv)
             player->SetStopTime(stopTime);
         }
 
+        // bool col_analysis = false;
+        // if (opt.GetOptionSet("collision"))
+        // {
+        //     col_analysis = true;
+        // }
 
         while (!(viewer->osgViewer_->done() || (opt.GetOptionSet("quit_at_end") && simTime >= (player->GetStopTime() - SMALL_NUMBER))))
         {
