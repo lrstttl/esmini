@@ -1512,23 +1512,23 @@ int Replay::GetName(int obj_id, std::string& name)
 void Replay::SetStartTime(double time)
 {
     startTime_ = time;
+    startIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(startTime_));
     if (time_ < startTime_)
     {
         time_ = startTime_;
+        index_ = startIndex_;
     }
-
-    startIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(startTime_));
 }
 
 void Replay::SetStopTime(double time)
 {
     stopTime_ = time;
+    stopIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(stopTime_));
     if (time_ > stopTime_)
     {
         time_ = stopTime_;
+        index_ = stopIndex_;
     }
-
-    stopIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(stopTime_));
 }
 
 void Replay::CleanEntries(std::vector<ReplayEntry>& entries)

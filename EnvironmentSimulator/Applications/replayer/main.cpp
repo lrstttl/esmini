@@ -886,7 +886,7 @@ int main(int argc, char** argv)
                        player->GetStopTime());
                 stopTime = player->GetStopTime();
             }
-            else if (static_cast<float>(stopTime) < player->data_[0].state.info.timeStamp)
+            else if (stopTime < *reinterpret_cast<double*>(player->pkgs_[1].content))
             {
                 printf("Specified stop time (%.2f) < first timestamp (%.2f), adapting.\n",
                        stopTime,
