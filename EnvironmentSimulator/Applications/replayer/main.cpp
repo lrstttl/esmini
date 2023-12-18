@@ -374,7 +374,7 @@ int main(int argc, char** argv)
     std::unique_ptr<Replay> player;
     double                  simTime   = 0;
     double                  view_mode = viewer::NodeMask::NODE_MASK_ENTITY_MODEL;
-//    bool                    overlap   = false;
+   bool                    overlap   = false;
     static char             info_str_buf[256];
     std::string             arg_str;
 
@@ -831,7 +831,7 @@ int main(int argc, char** argv)
             return -1;
         }
 
-        // const int ghost_id = GetGhostIdx();
+        const int ghost_id = GetGhostIdx();
 
         /* TODO: Some functionality to distinguish "main replay" from variations
         for (size_t i = 0; i < viewer->entities_.size(); i++)
@@ -893,11 +893,11 @@ int main(int argc, char** argv)
             player->SetStopTime(stopTime);
         }
 
-        // bool col_analysis = false;
-        // if (opt.GetOptionSet("collision"))
-        // {
-        //     col_analysis = true;
-        // }
+        bool col_analysis = false;
+        if (opt.GetOptionSet("collision"))
+        {
+            col_analysis = true;
+        }
 
         while (!(viewer->osgViewer_->done() || (opt.GetOptionSet("quit_at_end") && simTime >= (player->GetStopTime() - SMALL_NUMBER))))
         {
@@ -989,6 +989,53 @@ int main(int argc, char** argv)
                             static_cast<double>(sc->pos.h),
                             time_scale);
                     viewer->SetInfoText(info_str_buf);
+                }
+            }
+
+            if (col_analysis && scenarioEntity.size() > 1)
+            {
+
+                if (player->IsObjAvailableActive(scenarioEntity[0].id)&& player->GetVisibility(scenarioEntity[0].id) != 0)  // skip if Ego invisible for graphics, traffic and sensors
+                {
+                    for (size_t i = 0; i < scenarioEntity.size(); i++)
+                    {
+                        if (static_cast<int>(i) != ghost_id)  // Ignore ghost
+                        {
+                            updateCorners(scenarioEntity[i]);
+                        }
+                    }
+
+                    bool overlap_now = false;
+                    for (size_t i = 1; i < scenarioEntity.size(); i++)
+                    {
+                        if (static_cast<int>(i) != ghost_id &&         // Ignore ghost and
+                            player->IsObjAvailableActive(scenarioEntity[i].id) && player->GetVisibility(scenarioEntity[i].id) != 0)  // and objects invisible for graphics, traffic and sensors
+                        {
+                            if (separating_axis_intersect(scenarioEntity[0], scenarioEntity[i]))
+                            {
+                                overlap_now = true;
+                                if (!overlap)
+                                {
+                                    overlap          = true;
+                                    pause_player     = true;
+                                    double rel_speed = abs(player->GetSpeed(scenarioEntity[0].id) -
+                                                        player->GetSpeed(scenarioEntity[i].id)) *
+                                                    3.6;
+                                    double rel_angle = static_cast<double>(scenarioEntity[0].pos.h - scenarioEntity[i].pos.h) * 180.0 / M_PI;
+                                    LOG("Collision between %d and %d at time %.2f.\n- Relative speed %.2f km/h\n- Angle %.2f degrees (ego to target)",
+                                        0,
+                                        i,
+                                        simTime,
+                                        rel_speed,
+                                        rel_angle);
+                                }
+                            }
+                        }
+                    }
+                    if (!overlap_now)
+                    {
+                        overlap = false;
+                    }
                 }
             }
 
