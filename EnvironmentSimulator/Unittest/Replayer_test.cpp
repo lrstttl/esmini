@@ -41,7 +41,7 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
     // calc
     // 1obj
     // 1 hdr, 6 time, 6 obj id, 6 pos, 6 speed  = 25 pkg  received
-    // 1 hdr, 6 time, 6 obj id, 2 pos, 5 speed  = 21 pkg  written
+    // 1 hdr, 6 time, 6 obj id, 2 pos, 5 speed  = 20 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -78,13 +78,14 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
     delete logger;
 }
 
+
 TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
 {
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
 
-    ASSERT_EQ(replay->pkgs_.size(), 21); // extra one is end of scenario pkg
+    ASSERT_EQ(replay->pkgs_.size(), 22); // extra two is end of scenario pkg and obj added pkg.
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -173,13 +174,9 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
 
 TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
 {
-    scenarioengine::Replay* replay = new scenarioengine::Replay;
+    std::string             fileName = "sim.dat";
+    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
-    std::string fileName = "sim.dat";
-    replay->RecordPkgs(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 34); // extra one is end of scenario pkg
-
-    replay->InitiateStates(replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -206,9 +203,7 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[0].time_, replay->GetTimeFromCnt(5));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[1].time_, replay->GetTimeFromCnt(4));
 
-    delete replay;
 }
-
 
 TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
 {
@@ -236,7 +231,6 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
     int no_of_obj         = 3;
     int pkg_nos           = 2;  // speed and pos pkg
     int total_time        = 6;
-    int no_of_obj_deleted = 1;
 
     // calc
     //  3obj- one obj deleted so 1 obj id  + pos + speed pkg less
@@ -281,13 +275,10 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
 
 TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
 {
-    scenarioengine::Replay* replay = new scenarioengine::Replay;
+    std::string             fileName = "sim.dat";
+    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
+    ASSERT_EQ(replay->pkgs_.size(), 52); // three obj added, 1 obj deleted, 1 new pkg, 1 scenario end.
 
-    std::string fileName = "sim.dat";
-    replay->RecordPkgs(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 48);
-
-    replay->InitiateStates(replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -303,9 +294,11 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[1].time_, replay->GetTimeFromCnt(2));
 
     replay->MoveToTime(replay->GetTimeFromCnt(3));
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2); // obj deleted
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
     ASSERT_EQ(replay->scenarioState.obj_states[0].id, 0);
     ASSERT_EQ(replay->scenarioState.obj_states[1].id, 1);
+    ASSERT_EQ(replay->scenarioState.obj_states[2].id, 2);
+    ASSERT_EQ(replay->scenarioState.obj_states[2].active, false); // obj deleted
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(3));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[0].time_, replay->GetTimeFromCnt(1));
@@ -332,7 +325,6 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[0].time_, replay->GetTimeFromCnt(5));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[2].pkgs[1].time_, replay->GetTimeFromCnt(4));
 
-    delete replay;
 
 }
 
@@ -394,12 +386,9 @@ TEST(LogOperationsTime, TestLogOperationsTime)
 TEST(RecordOperationsTime, TestRecordOperationsTime)
 {
     std::string             fileName = "sim.dat";
-    scenarioengine::Replay* replay   = new scenarioengine::Replay;
+    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
+    ASSERT_EQ(replay->pkgs_.size(), 8); // extra three is obj added, time and end of scenario pkg
 
-    replay->RecordPkgs(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 7); // extra two is time and end of scenario pkg
-
-    replay->InitiateStates(replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -410,9 +399,9 @@ TEST(RecordOperationsTime, TestRecordOperationsTime)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
 
-    delete replay;
 }
-#if 0
+
+
 TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
 {
 
@@ -433,11 +422,11 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 3764);
+    ASSERT_EQ(replay->pkgs_.size(), 3166);
 
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
-    replay->MoveToTime(replay->GetTimeFromCnt(15), false);
+    replay->MoveToTime(replay->GetTimeFromCnt(15));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[6].time_, replay->GetTimeFromCnt(1));
@@ -445,7 +434,7 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(15));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(15));
 
-    replay->MoveToTime(replay->GetTimeFromCnt(30), false);
+    replay->MoveToTime(replay->GetTimeFromCnt(30));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[5].time_, replay->GetTimeFromCnt(1));
@@ -474,11 +463,11 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 3974);
+    ASSERT_EQ(replay->pkgs_.size(), 3207);
 
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
-    replay->MoveToTime(18, false);
+    replay->MoveToTime(18);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.150000255554914); // pos
@@ -486,7 +475,7 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 
-    replay->MoveToTime(19.5, false);
+    replay->MoveToTime(19.5);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.150000255554914); // pos
@@ -494,16 +483,16 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 
-    replay->MoveToTime(21, false);
+    replay->MoveToTime(21);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 21.0); // pos
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 21.0); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 20.950000312179327); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 20.950000312179327); // speed
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 
 }
-#endif
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

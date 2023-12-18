@@ -31,8 +31,6 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
     }
 
     RecordPkgs(filename);
-    // initate the cache with first time frame
-    InitiateStates();
 
     headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(pkgs_[0].content);
 
@@ -60,6 +58,8 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
         // Register last entry timestamp as stop time
         SetStopEntries();
     }
+    // initiate the cache with first time frame
+    InitiateStates();
 }
 
 Replay::Replay(std::string filename, bool clean) : time_(0.0), index_(0), repeat_(false), clean_(clean)
@@ -1063,7 +1063,13 @@ void Replay::AddObjState(size_t idx, double t)
     int pkgCount  = GetPkgCntBtwObj(idx);
 
     for (size_t i = idx + 1; i < static_cast<size_t>(pkgCount) + idx + 1; i++)
-    {  // GetPkgCntBtwObj will return count of package.
+    {  // GetPkgCntBtwObj will return count of package
+
+        if (datLogger::PackageId::OBJ_ADDED == static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) ||
+            datLogger::PackageId::OBJ_DELETED == static_cast<datLogger::PackageId>(pkgs_[i].hdr.id))
+            {
+                continue; // skip packages.
+            }
         ObjectStateWithPkg statePkg;
         statePkg.pkg   = reinterpret_cast<char*>(&pkgs_[i]);
         statePkg.time_ = t;
