@@ -119,7 +119,7 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     {
         if (!isEqualDouble(player->entities[static_cast<size_t>(j)].sim_time, player->scenarioState.sim_time)) // already in correct time
         {
-            player->MoveToTime(player->entities[static_cast<size_t>(j)].sim_time);
+            player->MoveToTime(player->entities[static_cast<size_t>(j)].sim_time, true);
         }
 
         for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
@@ -218,8 +218,8 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     double sim_time = 0.0;
     while (sim_time <= (player->GetStopTime() - SMALL_NUMBER))
     {
-        sim_time              = player->GetTime();  // potentially wrapped for repeat
-        player->MoveToDeltaTime(player->deltaTime_);
+        sim_time              = player->GetTime();
+        player->MoveToDeltaTime(player->deltaTime_, true);
         for (size_t i = 0; i < scenarioEntity.size(); i++)
         {
             int obj_id = player->scenarioState.obj_states[i].id;
@@ -906,21 +906,30 @@ int main(int argc, char** argv)
         {
             simTime              = player->GetTime();  // potentially wrapped for repeat
             // double targetSimTime = simTime;
-            // Get milliseconds since Jan 1 1970
-            now           = SE_getSystemTime();
-            deltaSimTime  = static_cast<double>(now - lastTimeStamp) / 1000.0;  // step size in seconds
-            lastTimeStamp = now;
-            if (deltaSimTime > maxStepSize)  // limit step size
+            if (!pause_player)
             {
-                deltaSimTime = maxStepSize;
+                if (viewer->GetSaveImagesToFile())
+                {
+                    player->MoveToDeltaTime(player->deltaTime_); // move to next frame
+                }
+                else
+                {
+                    // Get milliseconds since Jan 1 1970
+                    now           = SE_getSystemTime();
+                    deltaSimTime  = static_cast<double>(now - lastTimeStamp) / 1000.0;  // step size in seconds
+                    lastTimeStamp = now;
+                    if (deltaSimTime > maxStepSize)  // limit step size
+                    {
+                        deltaSimTime = maxStepSize;
+                    }
+                    else if (deltaSimTime < minStepSize)  // avoid CPU rush, sleep for a while
+                    {
+                        SE_sleep(static_cast<unsigned int>(minStepSize - deltaSimTime));
+                        deltaSimTime = minStepSize;
+                    }
+                    deltaSimTime *= time_scale;
+                }
             }
-            else if (deltaSimTime < minStepSize)  // avoid CPU rush, sleep for a while
-            {
-                SE_sleep(static_cast<unsigned int>(minStepSize - deltaSimTime));
-                deltaSimTime = minStepSize;
-            }
-            deltaSimTime *= time_scale;
-            // targetSimTime = simTime + deltaSimTime;
 
             if (!(pause_player || viewer->GetSaveImagesToFile()))
             {

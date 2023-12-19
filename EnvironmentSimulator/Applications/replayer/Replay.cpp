@@ -783,9 +783,9 @@ int  Replay::UpdateObjStatus( int id, bool status)
     }
     return 0;
 }
-void Replay::MoveToDeltaTime(double dt)
+void Replay::MoveToDeltaTime(double dt, bool isParsing)
 {
-    MoveToTime(scenarioState.sim_time + dt);
+    MoveToTime(scenarioState.sim_time + dt, isParsing);
 }
 
 
@@ -854,7 +854,7 @@ void Replay::UpdateCache()
     }
 }
 
-int Replay::MoveToTime(double t)
+int Replay::MoveToTime(double t, bool isParsing)
 {
     if ( isEqualDouble(t, scenarioState.sim_time))
     {
@@ -873,7 +873,7 @@ int Replay::MoveToTime(double t)
                 MoveToNextFrame();
                 if( t < time_ )
                 {
-                    MoveToPreviousFrame();
+                    MoveToPreviousFrame(); // gone past time, move one frame back.
                     break;
                 }
                 std::vector<int> objIdIndices = GetNumberOfObjectsAtTime();
@@ -940,13 +940,24 @@ int Replay::MoveToTime(double t)
     }
     if (t > stopTime_)
     {
-       scenarioState.sim_time = stopTime_;
-       index_ = stopIndex_;
+        if (repeat_ && !isParsing)
+        {
+            scenarioState.sim_time = startTime_;
+            index_ = startIndex_;
+            time_ = startTime_;
+        }
+        else
+        {
+            scenarioState.sim_time = stopTime_;
+            index_ = stopIndex_;
+            time_ = stopTime_;
+        }
     }
     else if ( t < startTime_)
     {
         scenarioState.sim_time = startTime_;
         index_ = startIndex_;
+        time_ = startTime_;
     }
     else
     {

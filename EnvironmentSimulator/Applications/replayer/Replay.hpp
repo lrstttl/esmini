@@ -103,10 +103,10 @@ namespace scenarioengine
         void    UpdateCache();
         void    AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
         void    deleteObjState(int objId);
-        int     MoveToTime(double time_frame);
+        int     MoveToTime(double time_frame, bool isParsing = false);
         void    MoveToNextFrame();
         void    MoveToPreviousFrame();
-        void    MoveToDeltaTime(double dt);
+        void    MoveToDeltaTime(double dt, bool isParsing = false);
         void    MoveToStart();
         void    MoveToEnd();
         bool    IsObjAvailableInCache(int Id);  // check in cache
