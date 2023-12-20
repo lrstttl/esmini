@@ -85,7 +85,7 @@ TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
 
-    ASSERT_EQ(replay->pkgs_.size(), 22); // extra two is end of scenario pkg and obj added pkg.
+    ASSERT_EQ(replay->pkgs_.size(), 21); // header not stored , extra two is end of scenario pkg and obj added pkg.
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -177,6 +177,7 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
+     ASSERT_EQ(replay->pkgs_.size(), 35); // header not stored, extra three is end of scenario pkg and two obj added pkg.
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -277,7 +278,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
 {
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 52); // three obj added, 1 obj deleted, 1 new pkg, 1 scenario end.
+    ASSERT_EQ(replay->pkgs_.size(), 51); // header not stored, three obj added, 1 obj deleted, 1 new pkg, 1 scenario end.
 
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
@@ -387,7 +388,7 @@ TEST(RecordOperationsTime, TestRecordOperationsTime)
 {
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 8); // extra three is obj added, time and end of scenario pkg
+    ASSERT_EQ(replay->pkgs_.size(), 7); // header not stored, extra three is obj added, time and end of scenario pkg
 
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
@@ -422,7 +423,7 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 3166);
+    ASSERT_EQ(replay->pkgs_.size(), 3165);
 
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
@@ -463,7 +464,7 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 3207);
+    ASSERT_EQ(replay->pkgs_.size(), 3206);
 
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);

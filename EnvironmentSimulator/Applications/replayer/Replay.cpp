@@ -40,9 +40,9 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
     if (pkgs_.size() > 0)
     {
         // Register first entry timestamp as starting time
-        time_       = *reinterpret_cast<double*>(pkgs_[1].content);
+        time_       = *reinterpret_cast<double*>(pkgs_[0].content);
         startTime_  = time_;
-        startIndex_ = 1;
+        startIndex_ = 0;
 
         // Register last entry timestamp as stop time
         SetStopEntries();
