@@ -62,12 +62,13 @@ namespace scenarioengine
         datLogger::DatHdr        headerNew_;
         std::vector<ReplayEntry> data_;
 
-        // new replayer
-        Replay() = default;
-        Replay(std::string filename);
         Replay(std::string filename, bool clean);
         // Replay(const std::string directory, const std::string scenario, bool clean);
         Replay(const std::string directory, const std::string scenario, std::string create_datfile);
+
+        // new replayer
+        Replay(std::string filename);
+
         ~Replay();
 
         /**
@@ -86,6 +87,10 @@ namespace scenarioengine
         void CleanEntries(std::vector<ReplayEntry>& entries);
         void BuildData(std::vector<std::pair<std::string, std::vector<ReplayEntry>>>& scenarios);
         void CreateMergedDatfile(const std::string filename);
+
+        // new merge dat methodes
+
+        void BuildData(std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>>& scenarios);
 
         // vector and method for record and read pkg
         std::vector<datLogger::CommonPkg>   pkgs_;

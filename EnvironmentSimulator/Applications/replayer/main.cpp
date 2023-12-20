@@ -856,12 +856,12 @@ int main(int argc, char** argv)
         {
             double startTime = 1E-3 * strtod(start_time_str);
 
-            if (startTime < *reinterpret_cast<double*>(player->pkgs_[1].content))
+            if (startTime < *reinterpret_cast<double*>(player->pkgs_[0].content))
             {
                 printf("Specified start time (%.2f) < first timestamp (%.2f), adapting.\n",
                        startTime,
-                       *reinterpret_cast<double*>(player->pkgs_[1].content));
-                startTime = *reinterpret_cast<double*>(player->pkgs_[1].content);
+                       *reinterpret_cast<double*>(player->pkgs_[0].content));
+                startTime = *reinterpret_cast<double*>(player->pkgs_[0].content);
             }
             else if (startTime > player->GetStopTime())
             {
@@ -886,12 +886,12 @@ int main(int argc, char** argv)
                        player->GetStopTime());
                 stopTime = player->GetStopTime();
             }
-            else if (stopTime < *reinterpret_cast<double*>(player->pkgs_[1].content))
+            else if (stopTime < *reinterpret_cast<double*>(player->pkgs_[0].content))
             {
                 printf("Specified stop time (%.2f) < first timestamp (%.2f), adapting.\n",
                        stopTime,
-                       *reinterpret_cast<double*>(player->pkgs_[1].content));
-                stopTime = *reinterpret_cast<double*>(player->pkgs_[1].content);
+                       *reinterpret_cast<double*>(player->pkgs_[0].content));
+                stopTime = *reinterpret_cast<double*>(player->pkgs_[0].content);
             }
             player->SetStopTime(stopTime);
         }
