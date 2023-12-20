@@ -1695,29 +1695,11 @@ void Replay::BuildData()
 {
 
     // Keep track of current index of each scenario
-    std::vector<int> cur_idx;
-    std::vector<int> next_idx;
+    std::vector<size_t> cur_idx;
 
     for (size_t j = 0; j < scenarioData.size(); j++)
     {
         cur_idx.push_back(0);
-        next_idx.push_back(0);
-    }
-
-    // Set scenario ID-group (0, 100, 200 etc.)
-    for (size_t j = 0; j < scenarioData.size(); j++)
-    {
-        for (size_t k = 0; k < scenarioData[j].second.size(); k++)
-        {
-            // Set scenario ID-group (0, 100, 200 etc.)
-            if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::OBJ_ID))
-            {
-                int value = *reinterpret_cast<int*>( scenarioData[j].second[k].content);
-                value += static_cast<int>(j) * 100;
-                // value = 2;
-                *reinterpret_cast<int*>( scenarioData[j].second[k].content) = value; // store it in the same address
-            }
-        }
     }
 
     // Populate data_ based on first (with lowest timestamp) scenario
@@ -1732,7 +1714,7 @@ void Replay::BuildData()
     {
         for (size_t j = 0; j < scenarioData.size(); j++)
         {
-            for (size_t k = 0; k < scenarioData[j].second.size(); k++)
+            for (size_t k = cur_idx[j]; k < scenarioData[j].second.size(); k++)
             {
                 if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
                 {
@@ -1744,7 +1726,7 @@ void Replay::BuildData()
                     else if (timeTemp > cur_timestamp)
                     {
                         timeFound = false;
-                        // find the smallest value in the all scenarios for next iteration
+                        // find the smallest time in the all scenarios for next iteration
                         if (j == 0)
                         {
                             min_time_stamp = timeTemp;
@@ -1753,8 +1735,17 @@ void Replay::BuildData()
                         {
                             min_time_stamp = timeTemp;
                         }
+                        cur_idx[j] = k;
                         break;
                     }
+                }
+                // Set scenario ID-group (0, 100, 200 etc.)
+                if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::OBJ_ID))
+                {
+                    int value = *reinterpret_cast<int*>( scenarioData[j].second[k].content);
+                    value += static_cast<int>(j) * 100;
+                    // value = 2;
+                    *reinterpret_cast<int*>( scenarioData[j].second[k].content) = value; // store it in the same address
                 }
                 if(( timeFound && scenarioData[j].second[k].hdr.id != static_cast<int>( datLogger::PackageId::TIME_SERIES)) ||
                 ( timeFound && scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES) && j == 0))
