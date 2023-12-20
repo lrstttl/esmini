@@ -88,9 +88,12 @@ namespace scenarioengine
         void BuildData(std::vector<std::pair<std::string, std::vector<ReplayEntry>>>& scenarios);
         void CreateMergedDatfile(const std::string filename);
 
-        // new merge dat methodes
-
-        void BuildData(std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>>& scenarios);
+        // new merge dat methods
+        std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>> scenarioData;
+        void BuildData();
+        void StoreData(double time);
+        double GetNextTime(double time);
+        double GetLastTime();
 
         // vector and method for record and read pkg
         std::vector<datLogger::CommonPkg>   pkgs_;
