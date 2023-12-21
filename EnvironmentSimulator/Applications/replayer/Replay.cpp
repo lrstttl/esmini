@@ -51,65 +51,10 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false)
     InitiateStates();
 }
 
-Replay::Replay(std::string filename, bool clean) : time_(0.0), index_(0), repeat_(false), clean_(clean)
-{
-    file_.open(filename, std::ofstream::binary);
-    if (file_.fail())
-    {
-        LOG("Cannot open file: %s", filename.c_str());
-        throw std::invalid_argument(std::string("Cannot open file: ") + filename);
-    }
-
-    file_.read(reinterpret_cast<char*>(&header_), sizeof(header_));
-    LOG("Recording %s opened. dat version: %d odr: %s model: %s",
-        FileNameOf(filename).c_str(),
-        header_.version,
-        FileNameOf(header_.odr_filename).c_str(),
-        FileNameOf(header_.model_filename).c_str());
-
-    if (header_.version != DAT_FILE_FORMAT_VERSION)
-    {
-        LOG_AND_QUIT("Version mismatch. %s is version %d while supported version is %d. Please re-create dat file.",
-                     filename.c_str(),
-                     header_.version,
-                     DAT_FILE_FORMAT_VERSION);
-    }
-
-    while (!file_.eof())
-    {
-        ReplayEntry data;
-
-        file_.read(reinterpret_cast<char*>(&data.state), sizeof(data.state));
-
-        if (!file_.eof())
-        {
-            data_.push_back(data);
-        }
-    }
-
-    if (clean_)
-    {
-        CleanEntries(data_);
-    }
-
-    if (data_.size() > 0)
-    {
-        // Register first entry timestamp as starting time
-        time_       = data_[0].state.info.timeStamp;
-        startTime_  = time_;
-        startIndex_ = 0;
-
-        // Register last entry timestamp as stop time
-        stopTime_  = data_.back().state.info.timeStamp;
-        stopIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(stopTime_));
-    }
-}
-
-Replay::Replay(const std::string directory, const std::string scenario, std::string create_datfile)
+Replay::Replay(const std::string directory, const std::string scenario)
     : time_(0.0),
       index_(0),
-      repeat_(false),
-      create_datfile_(create_datfile)
+      repeat_(false)
 {
     GetReplaysFromDirectory(directory, scenario);
 
@@ -1669,7 +1614,7 @@ void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
     for (size_t i = 0; i < scenarioData.size(); i++)
     {
         std::string scenario_tmp = scenarioData[i].first;
-        LOG("Scenarios corresponding to IDs (%d:%d): %s", static_cast<int>(i) * multiplier, ((static_cast<int>(i) * multiplier) + ((static_cast<int>(i) * multiplier) - 1)), FileNameOf(scenario_tmp.c_str()).c_str());
+        LOG("Scenarios corresponding to IDs (%d:%d): %s", static_cast<int>(i) * multiplier, ((static_cast<int>(i) + 1) * multiplier) - 1, FileNameOf(scenario_tmp.c_str()).c_str());
     }
 
     for (size_t i = 0; i < scenarioData.size(); i++)

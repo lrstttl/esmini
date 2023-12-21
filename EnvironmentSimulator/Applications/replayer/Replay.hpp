@@ -62,9 +62,10 @@ namespace scenarioengine
         datLogger::DatHdr        headerNew_;
         std::vector<ReplayEntry> data_;
 
-        Replay(std::string filename, bool clean);
+        // Replay(std::string filename, bool clean);
         // Replay(const std::string directory, const std::string scenario, bool clean);
-        Replay(const std::string directory, const std::string scenario, std::string create_datfile);
+        // Replay(const std::string directory, const std::string scenario, std::string create_datfile);
+        Replay(const std::string directory, const std::string ScenarioEntities);
 
         // new replayer
         Replay(std::string filename);

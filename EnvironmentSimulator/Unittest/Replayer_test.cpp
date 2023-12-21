@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <filesystem>
+#include <dirent.h>
 
 #include "ScenarioEngine.hpp"
 #include "esminiLib.hpp"
@@ -460,9 +461,6 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
 
     SE_Close();
 
-    std::filesystem::path cwd = std::filesystem::current_path();
-    std::cout << cwd << std::endl;
-
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
     ASSERT_EQ(replay->pkgs_.size(), 3206);
 
@@ -492,6 +490,64 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 
+}
+
+TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
+{
+
+    const char* args[] =
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_file0.dat", "--fixed_timestep", "0.5"};
+
+    SE_AddPath("../../../resources/models");
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    while (SE_GetQuitFlag() == 0)
+    {
+        SE_StepDT(0.05f);
+    }
+
+    SE_Close();
+
+    const char* args1[] =
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "new_file1.dat", "--fixed_timestep", "0.5"};
+
+    SE_AddPath("../../../resources/models");
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args1) / sizeof(char*), args1), 0);
+
+    while (SE_GetQuitFlag() == 0)
+    {
+        SE_StepDT(0.05f);
+    }
+
+    std::string currentPath = std::filesystem::current_path();
+    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(currentPath, "new_file");
+    ASSERT_EQ(replay->pkgs_.size(), 5504);
+
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    replay->MoveToTime(replay->GetTimeFromCnt(15));
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[6].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[11].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(15));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(15));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[6].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[11].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[2].time_, replay->GetTimeFromCnt(15));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[7].time_, replay->GetTimeFromCnt(15));
+
+    replay->MoveToTime(replay->GetTimeFromCnt(30));
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[5].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[9].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(30));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(30));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[5].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[9].time_, replay->GetTimeFromCnt(1));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[2].time_, replay->GetTimeFromCnt(30));
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[7].time_, replay->GetTimeFromCnt(30));
 }
 
 int main(int argc, char** argv)
