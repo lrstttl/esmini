@@ -91,9 +91,9 @@ namespace scenarioengine
         // new merge dat methods
         std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>> scenarioData;
         void BuildData();
-        void StoreData(double time);
-        double GetNextTime(double time);
         double GetLastTime();
+        std::vector<int> objectIds;
+        void AdjustObjectId( std::vector<std::vector<int>>& objectIds);
 
         // vector and method for record and read pkg
         std::vector<datLogger::CommonPkg>   pkgs_;

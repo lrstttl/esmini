@@ -113,9 +113,12 @@ Replay::Replay(const std::string directory, const std::string scenario, std::str
 {
     GetReplaysFromDirectory(directory, scenario);
 
+    std::vector<std::vector<int>> scenarioObjIds;
+
     for (size_t i = 0; i < scenarios_.size(); i++)
     {
         RecordPkgs(scenarios_[i]);
+        scenarioObjIds.push_back(objectIds);
 
         LOG("Recording %s opened. dat version: %d odr: %s model: %s",
             FileNameOf(scenarios_[i]).c_str(),
@@ -140,17 +143,7 @@ Replay::Replay(const std::string directory, const std::string scenario, std::str
         LOG_AND_QUIT("Too few scenarios loaded, use single replay feature instead\n");
     }
 
-    // Scenario with smallest start time first
-    std::sort(scenarioData.begin(),
-              scenarioData.end(),
-              [](const auto& sce1, const auto& sce2) { return *reinterpret_cast<double*>(sce1.second[0].content) < *reinterpret_cast<double*>(sce2.second[0].content); });
-
-    // Log which scenario belongs to what ID-group (0, 100, 200 etc.)
-    for (size_t i = 0; i < scenarioData.size(); i++)
-    {
-        std::string scenario_tmp = scenarioData[i].first;
-        LOG("Scenarios corresponding to IDs (%d:%d): %s", i * 100, (i + 1) * 100 - 1, FileNameOf(scenario_tmp.c_str()).c_str());
-    }
+    AdjustObjectId(scenarioObjIds);
 
     // Build remaining data in order.
     BuildData();
@@ -483,6 +476,23 @@ int Replay::RecordPkgs(const std::string& fileName)
                 file_Read_.read(reinterpret_cast<char*>(&objIdRead->obj_id), objIdPkgRead.hdr.content_size);
                 objIdPkgRead.content = reinterpret_cast<char*>(objIdRead);
                 pkgs_.push_back(objIdPkgRead);
+
+                for( size_t i = 0; i < objectIds.size(); i++)
+                {
+                    if ( objectIds[i] == objIdRead->obj_id)
+                    {
+                        break;
+                    }
+                    else if ( i == objectIds.size())
+                    {
+                        objectIds.push_back(objIdRead->obj_id);
+                    }
+                }
+
+                if ( objectIds.size() == 0)
+                {
+                    objectIds.push_back(objIdRead->obj_id);
+                }
                 break;
             }
 
@@ -1606,65 +1616,6 @@ void Replay::CleanEntries(std::vector<ReplayEntry>& entries)
     }
 }
 
-void Replay::StoreData(double time)
-{
-    double timeTemp = SMALL_NUMBER;
-    bool timeFound = false;
-    for (size_t j = 0; j < scenarioData.size(); j++)
-    {
-        for (size_t k = 0; k < scenarioData[j].second.size(); k++)
-        {
-            if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
-            {
-                timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
-                if(isEqualDouble(timeTemp, time))
-                {
-                    timeFound = true;
-                }
-                else if (timeTemp > time)
-                {
-                    break;
-                }
-            }
-            if(( timeFound && scenarioData[j].second[k].hdr.id != static_cast<int>( datLogger::PackageId::TIME_SERIES)) ||
-            ( timeFound && scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES) && j == 0))
-            {
-                pkgs_.push_back(scenarioData[j].second[k]); // store time pkg only once
-            }
-        }
-    }
-}
-
-double Replay::GetNextTime(double time)
-{
-    double minTime = SMALL_NUMBER;
-    double timeTemp = SMALL_NUMBER;
-    for (size_t j = 0; j < scenarioData.size(); j++)
-    {
-        for (size_t k = 0; k < scenarioData[j].second.size(); k++)
-        {
-            if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
-            {
-                timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
-                if (timeTemp > time)
-                {
-                    // find the smallest value in the all scenarios
-                    if (j == 0)
-                    {
-                        minTime = timeTemp;
-                    }
-                    else if ( minTime > timeTemp)
-                    {
-                        minTime = timeTemp;
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    return minTime;
-}
-
 double Replay::GetLastTime()
 {
     double maxTime = SMALL_NUMBER;
@@ -1691,8 +1642,59 @@ double Replay::GetLastTime()
     }
     return maxTime;
 }
+
+void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
+{
+    int max = 0;
+    for ( auto ids:objIds)
+    {
+        for (auto id:ids)
+        {
+            if (id > max)
+            {
+                max = id;
+            }
+        }
+    }
+
+    int multiplier = 1;
+    double result = LARGE_NUMBER;
+    for (int i = 10; result > 1; i *= 10)
+    {
+        result = max/i;
+        multiplier = i;
+    }
+
+    // Log which scenario belongs to what ID-group (0, 100, 200 etc.)
+    for (size_t i = 0; i < scenarioData.size(); i++)
+    {
+        std::string scenario_tmp = scenarioData[i].first;
+        LOG("Scenarios corresponding to IDs (%d:%d): %s", static_cast<int>(i) * multiplier, ((static_cast<int>(i) * multiplier) + ((static_cast<int>(i) * multiplier) - 1)), FileNameOf(scenario_tmp.c_str()).c_str());
+    }
+
+    for (size_t i = 0; i < scenarioData.size(); i++)
+    {
+        for (size_t j = 0; j < scenarioData[i].second.size(); j++)
+        {
+            // Set scenario ID-group (0, 100, 200 etc.)
+            if (scenarioData[i].second[j].hdr.id == static_cast<int>( datLogger::PackageId::OBJ_ID))
+            {
+                int value = *reinterpret_cast<int*>( scenarioData[i].second[j].content);
+                // value += static_cast<int>(j) * 100;
+                value += static_cast<int>(i) * multiplier;
+                *reinterpret_cast<int*>( scenarioData[i].second[j].content) = value; // store it in the same address
+            }
+        }
+    }
+}
+
 void Replay::BuildData()
 {
+
+    // Scenario with smallest start time first
+    std::sort(scenarioData.begin(),
+              scenarioData.end(),
+              [](const auto& sce1, const auto& sce2) { return *reinterpret_cast<double*>(sce1.second[0].content) < *reinterpret_cast<double*>(sce2.second[0].content); });
 
     // Keep track of current index of each scenario
     std::vector<size_t> cur_idx;
@@ -1739,14 +1741,7 @@ void Replay::BuildData()
                         break;
                     }
                 }
-                // Set scenario ID-group (0, 100, 200 etc.)
-                if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::OBJ_ID))
-                {
-                    int value = *reinterpret_cast<int*>( scenarioData[j].second[k].content);
-                    value += static_cast<int>(j) * 100;
-                    // value = 2;
-                    *reinterpret_cast<int*>( scenarioData[j].second[k].content) = value; // store it in the same address
-                }
+
                 if(( timeFound && scenarioData[j].second[k].hdr.id != static_cast<int>( datLogger::PackageId::TIME_SERIES)) ||
                 ( timeFound && scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES) && j == 0))
                 {
