@@ -58,14 +58,13 @@ namespace scenarioengine
     class Replay
     {
     public:
-        DatHeader                header_;
-        datLogger::DatHdr        headerNew_;
+        datLogger::CommonPkg     header_;
         std::vector<ReplayEntry> data_;
 
         // Replay(std::string filename, bool clean);
         // Replay(const std::string directory, const std::string scenario, bool clean);
         // Replay(const std::string directory, const std::string scenario, std::string create_datfile);
-        Replay(const std::string directory, const std::string ScenarioEntities);
+        Replay(const std::string directory, const std::string ScenarioEntities, std::string create_datfile);
 
         // new replayer
         Replay(std::string filename);
@@ -87,7 +86,7 @@ namespace scenarioengine
         }
         void CleanEntries(std::vector<ReplayEntry>& entries);
         void BuildData(std::vector<std::pair<std::string, std::vector<ReplayEntry>>>& scenarios);
-        void CreateMergedDatfile(const std::string filename);
+        int CreateMergedDatfile(const std::string filename);
 
         // new merge dat methods
         std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>> scenarioData;
@@ -192,8 +191,7 @@ namespace scenarioengine
 
         double                   perviousTime_ = SMALL_NUMBER;
 
-
-
+        datLogger::DatLogger *datLogger = nullptr;
         int FindIndexAtTimestamp(double timestamp, int startSearchIndex = 0);
     };
 

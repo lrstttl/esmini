@@ -505,10 +505,12 @@ int DatLogger::WriteObjId(int obj_id)
         writePackage(pkg);
         if (!IsObjIdAddPkgWritten(obj_id))
         {
-            CommonPkgHdr pkg1;
-            pkg1.id = static_cast<int>(PackageId::OBJ_ADDED);
-            pkg1.content_size = 0;
-            data_file_.write(reinterpret_cast<char*>(&pkg1), sizeof(CommonPkgHdr));
+            CommonPkg pkg1;
+            pkg1.hdr.id = static_cast<int>(PackageId::OBJ_ADDED);
+            pkg1.hdr.content_size = 0;
+            pkg1.content = nullptr;
+            writePackage(pkg1);
+            totalPkgReceived += 1;
             SetObjIdAddPkgWritten(obj_id, true);
         }
     }
@@ -555,16 +557,16 @@ int DatLogger::deleteObject()
     {
         if (completeObjectState.obj_states[i].active == false)
         {
-            totalPkgReceived += 1;
             if (!TimePkgAdded)
             {
                 WriteTime(completeObjectState.time.time);
             }
             WriteObjId(completeObjectState.obj_states[i].obj_id_.obj_id);
-            CommonPkgHdr pkg;
-            pkg.id = static_cast<int>(PackageId::OBJ_DELETED);
-            pkg.content_size = 0;
-            data_file_.write(reinterpret_cast<char*>(&pkg), sizeof(CommonPkgHdr));
+            CommonPkg pkg;
+            pkg.hdr.id = static_cast<int>(PackageId::OBJ_DELETED);
+            pkg.hdr.content_size = 0;
+            pkg.content = nullptr;
+            writePackage(pkg);
             completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
             SetObjIdAddPkgWritten(completeObjectState.obj_states[i].obj_id_.obj_id, false);
         }
@@ -806,7 +808,12 @@ void DatLogger::writePackage(CommonPkg package)
             std::cout << "New Package->written package name : " << pkgIdTostring(static_cast<PackageId>(package.hdr.id)) << std::endl;
         }
         data_file_.write(reinterpret_cast<char*>(&package.hdr), sizeof(CommonPkgHdr));
-        data_file_.write(package.content, package.hdr.content_size);
+        if (!(package.hdr.id == static_cast<int>(PackageId::OBJ_ADDED) ||
+            package.hdr.id == static_cast<int>(PackageId::OBJ_DELETED) ||
+            package.hdr.id == static_cast<int>(PackageId::END_OF_SCENARIO)))
+            {
+                data_file_.write(package.content, package.hdr.content_size);
+            }
         totalPkgProcessed += 1;
     }
     else
@@ -826,9 +833,9 @@ void DatLogger::deleteObjState(int objId)
     }
 }
 
-int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
+
+int DatLogger::WriteHeader(CommonPkg& Pkg, std::string fileName)
 {
-    totalPkgReceived += 1;
     std::ofstream data_file(fileName, std::ios::binary);
     data_file_.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
     if (data_file_.fail())
@@ -840,6 +847,34 @@ int DatLogger::init(std::string fileName, int ver, std::string odrName, std::str
     {
         std::cout << "File opened successfully." << std::endl;
     }
+
+    datLogger::DatHdr        datHdr;
+    datHdr = *reinterpret_cast<datLogger::DatHdr*>(Pkg.content);
+
+    // write header package
+    data_file_.write(reinterpret_cast<char*>(&Pkg.hdr), sizeof(CommonPkgHdr));
+
+    // write content -> version
+    data_file_.write(reinterpret_cast<char*>(&datHdr.version), sizeof(datHdr.version));
+
+    // write content -> odr filename size
+    data_file_.write(reinterpret_cast<char*>(&datHdr.odrFilename.size), sizeof(datHdr.odrFilename.size));
+
+    // write actual odr filename string
+    data_file_.write(datHdr.odrFilename.string, datHdr.odrFilename.size);
+
+    // write content -> model filename size
+    data_file_.write(reinterpret_cast<char*>(&datHdr.modelFilename.size), sizeof(datHdr.modelFilename.size));
+
+    // write actual model filename string
+    data_file_.write(datHdr.modelFilename.string, datHdr.modelFilename.size);
+
+    return 0;
+}
+
+int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
+{
+    totalPkgReceived += 1;
 
     CommonPkgHdr cmnHdr;
     cmnHdr.id = static_cast<int>(PackageId::HEADER);
@@ -864,27 +899,8 @@ int DatLogger::init(std::string fileName, int ver, std::string odrName, std::str
     hdrPkg.hdr     = cmnHdr;
     hdrPkg.content = reinterpret_cast<char*>(&datHdr);
 
-    // write common header
-
-    // file_.write(reinterpret_cast<char*>(&hdrPkg.hdr), sizeof(hdrPkg.hdr));
-    data_file_.write(reinterpret_cast<char*>(&hdrPkg.hdr), sizeof(CommonPkgHdr));
-
     // write header package
-
-    // write content -> version
-    data_file_.write(reinterpret_cast<char*>(&datHdr.version), sizeof(datHdr.version));
-
-    // write content -> odr filename size
-    data_file_.write(reinterpret_cast<char*>(&datHdr.odrFilename.size), sizeof(datHdr.odrFilename.size));
-
-    // write actual odr filename string
-    data_file_.write(odrStr.string, datHdr.odrFilename.size);
-
-    // write content -> model filename size
-    data_file_.write(reinterpret_cast<char*>(&datHdr.modelFilename.size), sizeof(datHdr.modelFilename.size));
-
-    // write actual model filename string
-    data_file_.write(mdlStr.string, datHdr.modelFilename.size);
+    WriteHeader( hdrPkg, fileName);
 
     // write packag
     totalPkgProcessed += 1;

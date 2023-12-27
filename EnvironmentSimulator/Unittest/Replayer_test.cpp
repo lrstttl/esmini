@@ -41,8 +41,8 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
     int total_time = 6;
     // calc
     // 1obj
-    // 1 hdr, 6 time, 6 obj id, 6 pos, 6 speed  = 25 pkg  received
-    // 1 hdr, 6 time, 6 obj id, 2 pos, 5 speed  = 20 pkg  written
+    // 1 hdr, 6 time, 6 obj id, 6 pos, 6 speed, 1 obj added  = 26 pkg  received
+    // 1 hdr, 6 time, 6 obj id, 2 pos, 5 speed, 1 obj added  = 21 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -72,8 +72,8 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos));
-    ASSERT_EQ(logger->totalPkgProcessed, 20);
+    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 1);
+    ASSERT_EQ(logger->totalPkgProcessed, 21);
     ASSERT_EQ(logger->totalPkgSkipped, 5);
 
     delete logger;
@@ -86,7 +86,7 @@ TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
 
-    ASSERT_EQ(replay->pkgs_.size(), 21); // header not stored , extra two is end of scenario pkg and obj added pkg.
+    ASSERT_EQ(replay->pkgs_.size(), 21); // header not stored, 1 scenario end pkg added
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -135,8 +135,8 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
     int total_time = 6;
     // calc
     // 2obj
-    // 1 hdr, 6 time, 12 obj id, 12 pos, 12 speed  = 43 pkg  received
-    // 1 hdr, 6 time, 12 obj id, 4 pos, 10 speed  = 33 pkg  written
+    // 1 hdr, 6 time, 12 obj id, 12 pos, 12 speed, 2 obj added = 43 pkg  received
+    // 1 hdr, 6 time, 12 obj id, 4 pos, 10 speed, 2 obj added = 33 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -166,8 +166,8 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos));
-    ASSERT_EQ(logger->totalPkgProcessed, 33);
+    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 2);
+    ASSERT_EQ(logger->totalPkgProcessed, 35);
     ASSERT_EQ(logger->totalPkgSkipped, 10);
 
     delete logger;
@@ -178,7 +178,7 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
-     ASSERT_EQ(replay->pkgs_.size(), 35); // header not stored, extra three is end of scenario pkg and two obj added pkg.
+     ASSERT_EQ(replay->pkgs_.size(), 35); // header not stored, 1 scenario end pkg added
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -235,9 +235,9 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
     int total_time        = 6;
 
     // calc
-    //  3obj- one obj deleted so 1 obj id  + pos + speed pkg less
-    //  1 hdr, 6 time, 18 obj id, 18 pos, 18 speed, 1 dele pkg  = 62 pkg  received
-    //  1 hdr, 6 time, 18 obj id, 7 pos, 14 speed  = 45 pkg  written (while add obj . all pkg to be added)
+    //  3obj- one obj deleted so 1 pos + speed pkg less
+    //  1 hdr, 6 time, 18 obj id, 17 pos, 17 speed, 1 dele pkg, 3 obj added  = 63 pkg  received
+    //  1 hdr, 6 time, 18 obj id, 7 pos, 14 speed, 1 dele pkg, 4 obj added  = 50 pkg
 
     for (int i = 0; i < total_time; i++)
     {
@@ -268,8 +268,8 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
     }
 
     ASSERT_EQ(logger->totalPkgReceived,
-              total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos));
-    ASSERT_EQ(logger->totalPkgProcessed, 46);
+              1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) -1 -1 + 1 + 3);
+    ASSERT_EQ(logger->totalPkgProcessed, 51);
     ASSERT_EQ(logger->totalPkgSkipped, 13);
 
     delete logger;
@@ -279,7 +279,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
 {
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 51); // header not stored, three obj added, 1 obj deleted, 1 new pkg, 1 scenario end.
+    ASSERT_EQ(replay->pkgs_.size(), 51); // header not stored.
 
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
@@ -359,8 +359,8 @@ TEST(LogOperationsTime, TestLogOperationsTime)
     int total_time = 6;
     // calc  , No pkg change except first time frame
     // 1obj
-    // 1 hdr, 1 time, 1 obj id, 6 pos, 6 speed  = 15 pkg  received
-    // 1 hdr, 1 time, 1 obj id, 1 pos, 1 speed  = 5 pkg  written
+    // 1 hdr, 1 time, 1 obj id, 6 pos, 6 speed, 1 obj added  = 16 pkg  received
+    // 1 hdr, 1 time, 1 obj id, 1 pos, 1 speed, 1 abj added  = 6 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -378,8 +378,8 @@ TEST(LogOperationsTime, TestLogOperationsTime)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived, 1 + valid_time_frame + (valid_time_frame * no_of_obj) + (no_of_obj * total_time * pkg_nos));
-    ASSERT_EQ(logger->totalPkgProcessed, 5);
+    ASSERT_EQ(logger->totalPkgReceived, 1 + valid_time_frame + (valid_time_frame * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 1);
+    ASSERT_EQ(logger->totalPkgProcessed, 6);
     ASSERT_EQ(logger->totalPkgSkipped, 10);
 
     delete logger;
@@ -389,7 +389,7 @@ TEST(RecordOperationsTime, TestRecordOperationsTime)
 {
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
-    ASSERT_EQ(replay->pkgs_.size(), 7); // header not stored, extra three is obj added, time and end of scenario pkg
+    ASSERT_EQ(replay->pkgs_.size(), 7); // header not stored, last time added
 
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
@@ -520,7 +520,7 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     }
 
     std::string currentPath = std::filesystem::current_path();
-    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(currentPath, "new_file");
+    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(currentPath, "new_file", "");
     ASSERT_EQ(replay->pkgs_.size(), 5504);
 
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);

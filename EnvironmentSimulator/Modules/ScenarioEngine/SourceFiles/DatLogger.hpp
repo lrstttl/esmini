@@ -224,31 +224,16 @@ namespace datLogger
         DatLogger() = default;
         ~DatLogger()
         {
-            totalPkgProcessed += 2;
-            totalPkgReceived  += 2;
             WriteTime(simTimeTemp);
-
-            CommonPkgHdr pkg;
-            pkg.id = static_cast<int>(PackageId::END_OF_SCENARIO);
-            pkg.content_size = 0;
-            data_file_.write(reinterpret_cast<char*>(&pkg), sizeof(CommonPkgHdr));
+            CommonPkg pkg;
+            pkg.hdr.id = static_cast<int>(PackageId::END_OF_SCENARIO);
+            pkg.hdr.content_size = 0;
+            pkg.content = nullptr;
+            writePackage(pkg);
+            totalPkgReceived += 1;
 
             data_file_.flush();
             data_file_.close();
-            if (display_print)
-            {
-                std::cout << "LOG Summary: " << std::endl;
-                std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
-                std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
-                std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
-            }
-            if (display_print)
-            {
-                std::cout << "Record Summary: " << std::endl;
-                std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
-                std::cout << "Total Package Recorded: " << totalPkgProcessed << std::endl;
-                std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
-            }
 
             std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
             std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
@@ -323,6 +308,7 @@ namespace datLogger
 
         void writePackage(CommonPkg package);  // will just write package
         void WriteManPkg(int obj_id);
+        int WriteHeader(CommonPkg& Pkg, std::string fileName);
         int  AddObject(int obj_id);
         int  deleteObject();
         bool IsObjIdAddPkgWritten(int id);
