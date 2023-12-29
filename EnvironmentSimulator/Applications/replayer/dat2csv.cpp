@@ -18,6 +18,7 @@
 
 #include "Replay.hpp"
 #include "CommonMini.hpp"
+#include "DatLogger.hpp"
 
 using namespace scenarioengine;
 
@@ -25,6 +26,12 @@ using namespace scenarioengine;
 
 int main(int argc, char** argv)
 {
+    if (argc < 2)
+    {
+        printf("Usage: %s <filename>\n", argv[0]);
+        return -1;
+    }
+#if 0
     Replay*     player;
     static char line[MAX_LINE_LEN];
 
@@ -94,4 +101,5 @@ int main(int argc, char** argv)
     file.close();
 
     delete player;
+#endif
 }

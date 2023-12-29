@@ -69,7 +69,7 @@
                                 <LanePosition roadId="2" laneId="-1" offset="0" s="10"/>
                             </Position>
                         </TeleportAction>
-                    </PrivateAction>                
+                    </PrivateAction>
                     <PrivateAction>
                         <RoutingAction>
                             <AssignRouteAction>
@@ -148,21 +148,21 @@
                         </Condition>
                     </ConditionGroup>
                 </StartTrigger>
-                <StopTrigger>
-                    <ConditionGroup>
-                        <Condition name="End Of Road condition" delay="0" conditionEdge="rising">
-                            <ByEntityCondition>
-                                <TriggeringEntities triggeringEntitiesRule="any">
-                                    <EntityRef entityRef="Ego"/>
-                                </TriggeringEntities>
-                                <EntityCondition>
-                                    <EndOfRoadCondition duration="0.0" rule="greaterThan"/>
-                                </EntityCondition>
-                            </ByEntityCondition>
-                        </Condition>
-                    </ConditionGroup>
-                </StopTrigger>
             </Act>
         </Story>
+        <StopTrigger>
+            <ConditionGroup>
+                <Condition name="End Of Road condition" delay="0" conditionEdge="rising">
+                    <ByEntityCondition>
+                        <TriggeringEntities triggeringEntitiesRule="any">
+                            <EntityRef entityRef="Ego"/>
+                        </TriggeringEntities>
+                        <EntityCondition>
+                            <EndOfRoadCondition duration="0.0" rule="greaterThan"/>
+                        </EntityCondition>
+                    </ByEntityCondition>
+                </Condition>
+            </ConditionGroup>
+        </StopTrigger>
     </Storyboard>
 </OpenSCENARIO>

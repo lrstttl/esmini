@@ -224,47 +224,50 @@ namespace datLogger
         DatLogger() = default;
         ~DatLogger()
         {
-            WriteTime(simTimeTemp);
-            CommonPkg pkg;
-            pkg.hdr.id = static_cast<int>(PackageId::END_OF_SCENARIO);
-            pkg.hdr.content_size = 0;
-            pkg.content = nullptr;
-            writePackage(pkg);
-            totalPkgReceived += 1;
+            if (IsFileOpen())
+            {
+                WriteTime(simTimeTemp);
+                CommonPkg pkg;
+                pkg.hdr.id = static_cast<int>(PackageId::END_OF_SCENARIO);
+                pkg.hdr.content_size = 0;
+                pkg.content = nullptr;
+                writePackage(pkg);
+                totalPkgReceived += 1;
 
-            data_file_.flush();
-            data_file_.close();
+                data_file_.flush();
+                data_file_.close();
 
-            std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
-            std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
-            std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
+                std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
+                std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
+                std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
 
-            std::cout << "LOG Summary: " << std::endl;
-            std::cout << "Total time Package " << timePkgs << std::endl;
-            std::cout << "Total id Package: " << objIdPkgs << std::endl;
-            std::cout << "Total model id:: " << modelIdPkg << std::endl;
-            std::cout << "Total pos Package: " << posPkgs << std::endl;
-            std::cout << "Total speed Package: " << speedPkgs << std::endl;
+                // std::cout << "LOG Summary: " << std::endl;
+                // std::cout << "Total time Package " << timePkgs << std::endl;
+                // std::cout << "Total id Package: " << objIdPkgs << std::endl;
+                // std::cout << "Total model id:: " << modelIdPkg << std::endl;
+                // std::cout << "Total pos Package: " << posPkgs << std::endl;
+                // std::cout << "Total speed Package: " << speedPkgs << std::endl;
 
 
-            std::cout << "Total objTypePkg " << objTypePkg << std::endl;
-            std::cout << "Total objCatePkg: " << objCatePkg << std::endl;
-            std::cout << "Total ctrlTypPkg: " << ctrlTypPkg << std::endl;
+                // std::cout << "Total objTypePkg " << objTypePkg << std::endl;
+                // std::cout << "Total objCatePkg: " << objCatePkg << std::endl;
+                // std::cout << "Total ctrlTypPkg: " << ctrlTypPkg << std::endl;
 
-            std::cout << "Total wheelAnPkg: " << wheelAnPkg << std::endl;
-            std::cout << "Total wheelRoPkg: " << wheelRoPkg << std::endl;
-            std::cout << "Total boundinPkg: " << boundinPkg << std::endl;
-            std::cout << "Total scaleMoPkg: " << scaleMoPkg << std::endl;
-            std::cout << "Total visibilPkg: " << visibilPkg << std::endl;
-            std::cout << "Total namePkg: " << namePkg << std::endl;
+                // std::cout << "Total wheelAnPkg: " << wheelAnPkg << std::endl;
+                // std::cout << "Total wheelRoPkg: " << wheelRoPkg << std::endl;
+                // std::cout << "Total boundinPkg: " << boundinPkg << std::endl;
+                // std::cout << "Total scaleMoPkg: " << scaleMoPkg << std::endl;
+                // std::cout << "Total visibilPkg: " << visibilPkg << std::endl;
+                // std::cout << "Total namePkg: " << namePkg << std::endl;
 
-            std::cout << "Total raodIdPkg: " << roadIdPkg << std::endl;
-            std::cout << "Total laneIdPkg: " << laneIdPkg << std::endl;
-            std::cout << "Total posOffPkg: " << posOffPkg << std::endl;
-            std::cout << "Total posTPkg: " << posTPkg << std::endl;
-            std::cout << "Total posSPkg: " << posSPkg << std::endl;
+                // std::cout << "Total raodIdPkg: " << roadIdPkg << std::endl;
+                // std::cout << "Total laneIdPkg: " << laneIdPkg << std::endl;
+                // std::cout << "Total posOffPkg: " << posOffPkg << std::endl;
+                // std::cout << "Total posTPkg: " << posTPkg << std::endl;
+                // std::cout << "Total posSPkg: " << posSPkg << std::endl;
 
-            std::cout << "File closed successfully in destructure" << std::endl;
+                std::cout << "File closed successfully in destructure" << std::endl;
+            }
         }
 
         int posPkgs   = 0;
@@ -313,6 +316,10 @@ namespace datLogger
         int  deleteObject();
         bool IsObjIdAddPkgWritten(int id);
         void SetObjIdAddPkgWritten(int id, bool status);
+        bool IsFileOpen()
+        {
+            return data_file_.is_open();
+        }
 
         int         WriteObjSpeed(int obj_id, double speed);
         int         WriteTime(double t);

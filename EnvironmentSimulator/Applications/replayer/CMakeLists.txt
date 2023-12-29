@@ -20,14 +20,16 @@ set(TARGET1_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Replay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/helpText.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/collision.hpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/collision.hpp
+    ${SCENARIO_ENGINE_PATH}/SourceFiles/DatLogger.cpp)
 
-set(TARGET1_INCLUDES
+    set(TARGET1_INCLUDES
     ${CMAKE_CURRENT_SOURCE_DIR}/Replay.hpp)
 
 set(TARGET2_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/dat2csv.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Replay.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Replay.cpp
+    ${SCENARIO_ENGINE_PATH}/SourceFiles/DatLogger.cpp)
 
 set(TARGET3_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/osi_receiver.cpp)

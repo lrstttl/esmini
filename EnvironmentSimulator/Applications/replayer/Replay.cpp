@@ -15,6 +15,7 @@
 #include "ScenarioGateway.hpp"
 #include "CommonMini.hpp"
 #include "dirent.h"
+#include "DatLogger.hpp"
 
 using namespace scenarioengine;
 
@@ -1593,7 +1594,7 @@ void Replay::BuildData()
                         {
                             min_time_stamp = timeTemp;
                         }
-                        else if ( min_time_stamp < timeTemp)
+                        else if ( min_time_stamp > timeTemp)
                         {
                             min_time_stamp = timeTemp;
                         }
