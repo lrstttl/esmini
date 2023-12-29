@@ -112,7 +112,7 @@ namespace scenarioengine
         void    AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
         void    deleteObjState(int objId);
         int     MoveToTime(double time_frame, bool isParsing = false);
-        void    MoveToNextFrame();
+        bool    MoveToNextFrame();
         void    MoveToPreviousFrame();
         void    MoveToDeltaTime(double dt, bool isParsing = false);
         void    MoveToStart();

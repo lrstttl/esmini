@@ -701,21 +701,32 @@ void Replay::MoveToDeltaTime(double dt, bool isParsing)
 }
 
 
-void Replay::MoveToNextFrame()
+bool Replay::MoveToNextFrame()
 {
+    double perviousTimeTemp = -LARGE_NUMBER;
+    bool timeRestart = false;
     for (size_t i = static_cast<size_t>(index_); i < pkgs_.size(); i++)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            if  ( timeTemp > time_)
+            if  ( timeTemp > time_ )
             {
                 index_ = static_cast<unsigned int>(i);
                 time_ = timeTemp;
                 break;
             }
+            else if (perviousTimeTemp > timeTemp)
+            {
+                index_ = static_cast<unsigned int>(i);
+                time_ = timeTemp;
+                timeRestart = true;
+                break;
+            }
+            perviousTimeTemp = timeTemp;
         }
     }
+    return timeRestart;
 }
 
 void Replay::MoveToPreviousFrame()
@@ -768,6 +779,7 @@ void Replay::UpdateCache()
 
 int Replay::MoveToTime(double t, bool isParsing)
 {
+    bool timeRestart = false;
     if ( isEqualDouble(t, scenarioState.sim_time))
     {
         return 0; // no update to cache
@@ -782,7 +794,7 @@ int Replay::MoveToTime(double t, bool isParsing)
                 {
                     break;
                 }
-                MoveToNextFrame();
+                timeRestart = MoveToNextFrame();
                 if( t < time_ )
                 {
                     MoveToPreviousFrame(); // gone past time, move one frame back.
@@ -808,6 +820,10 @@ int Replay::MoveToTime(double t, bool isParsing)
                     }
                 }
                 UpdateCache();
+                if (timeRestart)
+                {
+                    break;
+                }
                 if (isEqualDouble(t, time_))
                 {
                     break;
@@ -850,7 +866,11 @@ int Replay::MoveToTime(double t, bool isParsing)
             }
         }
     }
-    if (t > stopTime_)
+    if ( timeRestart)
+    {
+        scenarioState.sim_time = time_;
+    }
+    else if (t > stopTime_)
     {
         if (repeat_ && !isParsing)
         {
