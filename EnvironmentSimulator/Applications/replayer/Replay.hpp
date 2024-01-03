@@ -56,12 +56,10 @@ namespace scenarioengine
 
     typedef struct
     {
-        double                  restart_time;
-        double                  pervious_time;
-        double                  newTime;
-        int                     Index_;
-        int                     perviousIndex_;
-        int                     newIndex_;
+        double                  restart_time_;
+        double                  next_time_ = LARGE_NUMBER;
+        unsigned int            restart_index_;
+        unsigned int            next_index_;
     } RestartTimes;
 
 
@@ -114,7 +112,7 @@ namespace scenarioengine
         int                                 GetPkgCntBtwObj(size_t idx);              // till next time forward
         datLogger::PackageId                ReadPkgHdr(char* package);
         double                              GetTimeFromCnt(int count);            // give time for the time
-        std::vector<RestartTimes> GetRestartTimes();
+        void GetRestartTimes();
         std::vector<RestartTimes> restartTimes;
 
 

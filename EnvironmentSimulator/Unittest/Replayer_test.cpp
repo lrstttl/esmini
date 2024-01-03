@@ -550,6 +550,141 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[7].time_, replay->GetTimeFromCnt(30));
 }
 
+TEST(ReplayRestartTest, TestShowAndNotShowRestart)
+{
+    const char* args[] =
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/timing_scenario_with_restarts.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.1"};
+
+    SE_AddPath("../../../resources/models");
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    while (SE_GetQuitFlag() == 0)
+    {
+        SE_StepDT(0.01f);
+    }
+
+    SE_Close();
+
+    scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
+    ASSERT_EQ(replay->pkgs_.size(), 10426);
+
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
+
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetStartTime()); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetStartTime()); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, replay->GetStartTime());
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, replay->GetStartTime());
+    std::string name;
+    replay->GetName(replay->scenarioState.obj_states[0].id, name);
+    EXPECT_EQ(name, "Ego");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[0].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), -1.5, 1E-3);
+
+    replay->GetName(replay->scenarioState.obj_states[1].id, name);
+    EXPECT_EQ(name, "Target");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[1].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[1].id), -4.5, 1E-3);
+
+    replay->GetName(replay->scenarioState.obj_states[2].id, name);
+    EXPECT_EQ(name, "Ego_ghost");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
+
+
+    // with show restart
+    replay->SetShowRestart(true);
+    replay->GetRestartTimes();
+
+    replay->MoveToTime(replay->restartTimes[0].restart_time_); //first restart frame
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[0].restart_time_);
+    replay->GetName(replay->scenarioState.obj_states[0].id, name);
+    EXPECT_EQ(name, "Ego");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[0].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), -1.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[1].id, name);
+    EXPECT_EQ(name, "Target");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[1].id), 50.199, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[1].id), -4.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[2].id, name);
+    EXPECT_EQ(name, "Ego_ghost");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 60.099, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
+
+    replay->MoveToTime(replay->restartTimes[0].next_time_); // shall go first restart frame
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, -0.93000004515051837);
+    replay->GetName(replay->scenarioState.obj_states[0].id, name);
+    EXPECT_EQ(name, "Ego");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[0].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), -1.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[1].id, name);
+    EXPECT_EQ(name, "Target");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[1].id), 50.399, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[1].id), -4.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[2].id, name);
+    EXPECT_EQ(name, "Ego_ghost");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 10.000, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
+
+
+    replay->MoveToTime(replay->restartTimes[1].restart_time_); //second restart frame
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[1].restart_time_);
+
+    replay->MoveToTime(replay->restartTimes[1].next_time_); // shall go second restart frame
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, 5.0699998207390324);
+
+
+    // with no show restart
+    replay->InitiateStates();
+    replay->SetShowRestart(false);
+    replay->GetRestartTimes();
+
+    replay->MoveToTime(replay->restartTimes[0].restart_time_); //first restart frame
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    replay->GetName(replay->scenarioState.obj_states[0].id, name);
+    EXPECT_EQ(name, "Ego");
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[0].restart_time_);
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[0].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), -1.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[1].id, name);
+    EXPECT_EQ(name, "Target");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[1].id), 50.199, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[1].id), -4.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[2].id, name);
+    EXPECT_EQ(name, "Ego_ghost");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 60.099, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
+
+    replay->MoveToTime(replay->restartTimes[0].next_time_); // shall go next frame
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[0].next_time_);
+    replay->GetName(replay->scenarioState.obj_states[0].id, name);
+    EXPECT_EQ(name, "Ego");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[0].id), 10.0, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), -1.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[1].id, name);
+    EXPECT_EQ(name, "Target");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[1].id), 50.199, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[1].id), -4.5, 1E-3);
+    replay->GetName(replay->scenarioState.obj_states[2].id, name);
+    EXPECT_EQ(name, "Ego_ghost");
+    EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 23.724, 1E-3);
+    EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
+
+    replay->MoveToTime(replay->restartTimes[1].restart_time_); //second restart frame
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[1].restart_time_);
+
+    replay->MoveToTime(replay->restartTimes[1].next_time_); // shall go next frame
+    ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[1].next_time_);
+
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

@@ -701,10 +701,9 @@ void Replay::MoveToDeltaTime(double dt)
     MoveToTime(scenarioState.sim_time + dt);
 }
 
-std::vector<RestartTimes> Replay::GetRestartTimes()
+void Replay::GetRestartTimes()
 {
     double perviousTime = -LARGE_NUMBER;
-    double newTime = LARGE_NUMBER;
     unsigned int  perviousIndex = 0;
     for (size_t i = 0; i < pkgs_.size(); i++)
     {
@@ -714,10 +713,8 @@ std::vector<RestartTimes> Replay::GetRestartTimes()
             if (perviousTime > timeTemp)
             {
                 RestartTimes restartTime;
-                restartTime.Index_ = static_cast<int>(i);
-                restartTime.restart_time = timeTemp;
-                restartTime.pervious_time = perviousTime;
-                restartTime.perviousIndex_ = perviousIndex;
+                restartTime.restart_time_ = perviousTime;
+                restartTime.restart_index_ = perviousIndex;
                 restartTimes.push_back(restartTime);
             }
             perviousTime = timeTemp;
@@ -726,27 +723,25 @@ std::vector<RestartTimes> Replay::GetRestartTimes()
             {
                 for ( size_t j = 0; j < restartTimes.size(); j++)
                 {
-                    if ( !isEqualDouble(newTime, timeTemp))
+                    if ( isEqualDouble(restartTimes[j].next_time_, LARGE_NUMBER)) // only once
                     {
-                        if ( restartTimes[j].pervious_time > timeTemp)
+                        if ( restartTimes[j].restart_time_ < timeTemp)
                         {
-                            newTime = timeTemp;
-                            restartTimes[j].newTime = newTime;
-                            restartTimes[j].newIndex_ = static_cast<int>(i);
+                            restartTimes[j].next_time_ = timeTemp;
+                            restartTimes[j].next_index_ = static_cast<unsigned int>(i);
+                            break;
                         }
                     }
-
                 }
             }
         }
     }
-    return restartTimes;
+
 }
 
 bool Replay::MoveToNextFrame(double time)
 {
-    double perviousTimeTemp = -LARGE_NUMBER;
-    unsigned int  perviousIndex = 0;
+    double perviousTime = -LARGE_NUMBER;
     bool timeLapsed = false;
     IsRestart = false;
 
@@ -755,18 +750,13 @@ bool Replay::MoveToNextFrame(double time)
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
+
             if( timeTemp > time) // gone past time
             {
                 timeLapsed = true;
                 break;
             }
-            else if  ( timeTemp > time_) // move to next frame
-            {
-                index_ = static_cast<unsigned int>(i);
-                time_ = timeTemp;
-                break;
-            }
-            else if (perviousTimeTemp > timeTemp && show_restart_)
+            else if (perviousTime > timeTemp && show_restart_)
             {
                 index_ = static_cast<unsigned int>(i); // jump to restart
                 time_ = timeTemp;
@@ -774,8 +764,13 @@ bool Replay::MoveToNextFrame(double time)
                 break;
 
             }
-            perviousTimeTemp = timeTemp;
-            perviousIndex = static_cast<unsigned int>(i);
+            else if  ( timeTemp > time_) // move to next frame
+            {
+                index_ = static_cast<unsigned int>(i);
+                time_ = timeTemp;
+                break;
+            }
+            perviousTime = timeTemp;
         }
     }
     return timeLapsed;
@@ -798,11 +793,10 @@ bool Replay::MoveToPreviousFrame(double time)
                 {
                     for ( size_t j = 0; j < restartTimes.size(); j++)
                     {
-                        if ( static_cast<size_t>(restartTimes[j].newIndex_) == i)
+                        if ( static_cast<size_t>(restartTimes[j].next_index_) == i)
                         {
-                            i = static_cast<size_t>(restartTimes[j].perviousIndex_);
-                            index_ = restartTimes[j].perviousIndex_; // jump to restart
-                            time_ = restartTimes[j].pervious_time;
+                            index_ = restartTimes[j].restart_index_; // jump to restart
+                            time_ = restartTimes[j].restart_time_;
                             IsRestart = true;
                             break;
                         }
@@ -823,8 +817,6 @@ bool Replay::MoveToPreviousFrame(double time)
                 index_ = static_cast<unsigned int>(i);
                 time_ = timeTemp;
             }
-
-
         }
     }
     return timeLapsed;
@@ -871,7 +863,6 @@ int Replay::MoveToTime(double t, bool goToEnd, int index)
     {
         t = startTime_;
     }
-
 
     bool timeLapsed = false;
     if ( isEqualDouble(t, scenarioState.sim_time))
@@ -955,7 +946,6 @@ int Replay::MoveToTime(double t, bool goToEnd, int index)
     {
         scenarioState.sim_time = t;
     }
-    printf("Time %.2f Target time %.2f scenario time %.2f\n", time_, t, scenarioState.sim_time);
     return 0;
 }
 
