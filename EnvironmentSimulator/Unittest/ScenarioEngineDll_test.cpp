@@ -2113,7 +2113,7 @@ TEST(ExternalControlTest, TestTimings)
 
         if (j == 1)  // additional restart tests
         {
-            replay->MoveToTime(2.1);
+            replay->MoveToTime(2.1, false, true);
             EXPECT_NEAR(replay->scenarioState.sim_time, 2.1, 1E-3);
             replay->GetName(replay->scenarioState.obj_states[0].id, name);
             EXPECT_EQ(name, "Ego");

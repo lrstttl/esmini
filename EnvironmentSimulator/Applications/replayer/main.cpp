@@ -112,14 +112,14 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     };
     std::map<int, OdoInfo> odo_info;  // temporary keep track of entity odometers
 
-
+    player->GetRestartTimes();
     player->GetScenarioEntities();
 
     for (int j = 0; j < static_cast<int>(player->entities.size()); j++)
     {
         if (!isEqualDouble(player->entities[static_cast<size_t>(j)].sim_time, player->scenarioState.sim_time)) // already in correct time
         {
-            player->MoveToTime(player->entities[static_cast<size_t>(j)].sim_time, true);
+            player->MoveToTime(player->entities[static_cast<size_t>(j)].sim_time);
         }
 
         for (int i = 0; i < static_cast<int>(player->scenarioState.obj_states.size()); i++)
@@ -212,14 +212,12 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     }
 
     // reset the cache
-    player->MoveToTime((player->GetTimeFromCnt(1)));
+    player->InitiateStates();
 
     // calculate trajectory points
-    double sim_time = 0.0;
-    while (sim_time <= (player->GetStopTime() - SMALL_NUMBER))
+    while (isEqualDouble(player->GetTime(), player->GetStopTime()))
     {
-        sim_time              = player->GetTime();
-        player->MoveToDeltaTime(player->deltaTime_, true);
+        player->MoveToDeltaTime(player->deltaTime_);
         for (size_t i = 0; i < scenarioEntity.size(); i++)
         {
             int obj_id = player->scenarioState.obj_states[i].id;
@@ -259,9 +257,9 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     }
 
     // reset the cache
-    player->MoveToTime((player->GetTimeFromCnt(1)));
+    player->InitiateStates();
 
-    for (int i = 0; i < static_cast<int>(scenarioEntity.size()); i++)
+     for (int i = 0; i < static_cast<int>(scenarioEntity.size()); i++)
     {
         osg::Vec4 color;
         if (scenarioEntity[static_cast<unsigned int>(i)].id == 0)
@@ -418,6 +416,7 @@ int main(int argc, char** argv)
     opt.AddOption("save_merged", "Save merged data into one dat file, instead of viewing", "filename");
     opt.AddOption("start_time", "Start playing at timestamp", "ms");
     opt.AddOption("stop_time", "Stop playing at timestamp (set equal to time_start for single frame)", "ms");
+    opt.AddOption("show_restart", "Show the restart time frame as well");
     opt.AddOption("time_scale", "Playback speed scale factor (1.0 == normal)", "factor");
     opt.AddOption("view_mode", "Entity visualization: \"model\"(default)/\"boundingbox\"/\"both\"", "view_mode");
 
@@ -902,6 +901,11 @@ int main(int argc, char** argv)
         if (opt.GetOptionSet("collision"))
         {
             col_analysis = true;
+        }
+
+        if (opt.GetOptionSet("show_restart"))
+        {
+            player->SetShowRestart(true);
         }
 
         while (!(viewer->osgViewer_->done() || (opt.GetOptionSet("quit_at_end") && simTime >= (player->GetStopTime() - SMALL_NUMBER))))

@@ -50,9 +50,19 @@ namespace scenarioengine
 
     typedef struct
     {
-        double               sim_time;
-        int     obj_id;
+        double                  sim_time;
+        int                     obj_id;
     } ScenarioEntities;
+
+    typedef struct
+    {
+        double                  restart_time;
+        double                  pervious_time;
+        double                  newTime;
+        int                     Index_;
+        int                     perviousIndex_;
+        int                     newIndex_;
+    } RestartTimes;
 
 
     class Replay
@@ -104,6 +114,8 @@ namespace scenarioengine
         int                                 GetPkgCntBtwObj(size_t idx);              // till next time forward
         datLogger::PackageId                ReadPkgHdr(char* package);
         double                              GetTimeFromCnt(int count);            // give time for the time
+        std::vector<RestartTimes> GetRestartTimes();
+        std::vector<RestartTimes> restartTimes;
 
 
         // method for cache
@@ -111,10 +123,15 @@ namespace scenarioengine
         void    UpdateCache();
         void    AddObjState(size_t objId, double t);  // add the object state for given object id from the current object state
         void    deleteObjState(int objId);
-        int     MoveToTime(double time_frame, bool isParsing = false);
-        bool    MoveToNextFrame();
-        void    MoveToPreviousFrame();
-        void    MoveToDeltaTime(double dt, bool isParsing = false);
+        /**
+         Move to specified timestamp
+         @param time_frame Timestamp
+         @param index In case of multiple occasions of the same timestamp (-1 = last)
+        */
+        int     MoveToTime(double time_frame, bool goToEnd = false, int index = 0);
+        bool    MoveToNextFrame(double t);
+        bool    MoveToPreviousFrame(double t);
+        void    MoveToDeltaTime(double dt);
         void    MoveToStart();
         void    MoveToEnd();
         bool    IsObjAvailableInCache(int Id);  // check in cache
@@ -176,6 +193,11 @@ namespace scenarioengine
         void SetStopEntries();
         double                   deltaTime_ = LARGE_NUMBER;
 
+        void SetShowRestart( bool showRestart)
+        {
+            show_restart_  = showRestart;
+        }
+
     private:
         std::ifstream            file_;
         std::vector<std::string> scenarios_;
@@ -188,6 +210,8 @@ namespace scenarioengine
         bool                     repeat_;
         bool                     clean_;
         std::string              create_datfile_;
+        bool                     show_restart_;
+        bool                     IsRestart = false;
 
         double                   perviousTime_ = SMALL_NUMBER;
 
