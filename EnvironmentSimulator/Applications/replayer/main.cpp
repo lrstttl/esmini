@@ -215,7 +215,7 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     player->InitiateStates();
 
     // calculate trajectory points
-    while (isEqualDouble(player->GetTime(), player->GetStopTime()))
+    while (!isEqualDouble(player->GetTime(), player->GetStopTime()))
     {
         player->MoveToDeltaTime(player->deltaTime_);
         for (size_t i = 0; i < scenarioEntity.size(); i++)

@@ -31,8 +31,7 @@ int main(int argc, char** argv)
         printf("Usage: %s <filename>\n", argv[0]);
         return -1;
     }
-#if 0
-    Replay*     player;
+    std::unique_ptr<Replay> player;
     static char line[MAX_LINE_LEN];
 
     std::setlocale(LC_ALL, "C.UTF-8");
@@ -55,7 +54,7 @@ int main(int argc, char** argv)
     // Create replayer object for parsing the binary data file
     try
     {
-        player = new Replay(argv[1], false);
+        player = std::make_unique<Replay>(argv[1]);
     }
     catch (const std::exception& e)
     {
@@ -63,17 +62,47 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    datLogger::DatHdr        headerNew_;
+    headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(player->header_.content);
     // First output header and CSV labels
     snprintf(line,
              MAX_LINE_LEN,
              "Version: %d, OpenDRIVE: %s, 3DModel: %s\n",
-             player->header_.version,
-             player->header_.odr_filename,
-             player->header_.model_filename);
+             headerNew_.version,
+             headerNew_.odrFilename.string,
+             headerNew_.modelFilename.string);
     file << line;
     snprintf(line, MAX_LINE_LEN, "time, id, name, x, y, z, h, p, r, speed, wheel_angle, wheel_rot\n");
     file << line;
 
+    while (player->GetTime() + player->deltaTime_ <= player->GetStopTime())
+    {
+        for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
+        {
+            int obj_id = player->scenarioState.obj_states[i].id;
+            std::string name;
+            player->GetName(player->scenarioState.obj_states[i].id, name);
+
+            snprintf(line,
+                    MAX_LINE_LEN,
+                    "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                    player->scenarioState.sim_time,
+                    obj_id,
+                    name.c_str(),
+                    player->GetX(player->scenarioState.obj_states[i].id),
+                    player->GetY(player->scenarioState.obj_states[i].id),
+                    player->GetZ(player->scenarioState.obj_states[i].id),
+                    player->GetH(player->scenarioState.obj_states[i].id),
+                    player->GetP(player->scenarioState.obj_states[i].id),
+                    player->GetR(player->scenarioState.obj_states[i].id),
+                    player->GetSpeed(player->scenarioState.obj_states[i].id),
+                    player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                    player->GetWheelRot(player->scenarioState.obj_states[i].id));
+            file << line;
+        }
+        player->MoveToTime(player->GetTime() + 0.01); // already initiated.
+    }
+#if (0)
     // Then output all entries with comma separated values
     for (size_t i = 0; i < player->data_.size(); i++)
     {
@@ -97,9 +126,7 @@ int main(int argc, char** argv)
 
         file << line;
     }
-
+#endif
     file.close();
 
-    delete player;
-#endif
 }

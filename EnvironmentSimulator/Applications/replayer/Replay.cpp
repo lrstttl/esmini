@@ -741,10 +741,12 @@ void Replay::GetRestartTimes()
 
 bool Replay::MoveToNextFrame(double time)
 {
-    double perviousTime = -LARGE_NUMBER;
     bool timeLapsed = false;
     IsRestart = false;
-
+    int count = 0;
+    std::cout << "----------------------- " << std::endl;
+    // std::cout << "Time before Enter: " << time_ << std::endl;
+    // std::cout << "Entering next frame " << std::endl;
     for (size_t i = static_cast<size_t>(index_); i < pkgs_.size(); i++)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
@@ -756,7 +758,7 @@ bool Replay::MoveToNextFrame(double time)
                 timeLapsed = true;
                 break;
             }
-            else if (perviousTime > timeTemp && show_restart_)
+            else if (time_ > timeTemp && show_restart_)
             {
                 index_ = static_cast<unsigned int>(i); // jump to restart
                 time_ = timeTemp;
@@ -770,9 +772,13 @@ bool Replay::MoveToNextFrame(double time)
                 time_ = timeTemp;
                 break;
             }
-            perviousTime = timeTemp;
+            // std::cout << "Time: " << time_ << std::endl;
+            // std::cout << "Pervious Time: " << perviousTime << std::endl;
+            std::cout << "frame moved: " << count+1 << std::endl;
         }
     }
+    // std::cout << "Exiting next frame " << std::endl;
+    std::cout << "----------------------- " << std::endl;
     return timeLapsed;
 }
 

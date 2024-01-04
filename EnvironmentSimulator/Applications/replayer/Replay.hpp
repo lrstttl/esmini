@@ -151,7 +151,7 @@ namespace scenarioengine
         }
         double GetTime()
         {
-            return time_;
+            return scenarioState.sim_time;
         }
         int GetIndex()
         {
