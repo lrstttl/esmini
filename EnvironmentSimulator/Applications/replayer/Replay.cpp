@@ -744,16 +744,14 @@ bool Replay::MoveToNextFrame(double time)
     bool timeLapsed = false;
     IsRestart = false;
     int count = 0;
-    std::cout << "----------------------- " << std::endl;
-    // std::cout << "Time before Enter: " << time_ << std::endl;
-    // std::cout << "Entering next frame " << std::endl;
+
     for (size_t i = static_cast<size_t>(index_); i < pkgs_.size(); i++)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
 
-            if( timeTemp > time) // gone past time
+            if( timeTemp > time + SMALL_NUMBER) // gone past time
             {
                 timeLapsed = true;
                 break;
@@ -772,13 +770,9 @@ bool Replay::MoveToNextFrame(double time)
                 time_ = timeTemp;
                 break;
             }
-            // std::cout << "Time: " << time_ << std::endl;
-            // std::cout << "Pervious Time: " << perviousTime << std::endl;
-            std::cout << "frame moved: " << count+1 << std::endl;
+
         }
     }
-    // std::cout << "Exiting next frame " << std::endl;
-    std::cout << "----------------------- " << std::endl;
     return timeLapsed;
 }
 
@@ -813,7 +807,7 @@ bool Replay::MoveToPreviousFrame(double time)
             {
                 break;
             }
-            if  ( timeTemp < time) // gone past time
+            if  ( timeTemp < time + SMALL_NUMBER) // gone past time
             {
                 timeLapsed = true;
                 break;

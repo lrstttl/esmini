@@ -596,6 +596,16 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
     replay->SetShowRestart(true);
     replay->GetRestartTimes();
 
+    ASSERT_EQ(replay->restartTimes.size(), 2);
+    ASSERT_EQ(replay->restartTimes[0].restart_index_, 2158);
+    ASSERT_EQ(replay->restartTimes[0].next_index_, 2525);
+    ASSERT_DOUBLE_EQ(replay->restartTimes[0].restart_time_, 2.009999955072999);
+    ASSERT_DOUBLE_EQ(replay->restartTimes[0].next_time_, 2.0199999548494829);
+    ASSERT_EQ(replay->restartTimes[1].restart_index_, 8062);
+    ASSERT_EQ(replay->restartTimes[1].next_index_, 8429);
+    ASSERT_DOUBLE_EQ(replay->restartTimes[1].restart_time_, 8.00999982096255);
+    ASSERT_DOUBLE_EQ(replay->restartTimes[1].next_time_, 8.019999820739022);
+
     replay->MoveToTime(replay->restartTimes[0].restart_time_); //first restart frame
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);

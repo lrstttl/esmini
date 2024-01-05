@@ -215,9 +215,9 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
     player->InitiateStates();
 
     // calculate trajectory points
-    while (!isEqualDouble(player->GetTime(), player->GetStopTime()))
+    while (true)
     {
-        player->MoveToDeltaTime(player->deltaTime_);
+
         for (size_t i = 0; i < scenarioEntity.size(); i++)
         {
             int obj_id = player->scenarioState.obj_states[i].id;
@@ -253,6 +253,20 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
                                                         player->GetZ(obj_id) + z_offset));
                 }
             }
+        }
+        
+        if (player->GetTime() > player->GetStopTime() - SMALL_NUMBER)
+        {
+            break;  // reached end of file
+        }
+        else if (player->deltaTime_ < SMALL_NUMBER)
+        {
+            LOG("Warning: Unexpected delta time zero found! Can't process remaining part of the file");
+            break;
+        }
+        else
+        {
+            player->MoveToTime(player->GetTime() + player->deltaTime_); // continue
         }
     }
 

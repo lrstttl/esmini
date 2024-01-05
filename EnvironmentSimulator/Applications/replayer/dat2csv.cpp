@@ -51,6 +51,15 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    bool use_default_setting = false;
+    if (argc > 2)
+    {
+        std::string   option = argv[2];
+        if (std::strcmp(option.c_str(), "use_delta_time") == 0)
+        {
+            use_default_setting = true;
+        }
+    }
     // Create replayer object for parsing the binary data file
     try
     {
@@ -74,59 +83,83 @@ int main(int argc, char** argv)
     file << line;
     snprintf(line, MAX_LINE_LEN, "time, id, name, x, y, z, h, p, r, speed, wheel_angle, wheel_rot\n");
     file << line;
-
-    while (player->GetTime() + player->deltaTime_ <= player->GetStopTime())
-    {
-        for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
+    if (!use_default_setting)
+    { // delta time setting
+        while (true)
         {
-            int obj_id = player->scenarioState.obj_states[i].id;
-            std::string name;
-            player->GetName(player->scenarioState.obj_states[i].id, name);
+            for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
+            {
+                int obj_id = player->scenarioState.obj_states[i].id;
+                std::string name;
+                player->GetName(player->scenarioState.obj_states[i].id, name);
 
-            snprintf(line,
-                    MAX_LINE_LEN,
-                    "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
-                    player->scenarioState.sim_time,
-                    obj_id,
-                    name.c_str(),
-                    player->GetX(player->scenarioState.obj_states[i].id),
-                    player->GetY(player->scenarioState.obj_states[i].id),
-                    player->GetZ(player->scenarioState.obj_states[i].id),
-                    player->GetH(player->scenarioState.obj_states[i].id),
-                    player->GetP(player->scenarioState.obj_states[i].id),
-                    player->GetR(player->scenarioState.obj_states[i].id),
-                    player->GetSpeed(player->scenarioState.obj_states[i].id),
-                    player->GetWheelAngle(player->scenarioState.obj_states[i].id),
-                    player->GetWheelRot(player->scenarioState.obj_states[i].id));
-            file << line;
+                snprintf(line,
+                        MAX_LINE_LEN,
+                        "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                        player->scenarioState.sim_time,
+                        obj_id,
+                        name.c_str(),
+                        player->GetX(player->scenarioState.obj_states[i].id),
+                        player->GetY(player->scenarioState.obj_states[i].id),
+                        player->GetZ(player->scenarioState.obj_states[i].id),
+                        player->GetH(player->scenarioState.obj_states[i].id),
+                        player->GetP(player->scenarioState.obj_states[i].id),
+                        player->GetR(player->scenarioState.obj_states[i].id),
+                        player->GetSpeed(player->scenarioState.obj_states[i].id),
+                        player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                        player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                file << line;
+            }
+
+            if (player->GetTime() > player->GetStopTime() - SMALL_NUMBER)
+            {
+                break;  // reached end of file
+            }
+            else if (player->deltaTime_ < SMALL_NUMBER)
+            {
+                LOG("Warning: Unexpected delta time zero found! Can't process remaining part of the file");
+                break;
+            }
+            else
+            {
+                player->MoveToTime(player->GetTime() + player->deltaTime_); // continue
+            }
         }
-        player->MoveToTime(player->GetTime() + 0.01); // already initiated.
     }
-#if (0)
-    // Then output all entries with comma separated values
-    for (size_t i = 0; i < player->data_.size(); i++)
-    {
-        ObjectStateStructDat* state = &player->data_[i].state;
+    else
+    { // default setting
+        for (size_t j = 0; j < player->pkgs_.size(); j++)
+        {
+            if (player->pkgs_[j].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
+            {
+                double timeTemp = *reinterpret_cast<double*>(player->pkgs_[j].content);
+                player->MoveToTime(timeTemp);
+                for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
+                {
+                    int obj_id = player->scenarioState.obj_states[i].id;
+                    std::string name;
+                    player->GetName(player->scenarioState.obj_states[i].id, name);
 
-        snprintf(line,
-                 MAX_LINE_LEN,
-                 "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
-                 static_cast<double>(state->info.timeStamp),
-                 state->info.id,
-                 state->info.name,
-                 static_cast<double>(state->pos.x),
-                 static_cast<double>(state->pos.y),
-                 static_cast<double>(state->pos.z),
-                 static_cast<double>(state->pos.h),
-                 static_cast<double>(state->pos.p),
-                 static_cast<double>(state->pos.r),
-                 static_cast<double>(state->info.speed),
-                 static_cast<double>(state->info.wheel_angle),
-                 static_cast<double>(state->info.wheel_rot));
-
-        file << line;
+                    snprintf(line,
+                            MAX_LINE_LEN,
+                            "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                            player->scenarioState.sim_time,
+                            obj_id,
+                            name.c_str(),
+                            player->GetX(player->scenarioState.obj_states[i].id),
+                            player->GetY(player->scenarioState.obj_states[i].id),
+                            player->GetZ(player->scenarioState.obj_states[i].id),
+                            player->GetH(player->scenarioState.obj_states[i].id),
+                            player->GetP(player->scenarioState.obj_states[i].id),
+                            player->GetR(player->scenarioState.obj_states[i].id),
+                            player->GetSpeed(player->scenarioState.obj_states[i].id),
+                            player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                            player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                    file << line;
+                }
+            }
+        }
     }
-#endif
     file.close();
 
 }
