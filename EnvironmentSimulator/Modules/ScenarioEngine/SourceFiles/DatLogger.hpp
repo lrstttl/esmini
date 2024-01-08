@@ -154,8 +154,8 @@ namespace datLogger
         double y = 0.0;
         double z = 0.0;
         double h = 0.0;
-        double r = 0.0;
         double p = 0.0;
+        double r = 0.0;
     };
 
     struct BoundingBox
@@ -310,6 +310,7 @@ namespace datLogger
 
 
         void writePackage(CommonPkg package);  // will just write package
+        void WriteStringPkg(std::string name, PackageId pkg_id);
         void WriteManPkg(int obj_id);
         int WriteHeader(CommonPkg& Pkg, std::string fileName);
         int  AddObject(int obj_id);

@@ -24,6 +24,9 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false), sh
 {
     RecordPkgs(filename);
 
+    // round time step to closest 6:th decimal of a second
+    deltaTime_ = std::round(deltaTime_ / SMALL_NUMBER) * SMALL_NUMBER;
+
     datLogger::DatHdr        headerNew_;
     headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(header_.content);
 
@@ -68,6 +71,8 @@ Replay::Replay(const std::string directory, const std::string scenario, std::str
     for (size_t i = 0; i < scenarios_.size(); i++)
     {
         RecordPkgs(scenarios_[i]);
+        // round time step to closest 6:th decimal of a second
+        deltaTime_ = std::round(deltaTime_ / SMALL_NUMBER) * SMALL_NUMBER;
         datLogger::DatHdr        headerNew_;
         headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(header_.content);
         scenarioObjIds.push_back(objectIds);
@@ -318,14 +323,14 @@ int Replay::RecordPkgs(const std::string& fileName)
                 file_Read_.read(reinterpret_cast<char*>(&t->time), timePkgRead.hdr.content_size);
                 timePkgRead.content = reinterpret_cast<char*>(t);
                 pkgs_.push_back(timePkgRead);
-                if (!isEqualDouble(t->time, 0.0))
+                if (!std::isnan(previousTime_))
                 {
-                    if (fabs(t->time - perviousTime_) < deltaTime_)
+                    if (fabs(t->time - previousTime_) < deltaTime_)
                     {
-                        deltaTime_ = fabs(t->time - perviousTime_);
+                        deltaTime_ = fabs(t->time - previousTime_);
                     }
                 }
-                perviousTime_ = t->time;
+                previousTime_ = t->time;
                 break;
             }
 
@@ -369,8 +374,8 @@ int Replay::RecordPkgs(const std::string& fileName)
                 file_Read_.read(reinterpret_cast<char*>(&posRead->y), sizeof(datLogger::Pos::y));
                 file_Read_.read(reinterpret_cast<char*>(&posRead->z), sizeof(datLogger::Pos::z));
                 file_Read_.read(reinterpret_cast<char*>(&posRead->h), sizeof(datLogger::Pos::h));
-                file_Read_.read(reinterpret_cast<char*>(&posRead->r), sizeof(datLogger::Pos::r));
                 file_Read_.read(reinterpret_cast<char*>(&posRead->p), sizeof(datLogger::Pos::p));
+                file_Read_.read(reinterpret_cast<char*>(&posRead->r), sizeof(datLogger::Pos::r));
                 posPkgRead.content = reinterpret_cast<char*>(posRead);
                 pkgs_.push_back(posPkgRead);
                 break;
@@ -743,7 +748,6 @@ bool Replay::MoveToNextFrame(double time)
 {
     bool timeLapsed = false;
     IsRestart = false;
-    int count = 0;
 
     for (size_t i = static_cast<size_t>(index_); i < pkgs_.size(); i++)
     {
@@ -939,6 +943,10 @@ int Replay::MoveToTime(double t, bool goToEnd, int index)
     }
 
     if ( IsRestart && show_restart_ && !goToEnd)
+    {
+        scenarioState.sim_time = time_;
+    }
+    else if (isEqualDouble(t, time_))
     {
         scenarioState.sim_time = time_;
     }
@@ -1281,7 +1289,7 @@ double Replay::GetR(int obj_id)
 double Replay::GetP(int obj_id)
 {
     datLogger::Pos pos = GetPos(obj_id);
-    return pos.r;
+    return pos.p;
 }
 
 int Replay::GetRoadId(int obj_id)
@@ -1713,6 +1721,16 @@ int Replay::CreateMergedDatfile(const std::string filename)
     for (size_t i = 0; i < pkgs_.size(); i++)
     {
         datLogger->writePackage(pkgs_[i]);
+        if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::NAME))
+        {
+            std::string name;
+            name = reinterpret_cast<datLogger::Name*>(pkgs_[i].content)->string;
+            datLogger->WriteStringPkg(name, static_cast<datLogger::PackageId>(pkgs_[i].hdr.id));
+        }
+        else
+        {
+            datLogger->writePackage(pkgs_[i]);
+        }
     }
     return 0;
 }

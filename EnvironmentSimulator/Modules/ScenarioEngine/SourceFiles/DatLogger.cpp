@@ -417,6 +417,21 @@ int DatLogger::WriteTime(double t)
     return 0;
 }
 
+void DatLogger::WriteStringPkg(std::string name, PackageId pkg_id)
+{
+    // create pkg
+    CommonPkg pkg;
+    pkg.hdr.id           = static_cast<int>(pkg_id);
+    Name nameStr;
+    pkg.hdr.content_size   = static_cast<int>(name.size() + 1);
+    nameStr.string = new char[pkg.hdr.content_size];
+    StrCopy(nameStr.string, name.c_str(), static_cast<size_t>(pkg.hdr.content_size));
+
+    data_file_.write(reinterpret_cast<char*>(&pkg.hdr), sizeof(CommonPkgHdr));
+
+    data_file_.write(nameStr.string, pkg.hdr.content_size);
+}
+
 int DatLogger::WriteName(int obj_id, std::string name)
 {
     totalPkgReceived += 1;
@@ -433,17 +448,8 @@ int DatLogger::WriteName(int obj_id, std::string name)
             if (completeObjectState.obj_states[i].name_.compare(name) != 0)
             {
                 WriteManPkg(obj_id);
-                // create pkg
-                CommonPkg pkg;
-                pkg.hdr.id           = static_cast<int>(PackageId::NAME);
-                Name nameStr;
-                pkg.hdr.content_size   = static_cast<int>(name.size() + 1);
-                nameStr.string = new char[pkg.hdr.content_size];
-                StrCopy(nameStr.string, name.c_str(), static_cast<size_t>(pkg.hdr.content_size));
-
-                data_file_.write(reinterpret_cast<char*>(&pkg.hdr), sizeof(CommonPkgHdr));
-
-                data_file_.write(nameStr.string, pkg.hdr.content_size);
+                // write name
+                WriteStringPkg(name, PackageId::NAME);
 
                 completeObjectState.obj_states[i].name_ = name;
                 namePkg += 1;
@@ -590,7 +596,6 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
                 continue;
             }
             completeObjectState.obj_states[i].active = true;
-            completeObjectState.obj_states[i].active = true;
             if (completeObjectState.obj_states[i].pos_.h != h || completeObjectState.obj_states[i].pos_.p != p ||
                 completeObjectState.obj_states[i].pos_.r != r || completeObjectState.obj_states[i].pos_.x != x ||
                 completeObjectState.obj_states[i].pos_.y != y || completeObjectState.obj_states[i].pos_.z != z)
@@ -604,8 +609,8 @@ int DatLogger::WriteObjPos(int obj_id, double x, double y, double z, double h, d
                 pos_.y = y;
                 pos_.z = z;
                 pos_.h = h;
-                pos_.r = r;
                 pos_.p = p;
+                pos_.r = r;
 
                 pkg.hdr.id           = static_cast<int>(PackageId::POSITIONS);
                 pkg.hdr.content_size = sizeof(pos_);

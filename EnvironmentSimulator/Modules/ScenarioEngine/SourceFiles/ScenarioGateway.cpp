@@ -241,9 +241,6 @@ ScenarioGateway::~ScenarioGateway()
 {
     objectState_.clear();
     delete datLogger;
-
-    data_file_.flush();
-    data_file_.close();
 }
 
 ObjectState* ScenarioGateway::getObjectStatePtrById(int id)
@@ -1007,48 +1004,6 @@ void ScenarioGateway::removeObject(std::string name)
     }
 }
 
-#if 0
-void ScenarioGateway::WriteStatesToFile()
-{
-    if (data_file_.is_open())
-    {
-        // Write status to file - for later replay
-        for (size_t i = 0; i < objectState_.size(); i++)
-        {
-            struct ObjectStateStructDat datState;
-
-            datState.info.boundingbox = objectState_[i]->state_.info.boundingbox;
-            datState.info.ctrl_type   = objectState_[i]->state_.info.ctrl_type;
-            datState.info.ctrl_type   = objectState_[i]->state_.info.ctrl_type;
-            datState.info.id          = objectState_[i]->state_.info.id;
-            datState.info.model_id    = objectState_[i]->state_.info.model_id;
-            memcpy(datState.info.name, objectState_[i]->state_.info.name, sizeof(datState.info.name));
-            datState.info.obj_category   = objectState_[i]->state_.info.obj_category;
-            datState.info.obj_type       = objectState_[i]->state_.info.ctrl_type;
-            datState.info.scaleMode      = objectState_[i]->state_.info.scaleMode;
-            datState.info.speed          = static_cast<float>(objectState_[i]->state_.info.speed);
-            datState.info.timeStamp      = static_cast<float>(objectState_[i]->state_.info.timeStamp);
-            datState.info.visibilityMask = objectState_[i]->state_.info.visibilityMask;
-            datState.info.wheel_angle    = static_cast<float>(objectState_[i]->state_.info.wheel_angle);
-            datState.info.wheel_rot      = static_cast<float>(objectState_[i]->state_.info.wheel_rot);
-
-            datState.pos.x      = static_cast<float>(objectState_[i]->state_.pos.GetX());
-            datState.pos.y      = static_cast<float>(objectState_[i]->state_.pos.GetY());
-            datState.pos.z      = static_cast<float>(objectState_[i]->state_.pos.GetZ());
-            datState.pos.h      = static_cast<float>(objectState_[i]->state_.pos.GetH());
-            datState.pos.p      = static_cast<float>(objectState_[i]->state_.pos.GetP());
-            datState.pos.r      = static_cast<float>(objectState_[i]->state_.pos.GetR());
-            datState.pos.roadId = objectState_[i]->state_.pos.GetTrackId();
-            datState.pos.laneId = objectState_[i]->state_.pos.GetLaneId();
-            datState.pos.offset = static_cast<float>(objectState_[i]->state_.pos.GetOffset());
-            datState.pos.t      = static_cast<float>(objectState_[i]->state_.pos.GetT());
-            datState.pos.s      = static_cast<float>(objectState_[i]->state_.pos.GetS());
-            data_file_.write(reinterpret_cast<char*>(&datState), sizeof(datState));
-        }
-    }
-}
-#endif
-
 int ScenarioGateway::WriteStatesToFile()
 {
     if (datLogger == nullptr)
@@ -1122,21 +1077,6 @@ int ScenarioGateway::RecordToFile(std::string filename, std::string odr_filename
                 return -1;
             }
         }
-
-#if (0)
-        data_file_.open(filename, std::ofstream::binary);
-        if (data_file_.fail())
-        {
-            LOG("Cannot open file: %s", filename.c_str());
-            return -1;
-        }
-        DatHeader header;
-        header.version = DAT_FILE_FORMAT_VERSION;
-        StrCopy(header.odr_filename, odr_filename.c_str(), MIN(odr_filename.length() + 1, DAT_FILENAME_SIZE));
-        StrCopy(header.model_filename, model_filename.c_str(), MIN(model_filename.length() + 1, DAT_FILENAME_SIZE));
-
-        data_file_.write(reinterpret_cast<char*>(&header), sizeof(header));
-#endif
     }
     return 0;
 }

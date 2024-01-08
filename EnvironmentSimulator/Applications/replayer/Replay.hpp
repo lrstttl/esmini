@@ -211,7 +211,7 @@ namespace scenarioengine
         bool                     show_restart_;
         bool                     IsRestart = false;
 
-        double                   perviousTime_ = SMALL_NUMBER;
+        double                   previousTime_ = std::nan("");
 
         datLogger::DatLogger *datLogger = nullptr;
         int FindIndexAtTimestamp(double timestamp, int startSearchIndex = 0);

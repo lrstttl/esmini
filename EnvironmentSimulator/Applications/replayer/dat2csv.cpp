@@ -51,13 +51,13 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    bool use_default_setting = false;
+    bool use_default_setting = true;
     if (argc > 2)
     {
         std::string   option = argv[2];
         if (std::strcmp(option.c_str(), "use_delta_time") == 0)
         {
-            use_default_setting = true;
+            use_default_setting = false;
         }
     }
     // Create replayer object for parsing the binary data file
