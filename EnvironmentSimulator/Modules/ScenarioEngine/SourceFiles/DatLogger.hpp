@@ -312,7 +312,6 @@ namespace datLogger
         void writePackage(CommonPkg package);  // will just write package
         void WriteStringPkg(std::string name, PackageId pkg_id);
         void WriteManPkg(int obj_id);
-        int WriteHeader(CommonPkg& Pkg, std::string fileName);
         int  AddObject(int obj_id);
         int  deleteObject();
         bool IsObjIdAddPkgWritten(int id);

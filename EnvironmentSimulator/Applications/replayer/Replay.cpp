@@ -186,6 +186,7 @@ size_t Replay::GetNumberOfScenarios()
 Replay::~Replay()
 {
     data_.clear();
+    delete datLogger;
 }
 
 void Replay::MoveToStart()
@@ -323,14 +324,18 @@ int Replay::RecordPkgs(const std::string& fileName)
                 file_Read_.read(reinterpret_cast<char*>(&t->time), timePkgRead.hdr.content_size);
                 timePkgRead.content = reinterpret_cast<char*>(t);
                 pkgs_.push_back(timePkgRead);
-                if (!std::isnan(previousTime_))
+
+                if ( !(t->time < 0) || !isEqualDouble(deltaTime_, LARGE_NUMBER))  // dont include till ghost reaches 0.0 time
                 {
-                    if (fabs(t->time - previousTime_) < deltaTime_)
+                    if (!std::isnan(previousTime_))
                     {
-                        deltaTime_ = fabs(t->time - previousTime_);
+                        if (fabs(t->time - previousTime_) < deltaTime_)
+                        {
+                            deltaTime_ = fabs(t->time - previousTime_);
+                        }
                     }
+                    previousTime_ = t->time;
                 }
-                previousTime_ = t->time;
                 break;
             }
 
@@ -762,9 +767,13 @@ bool Replay::MoveToNextFrame(double time)
             }
             else if (time_ > timeTemp && show_restart_)
             {
-                index_ = static_cast<unsigned int>(i); // jump to restart
-                time_ = timeTemp;
-                IsRestart = true;
+                index_ = static_cast<unsigned int>(i);
+                time_ = timeTemp; // move to next frame
+                if (show_restart_)
+                {
+                    IsRestart = true; // jump to restart
+                }
+
                 break;
 
             }
@@ -1656,6 +1665,7 @@ void Replay::BuildData()
     bool timeFound = false;
     double min_time_stamp = LARGE_NUMBER;
     bool lastIteration = false;
+    bool timePkgWritten = false;
 
     while (cur_timestamp < last_timestamp || isEqualDouble(cur_timestamp, last_timestamp))
     {
@@ -1666,6 +1676,7 @@ void Replay::BuildData()
                 if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
                 {
                     timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
+                    std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
                     if(isEqualDouble(timeTemp, cur_timestamp))
                     {
                         timeFound = true;
@@ -1687,14 +1698,27 @@ void Replay::BuildData()
                     }
                 }
 
-                if(( timeFound && scenarioData[j].second[k].hdr.id != static_cast<int>( datLogger::PackageId::TIME_SERIES)) ||
-                ( timeFound && scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES) && j == 0))
+                datLogger::PackageId pkgId = static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id);
+
+                if(( timeFound && pkgId != datLogger::PackageId::TIME_SERIES) ||
+                ( timeFound && pkgId == datLogger::PackageId::TIME_SERIES && !timePkgWritten))
                 {
-                    pkgs_.push_back(scenarioData[j].second[k]); // store time pkg only once
+                    if( pkgId == datLogger::PackageId::END_OF_SCENARIO) // store time pkg only once
+                    {
+                        std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
+                    }
+                    if( pkgId == datLogger::PackageId::TIME_SERIES) // store time pkg only once
+                    {
+                        timePkgWritten = true;
+                        std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
+                    }
+                    std::cout << "logged pkg from file-->" << j << "-->" <<  datLogger->pkgIdTostring(static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id)) << std::endl;
+                    pkgs_.push_back(scenarioData[j].second[k]);
                 }
             }
         }
         cur_timestamp = min_time_stamp;
+        timePkgWritten = false;
         if ( lastIteration)
         {
             break;
@@ -1708,28 +1732,41 @@ void Replay::BuildData()
 
 int Replay::CreateMergedDatfile(const std::string filename)
 {
-    if (datLogger == nullptr)
+
+    if (!filename.empty())
     {
-        if ((datLogger = new datLogger::DatLogger()) == nullptr)
+        datLogger::DatHdr        headerNew_;
+        headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(header_.content);
+        if (datLogger == nullptr)
         {
-            return -1;
+            if ((datLogger = new datLogger::DatLogger()) == nullptr)
+            {
+                return -1;
+            }
+
+            if (datLogger->init(filename, headerNew_.version, headerNew_.odrFilename.string, headerNew_.modelFilename.string) != 0)
+            {
+                delete datLogger;
+                datLogger = nullptr;
+                return -1;
+            }
         }
     }
 
-    datLogger->WriteHeader(header_, filename);
-
-    for (size_t i = 0; i < pkgs_.size(); i++)
+    if (datLogger->IsFileOpen())
     {
-        datLogger->writePackage(pkgs_[i]);
-        if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::NAME))
+        for (size_t i = 0; i < pkgs_.size(); i++)
         {
-            std::string name;
-            name = reinterpret_cast<datLogger::Name*>(pkgs_[i].content)->string;
-            datLogger->WriteStringPkg(name, static_cast<datLogger::PackageId>(pkgs_[i].hdr.id));
-        }
-        else
-        {
-            datLogger->writePackage(pkgs_[i]);
+            if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::NAME))
+            {
+                std::string name;
+                name = reinterpret_cast<datLogger::Name*>(pkgs_[i].content)->string;
+                datLogger->WriteStringPkg(name, static_cast<datLogger::PackageId>(pkgs_[i].hdr.id));
+            }
+            else
+            {
+                datLogger->writePackage(pkgs_[i]);
+            }
         }
     }
     return 0;

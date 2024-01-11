@@ -1013,8 +1013,8 @@ int ScenarioGateway::WriteStatesToFile()
             return -1;
         }
     }
-    if (datLogger->IsFileOpen())
-    {
+        if (datLogger->IsFileOpen())
+        {
         // Write status to file - for later replay
         for (size_t i = 0; i < objectState_.size(); i++)
         {

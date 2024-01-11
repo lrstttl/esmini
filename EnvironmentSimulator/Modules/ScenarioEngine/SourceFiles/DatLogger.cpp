@@ -839,8 +839,9 @@ void DatLogger::deleteObjState(int objId)
 }
 
 
-int DatLogger::WriteHeader(CommonPkg& Pkg, std::string fileName)
+int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
 {
+    totalPkgReceived += 1;
     std::ofstream data_file(fileName, std::ios::binary);
     data_file_.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
     if (data_file_.fail())
@@ -852,34 +853,6 @@ int DatLogger::WriteHeader(CommonPkg& Pkg, std::string fileName)
     {
         std::cout << "File opened successfully." << std::endl;
     }
-
-    datLogger::DatHdr        datHdr;
-    datHdr = *reinterpret_cast<datLogger::DatHdr*>(Pkg.content);
-
-    // write header package
-    data_file_.write(reinterpret_cast<char*>(&Pkg.hdr), sizeof(CommonPkgHdr));
-
-    // write content -> version
-    data_file_.write(reinterpret_cast<char*>(&datHdr.version), sizeof(datHdr.version));
-
-    // write content -> odr filename size
-    data_file_.write(reinterpret_cast<char*>(&datHdr.odrFilename.size), sizeof(datHdr.odrFilename.size));
-
-    // write actual odr filename string
-    data_file_.write(datHdr.odrFilename.string, datHdr.odrFilename.size);
-
-    // write content -> model filename size
-    data_file_.write(reinterpret_cast<char*>(&datHdr.modelFilename.size), sizeof(datHdr.modelFilename.size));
-
-    // write actual model filename string
-    data_file_.write(datHdr.modelFilename.string, datHdr.modelFilename.size);
-
-    return 0;
-}
-
-int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
-{
-    totalPkgReceived += 1;
 
     CommonPkgHdr cmnHdr;
     cmnHdr.id = static_cast<int>(PackageId::HEADER);
@@ -905,7 +878,24 @@ int DatLogger::init(std::string fileName, int ver, std::string odrName, std::str
     hdrPkg.content = reinterpret_cast<char*>(&datHdr);
 
     // write header package
-    WriteHeader( hdrPkg, fileName);
+
+    // write common header
+    data_file_.write(reinterpret_cast<char*>(&hdrPkg.hdr), sizeof(CommonPkgHdr));
+
+    // write content -> version
+    data_file_.write(reinterpret_cast<char*>(&datHdr.version), sizeof(datHdr.version));
+
+    // write content -> odr filename size
+    data_file_.write(reinterpret_cast<char*>(&datHdr.odrFilename.size), sizeof(datHdr.odrFilename.size));
+
+    // write actual odr filename string
+    data_file_.write(odrStr.string, datHdr.odrFilename.size);
+
+    // write content -> model filename size
+    data_file_.write(reinterpret_cast<char*>(&datHdr.modelFilename.size), sizeof(datHdr.modelFilename.size));
+
+    // write actual model filename string
+    data_file_.write(mdlStr.string, datHdr.modelFilename.size);
 
     // write packag
     totalPkgProcessed += 1;
@@ -1009,8 +999,46 @@ std::string DatLogger::pkgIdTostring(PackageId id)
             return "Wheel_Rot";
             break;
         }
-
-
+        case PackageId::OBJ_ADDED:
+        {
+            return "obj_added";
+            break;
+        }
+        case PackageId::OBJ_DELETED:
+        {
+            return "obj_deleted";
+            break;
+        }
+        case PackageId::END_OF_SCENARIO:
+        {
+            return "end_of_scenario";
+            break;
+        }
+        case PackageId::ROAD_ID:
+        {
+            return "road_id";
+            break;
+        }
+        case PackageId::LANE_ID:
+        {
+            return "lane_id";
+            break;
+        }
+        case PackageId::POS_OFFSET:
+        {
+            return "pos_offset";
+            break;
+        }
+        case PackageId::POS_T:
+        {
+            return "pos_t";
+            break;
+        }
+        case PackageId::POS_S:
+        {
+            return "pos_s";
+            break;
+        }
         default:
         {
             std::cout << "Unknown package read->package id :" << std::endl;
