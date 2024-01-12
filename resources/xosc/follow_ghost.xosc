@@ -64,7 +64,7 @@
                </PrivateAction>
                <PrivateAction>
                   <ActivateControllerAction longitudinal="true" lateral="true" />
-               </PrivateAction>               
+               </PrivateAction>
             </Private>
          </Actions>
       </Init>
@@ -95,11 +95,11 @@
                         <ConditionGroup>
                             <Condition name="FirstSpeedCondition" delay="0" edge="none">
                                 <ByValueCondition>
-                                    <StoryboardElementStateCondition 
-                                        storyboardElementType="story" 
+                                    <StoryboardElementStateCondition
+                                        storyboardElementType="story"
                                         storyboardElementRef="Story"
                                         state="runningState"/>
-                                </ByValueCondition>									
+                                </ByValueCondition>
                             </Condition>
                         </ConditionGroup>
                      </StartTrigger>
@@ -202,27 +202,27 @@
                <ConditionGroup>
                   <Condition name="ActStart" delay="0">
                     <ByValueCondition>
-                        <StoryboardElementStateCondition 
-                            storyboardElementType="story" 
+                        <StoryboardElementStateCondition
+                            storyboardElementType="story"
                             storyboardElementRef="Story"
                             state="runningState"/>
-                    </ByValueCondition>		
+                    </ByValueCondition>
                   </Condition>
                </ConditionGroup>
             </StartTrigger>
-            <StopTrigger>
-               <ConditionGroup>
-                    <Condition name="EventStopCondition" delay="6" edge="rising">
-                        <ByValueCondition>
-                            <StoryboardElementStateCondition 
-                                storyboardElementType="event" 
-                                storyboardElementRef="StopEvent"
-                                state="completeState"/>
-                        </ByValueCondition>									
-                    </Condition>
-               </ConditionGroup>
-            </StopTrigger>
          </Act>
       </Story>
+      <StopTrigger>
+         <ConditionGroup>
+              <Condition name="EventStopCondition" delay="6" edge="rising">
+                  <ByValueCondition>
+                      <StoryboardElementStateCondition
+                          storyboardElementType="event"
+                          storyboardElementRef="StopEvent"
+                          state="completeState"/>
+                  </ByValueCondition>
+              </Condition>
+         </ConditionGroup>
+      </StopTrigger>
    </Storyboard>
 </OpenSCENARIO>

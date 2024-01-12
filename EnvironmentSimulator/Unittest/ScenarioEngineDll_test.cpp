@@ -3859,57 +3859,10 @@ TEST(ReplayTest, TestMultiReplayDifferentTimeSteps)
         {
             EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), 130.924, 1E-3);
             EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[3].id), 210.727, 1E-3);
-            // EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[3].id), 211.565, 1E-3);
-            replay->MoveToTime(19.7);
-            EXPECT_NEAR(replay->scenarioState.sim_time, 19.70, 1E-3);
-            // EXPECT_NEAR(replay->scenarioState.sim_time, 19.60, 1E-3);
+            replay->MoveToTime(19.6);
+            EXPECT_NEAR(replay->scenarioState.sim_time, 19.60, 1E-3);
             EXPECT_NEAR(replay->scenarioState.obj_states[1].id, 1, 1E-3);
         }
-
-#if (0)
-        EXPECT_NEAR(replay->data_[0].state.info.timeStamp, -2.5, 1E-3);
-        EXPECT_STREQ(replay->data_[0].state.info.name, "Ego");
-        EXPECT_STREQ(replay->data_[1].state.info.name, "Ego_ghost");
-        EXPECT_STREQ(replay->data_[2].state.info.name, "Ego");
-        EXPECT_NEAR(replay->data_[2].state.info.timeStamp, -2.45, 1E-3);
-        EXPECT_NEAR(replay->data_[4].state.info.timeStamp, -2.40, 1E-3);
-        EXPECT_NEAR(replay->data_[100].state.info.timeStamp, 0.0, 1E-3);
-        EXPECT_NEAR(replay->data_[100].state.info.id, 0, 1E-3);
-        EXPECT_NEAR(replay->data_[101].state.info.timeStamp, 0.0, 1E-3);
-        EXPECT_NEAR(replay->data_[101].state.info.id, 1, 1E-3);
-        EXPECT_NEAR(replay->data_[102].state.info.timeStamp, 0.0, 1E-3);
-        EXPECT_NEAR(replay->data_[102].state.info.id, 100, 1E-3);
-        EXPECT_NEAR(replay->data_[103].state.info.timeStamp, 0.0, 1E-3);
-        EXPECT_NEAR(replay->data_[103].state.info.id, 101, 1E-3);
-        EXPECT_NEAR(replay->data_[104].state.info.timeStamp, 0.01, 1E-3);
-        EXPECT_NEAR(replay->data_[104].state.info.id, 0, 1E-3);
-        EXPECT_NEAR(replay->data_[108].state.info.timeStamp, 0.02, 1E-3);
-        EXPECT_NEAR(replay->data_[108].state.info.id, 0, 1E-3);
-        EXPECT_NEAR(replay->data_[139].state.info.timeStamp, 0.09, 1E-3);
-        EXPECT_NEAR(replay->data_[139].state.info.id, 101, 1E-3);
-        EXPECT_NEAR(replay->data_[140].state.info.timeStamp, 0.1, 1E-3);
-        EXPECT_NEAR(replay->data_[140].state.info.id, 0, 1E-3);
-
-        EXPECT_NEAR(replay->data_[2012].state.info.timeStamp, 4.78, 1E-3);
-        EXPECT_NEAR(replay->data_[2012].state.info.id, 0, 1E-3);
-        EXPECT_NEAR(replay->data_[2015].state.info.timeStamp, 4.78, 1E-3);
-        EXPECT_NEAR(replay->data_[2015].state.info.id, 101, 1E-3);
-
-        if (k == 0)
-        {
-            EXPECT_NEAR(replay->data_[2012].state.pos.y, 130.995, 1E-3);
-            EXPECT_NEAR(replay->data_[2015].state.pos.y, 207.378, 1E-3);
-            EXPECT_NEAR(replay->data_[5967].state.info.timeStamp, 19.52, 1E-3);
-            EXPECT_NEAR(replay->data_[5967].state.info.id, 1, 1E-3);
-        }
-        else
-        {
-            EXPECT_NEAR(replay->data_[2012].state.pos.y, 130.924, 1E-3);
-            EXPECT_NEAR(replay->data_[2015].state.pos.y, 210.727, 1E-3);
-            EXPECT_NEAR(replay->data_[4203].state.info.timeStamp, 19.7, 1E-3);
-            EXPECT_NEAR(replay->data_[4203].state.info.id, 1, 1E-3);
-        }
-#endif
         delete replay;
     }
 }
