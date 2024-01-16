@@ -866,6 +866,29 @@ void Replay::UpdateCache()
     }
 }
 
+void Replay::CheckObjAvailabilityForward()
+{
+    // check all obj in this time frame also in cache
+    std::vector<int> objIdIndices = GetNumberOfObjectsAtTime();
+    for (size_t Index = 0; Index < objIdIndices.size(); Index++)
+    {
+        int obj_id = *reinterpret_cast<int*>(pkgs_[static_cast<size_t>(objIdIndices[Index])].content);
+        if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_DELETED))
+        {
+            UpdateObjStatus( obj_id, false); // obj deleted in cache
+            continue;
+        }
+        else if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_ADDED))
+        {
+            if (!IsObjAvailableInCache(obj_id))
+            {
+                AddObjState(static_cast<size_t>(objIdIndices[Index]), time_); // obj added in cache. this will also take updating pkgs
+                continue;
+            }
+            UpdateObjStatus( obj_id, true);
+        }
+    }
+}
 int Replay::MoveToTime(double t, bool goToEnd, int index)
 {
     if ((t > stopTime_) || isEqualDouble(t, stopTime_))// go to stop time
@@ -890,25 +913,7 @@ int Replay::MoveToTime(double t, bool goToEnd, int index)
             {
 
                 timeLapsed = MoveToNextFrame(t);
-                std::vector<int> objIdIndices = GetNumberOfObjectsAtTime();
-                for (size_t Index = 0; Index < objIdIndices.size(); Index++)
-                {
-                    int obj_id = *reinterpret_cast<int*>(pkgs_[static_cast<size_t>(objIdIndices[Index])].content);
-                    if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_DELETED))
-                    {
-                        UpdateObjStatus( obj_id, false); // obj deleted in cache
-                        continue;
-                    }
-                    else if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_ADDED))
-                    {
-                        if (!IsObjAvailableInCache(obj_id))
-                        {
-                            AddObjState(static_cast<size_t>(objIdIndices[Index]), t); // obj added in cache. this will also take updating pkgs
-                            continue;
-                        }
-                        UpdateObjStatus( obj_id, true);
-                    }
-                }
+                CheckObjAvailabilityForward();
                 UpdateCache();
                 if (IsRestart && show_restart_ && !goToEnd)
                 {
@@ -1259,6 +1264,7 @@ datLogger::Pos Replay::GetPos(int obj_id)
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POSITIONS)
             {
                pos = *reinterpret_cast<datLogger::Pos*>(pkg->content);
+               break;
             }
         }
     }
@@ -1421,15 +1427,15 @@ ObjectPositionStructDat Replay::GetComPletePos(int obj_id)
     ObjectPositionStructDat complete_pos;
     datLogger::Pos pos;
     pos = GetPos(obj_id);
-    complete_pos.h = static_cast<float>(pos.h);
-    complete_pos.x = static_cast<float>(pos.x);
-    complete_pos.y = static_cast<float>(pos.y);
-    complete_pos.z = static_cast<float>(pos.z);
-    complete_pos.p = static_cast<float>(pos.p);
-    complete_pos.r = static_cast<float>(pos.r);
+    complete_pos.h = pos.h;
+    complete_pos.x = pos.x;
+    complete_pos.y = pos.y;
+    complete_pos.z = pos.z;
+    complete_pos.p = pos.p;
+    complete_pos.r = pos.r;
     complete_pos.laneId = GetLaneId(obj_id);
     complete_pos.roadId = GetRoadId(obj_id);
-    complete_pos.offset = static_cast<float>(GetPosOffset(obj_id));
+    complete_pos.offset = GetPosOffset(obj_id);
     complete_pos.t = GetPosT(obj_id);
     complete_pos.s = GetPosS(obj_id);
     return complete_pos;

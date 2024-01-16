@@ -1006,15 +1006,9 @@ void ScenarioGateway::removeObject(std::string name)
 
 int ScenarioGateway::WriteStatesToFile()
 {
-    if (datLogger == nullptr)
+    // std::cout << "Inside write-->" << std::endl;
+    if (datLogger != nullptr && datLogger->IsFileOpen())
     {
-        if ((datLogger = new datLogger::DatLogger()) == nullptr)
-        {
-            return -1;
-        }
-    }
-        if (datLogger->IsFileOpen())
-        {
         // Write status to file - for later replay
         for (size_t i = 0; i < objectState_.size(); i++)
         {

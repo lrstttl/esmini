@@ -71,15 +71,15 @@ namespace scenarioengine
 
     struct ObjectPositionStructDat
     {
-        float x;
-        float y;
-        float z;
-        float h;
-        float p;
-        float r;
+        double x;
+        double y;
+        double z;
+        double h;
+        double p;
+        double r;
         int   roadId;
         int   laneId;
-        float offset;
+        double offset;
         float t;
         float s;
     };

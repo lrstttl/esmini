@@ -137,6 +137,7 @@ namespace scenarioengine
         int     UpdateObjStatus( int id, bool status);
         std::vector<ScenarioEntities> entities;
         double GetTimeFromEntities(int id);
+        void CheckObjAvailabilityForward();
 
         // method to handle time and index
         void                  SetStartTime(double time);
@@ -156,6 +157,15 @@ namespace scenarioengine
         int GetIndex()
         {
             return static_cast<int>(index_);
+        }
+
+        void SetTime(double t)
+        {
+            time_ = t;
+        }
+        void SetIndex( int index)
+        {
+            index_ = static_cast<unsigned int>(index);
         }
 
 
