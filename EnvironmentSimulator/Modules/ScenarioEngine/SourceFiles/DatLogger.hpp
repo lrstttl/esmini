@@ -237,9 +237,9 @@ namespace datLogger
                 data_file_.flush();
                 data_file_.close();
 
-                std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
-                std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
-                std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
+                // std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
+                // std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
+                // std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
 
                 // std::cout << "LOG Summary: " << std::endl;
                 // std::cout << "Total time Package " << timePkgs << std::endl;
@@ -266,7 +266,7 @@ namespace datLogger
                 // std::cout << "Total posTPkg: " << posTPkg << std::endl;
                 // std::cout << "Total posSPkg: " << posSPkg << std::endl;
 
-                std::cout << "File closed successfully in destructure" << std::endl;
+                // std::cout << "File closed successfully in destructure" << std::endl;
             }
         }
 

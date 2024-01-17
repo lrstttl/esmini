@@ -124,9 +124,10 @@ namespace scenarioengine
         /**
          Move to specified timestamp
          @param time_frame Timestamp
-         @param index In case of multiple occasions of the same timestamp (-1 = last)
+         @param goToEnd In case to go to end, Will be faster.
+         @param goThroughEachFrame Always fill cache for each time frame
         */
-        int     MoveToTime(double time_frame, bool goToEnd = false, int index = 0);
+        int     MoveToTime(double time_frame, bool goToEnd = false, bool goThroughEachFrame = false);
         bool    MoveToNextFrame(double t);
         bool    MoveToPreviousFrame(double t);
         void    MoveToDeltaTime(double dt);
@@ -138,6 +139,7 @@ namespace scenarioengine
         std::vector<ScenarioEntities> entities;
         double GetTimeFromEntities(int id);
         void CheckObjAvailabilityForward();
+        void CheckObjAvailabilityBackward();
 
         // method to handle time and index
         void                  SetStartTime(double time);

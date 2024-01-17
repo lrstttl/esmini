@@ -424,32 +424,41 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 3165);
+    ASSERT_EQ(replay->pkgs_.size(), 3170);
 
+    replay->MoveToTime(2.0);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
-    replay->MoveToTime(replay->GetTimeFromCnt(15));
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
-    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[6].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[11].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(15));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(15));
+    EXPECT_NEAR(replay->scenarioState.sim_time, 2.00, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[6].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[11].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[2].time_, 2.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 2.0, 1E-3);
 
-    replay->MoveToTime(replay->GetTimeFromCnt(30));
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    replay->MoveToTime(8.0);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[5].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[9].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(30));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(30));
+    EXPECT_NEAR(replay->scenarioState.sim_time, 8.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[5].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[9].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[2].time_, 7.2, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 8.0, 1E-3);
+
+    replay->MoveToTime(15.0);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    EXPECT_NEAR(replay->scenarioState.sim_time, 15.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[5].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[9].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[2].time_, 7.2, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 15.0, 1E-3);
 }
 
 TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
 {
 
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/speed_change.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/speed_change.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -462,33 +471,34 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     SE_Close();
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
-    ASSERT_EQ(replay->pkgs_.size(), 3206);
+    ASSERT_EQ(replay->pkgs_.size(), 3211);
 
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     replay->MoveToTime(18);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.150000255554914); // pos
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 17.200000256299973); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.200000256299973); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 17.250000257045031); // speed
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 
     replay->MoveToTime(19.5);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.150000255554914); // pos
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 17.200000256299973); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 17.200000256299973); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 17.250000257045031); // speed
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 
     replay->MoveToTime(21);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 20.950000312179327); // pos
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 20.950000312179327); // speed
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, 21.000000312924385); // pos
+    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 21.000000312924385); // speed
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
+
 
 }
 
@@ -496,7 +506,7 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
 {
 
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_file0.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_file0.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -509,7 +519,7 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     SE_Close();
 
     const char* args1[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "new_file1.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "new_file1.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args1) / sizeof(char*), args1), 0);
@@ -521,41 +531,54 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
 
     std::string currentPath = std::filesystem::current_path();
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(currentPath, "new_file", "");
-    ASSERT_EQ(replay->pkgs_.size(), 5504);
+    ASSERT_EQ(replay->pkgs_.size(), 5509);
 
-    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
-    replay->MoveToTime(replay->GetTimeFromCnt(15));
+    replay->MoveToTime(2.0);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[6].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[11].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(15));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(15));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[6].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[11].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[2].time_, replay->GetTimeFromCnt(15));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[7].time_, replay->GetTimeFromCnt(15));
+    EXPECT_NEAR(replay->scenarioState.sim_time, 2.00, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[6].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[11].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[2].time_, 2.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 2.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[6].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[11].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[2].time_, 2.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[7].time_, 2.0, 1E-3);
 
-    replay->MoveToTime(replay->GetTimeFromCnt(30));
+    replay->MoveToTime(8.0);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[5].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[9].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, replay->GetTimeFromCnt(30));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[7].time_, replay->GetTimeFromCnt(30));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[5].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[9].time_, replay->GetTimeFromCnt(1));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[2].time_, replay->GetTimeFromCnt(30));
-    ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[1].pkgs[7].time_, replay->GetTimeFromCnt(30));
+    EXPECT_NEAR(replay->scenarioState.sim_time, 8.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[5].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[9].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[2].time_, 7.2, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 8.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[5].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[9].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[2].time_, 7.2, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[7].time_, 8.0, 1E-3);
+
+    replay->MoveToTime(15.0);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    EXPECT_NEAR(replay->scenarioState.sim_time, 15.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[5].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[9].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[2].time_, 7.2, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 15.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[5].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[9].time_, 0.0, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[2].time_, 7.2, 1E-3);
+    EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[7].time_, 15.0, 1E-3);
 }
 
 TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 {
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/timing_scenario_with_restarts.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.1"};
-
-    SE_AddPath("../../../resources/models");
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/timing_scenario_with_restarts.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.1"};
+    SE_AddPath("../../resources/xosc");
+    SE_AddPath("../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     while (SE_GetQuitFlag() == 0)
@@ -595,6 +618,8 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
     // with show restart
     replay->SetShowRestart(true);
     replay->GetRestartTimes();
+
+
 
     ASSERT_EQ(replay->restartTimes.size(), 2);
     ASSERT_EQ(replay->restartTimes[0].restart_index_, 2158);
@@ -692,6 +717,47 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 
     replay->MoveToTime(replay->restartTimes[1].next_time_); // shall go next frame
     ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, replay->restartTimes[1].next_time_);
+
+}
+
+
+TEST(TestDatSimpleScenario, TestGoThroughEachTimeFrame)
+{
+    const char* args[] =
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
+    SE_AddPath("../../resources/xosc");
+    SE_AddPath("../../resources/models");
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    while (SE_GetQuitFlag() == 0)
+    {
+        SE_StepDT(0.5f);
+    }
+
+    SE_Close();
+
+    std::filesystem::path cwd = std::filesystem::current_path();
+    std::cout << cwd << std::endl;
+
+    scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
+    ASSERT_EQ(replay->pkgs_.size(), 341);
+
+    ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    replay->MoveToTime(0.0);
+    EXPECT_NEAR(replay->scenarioState.sim_time, 0.0, 1E-3);
+
+    replay->MoveToTime(0.5);
+    EXPECT_NEAR(replay->scenarioState.sim_time, 0.5, 1E-3);
+
+    replay->MoveToTime(3, false, true); // go through each frame
+    EXPECT_NEAR(replay->scenarioState.sim_time, 1, 1E-3);
+
+    replay->MoveToTime(1.5, false, true); // go through each frame
+    EXPECT_NEAR(replay->scenarioState.sim_time, 1.5, 1E-3);
+
+    replay->MoveToTime(3, false, true); // go through each frame
+    EXPECT_NEAR(replay->scenarioState.sim_time, 2.0, 1E-3);
 
 }
 

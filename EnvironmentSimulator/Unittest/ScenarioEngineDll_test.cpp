@@ -1947,6 +1947,7 @@ TEST(OSILaneParing, Signs)
     SE_Close();
 }
 
+#if (0)
 static void ReadDat(std::string filename, std::vector<scenarioengine::ReplayEntry>& entries)
 {
     std::ifstream             file;
@@ -1970,7 +1971,7 @@ static void ReadDat(std::string filename, std::vector<scenarioengine::ReplayEntr
     }
     file.close();
 }
-
+#endif
 TEST(ExternalControlTest, TestTimings)
 {
     // This test case imitates a custom application controlling the Ego vehicle

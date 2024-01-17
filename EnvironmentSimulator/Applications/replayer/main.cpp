@@ -254,7 +254,7 @@ int ParseEntities(viewer::Viewer* viewer, Replay* player)
                 }
             }
         }
-        
+
         if (player->GetTime() > player->GetStopTime() - SMALL_NUMBER)
         {
             break;  // reached end of file
@@ -1006,13 +1006,13 @@ int main(int argc, char** argv)
                         3.6 *  player->GetSpeed(scenarioEntity[static_cast<unsigned int>(index)].id),
                         player->GetRoadId(scenarioEntity[static_cast<unsigned int>(index)].id),
                         player->GetLaneId(scenarioEntity[static_cast<unsigned int>(index)].id),
-                        static_cast<double>(fabs(sc->pos.offset)) < SMALL_NUMBER ? 0 : static_cast<double>(sc->pos.offset),
+                        fabs(sc->pos.offset) < SMALL_NUMBER ? 0 : sc->pos.offset,
                         static_cast<double>(sc->pos.s),
-                        static_cast<double>(sc->pos.x),
-                        static_cast<double>(sc->pos.y),
-                        static_cast<double>(sc->pos.h),
-                        static_cast<double>(sc->pos.x + sc->bounding_box.center_.x_ * cos(sc->pos.h)),
-                        static_cast<double>(sc->pos.y + sc->bounding_box.center_.x_ * sin(sc->pos.h)));
+                        sc->pos.x,
+                        sc->pos.y,
+                        sc->pos.h,
+                        sc->pos.x + static_cast<double>(sc->bounding_box.center_.x_) * cos(sc->pos.h),
+                        sc->pos.y + static_cast<double>(sc->bounding_box.center_.x_) * sin(sc->pos.h));
                 sc->entityModel->on_screen_info_.osg_text_->setText(sc->entityModel->on_screen_info_.string_);
 
                 if (index == viewer->currentCarInFocus_)
@@ -1030,11 +1030,11 @@ int main(int argc, char** argv)
                             player->scenarioState.odometer,
                             player->GetRoadId(scenarioEntity[static_cast<unsigned int>(index)].id),
                             player->GetLaneId(scenarioEntity[static_cast<unsigned int>(index)].id),
-                            static_cast<double>(fabs(sc->pos.offset)) < SMALL_NUMBER ? 0 : static_cast<double>(sc->pos.offset),
+                            fabs(sc->pos.offset) < SMALL_NUMBER ? 0 : sc->pos.offset,
                             static_cast<double>(sc->pos.s),
-                            static_cast<double>(sc->pos.x),
-                            static_cast<double>(sc->pos.y),
-                            static_cast<double>(sc->pos.h),
+                            sc->pos.x,
+                            sc->pos.y,
+                            sc->pos.h,
                             time_scale);
                     viewer->SetInfoText(info_str_buf);
                 }
@@ -1069,7 +1069,7 @@ int main(int argc, char** argv)
                                     double rel_speed = abs(player->GetSpeed(scenarioEntity[0].id) -
                                                         player->GetSpeed(scenarioEntity[i].id)) *
                                                     3.6;
-                                    double rel_angle = static_cast<double>(scenarioEntity[0].pos.h - scenarioEntity[i].pos.h) * 180.0 / M_PI;
+                                    double rel_angle = (scenarioEntity[0].pos.h - scenarioEntity[i].pos.h) * 180.0 / M_PI;
                                     LOG("Collision between %d and %d at time %.2f.\n- Relative speed %.2f km/h\n- Angle %.2f degrees (ego to target)",
                                         0,
                                         i,
