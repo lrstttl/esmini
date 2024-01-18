@@ -29,17 +29,15 @@ int main(int argc, char** argv)
 
     SE_Options opt;
     opt.AddOption("file", "Simulation recording data file (.dat)", "filename");
-    opt.AddOption("time_stamps", "log the timesteps only in dat file");
-    opt.AddOption("minimum_timeStep", "Which is calculated by program, use minimum time step in ms");
-    opt.AddOption("mixed", "timesteps in dat file and also minimum time step samples");
-    opt.AddOption("fixed_timeStep", "use fixed time step in ms");
+    opt.AddOption("time_mode", "control timestamps in the csv (original, min_step, mixed)", "mode", "original");
+    opt.AddOption("time_step", "use fixed time step (ms) - overrides time_mode", "time_step", "0.05");
 
     enum class mode
     {
-        TIME_STAMPS = 0, // default
-        MINIMUM_TIME_STEP = 1,
+        ORIGINAL = 0, // default
+        MIN_STEP = 1,
         MIXED = 2,
-        FIXED_TIME_STEP = 3
+        TIME_STEP = 3 // 0.05 default step time
 
     };
 
@@ -50,7 +48,7 @@ int main(int argc, char** argv)
     std::setlocale(LC_ALL, "C.UTF-8");
 
     mode log_mode;
-    log_mode = mode::TIME_STAMPS;
+    log_mode = mode::ORIGINAL;
 
     if (opt.ParseArgs(argc, argv) != 0 || argc < 1)
     {
@@ -87,84 +85,43 @@ int main(int argc, char** argv)
 
     double delta_time_step = player->deltaTime_;
 
-    if (opt.GetOptionSet("time_stamps"))
+    if (opt.GetOptionSet("time_mode"))
     {
-        log_mode = mode::TIME_STAMPS;
-    }
-
-    if (opt.GetOptionSet("minimum_timeStep"))
-    {
-        log_mode = mode::MINIMUM_TIME_STEP;
-    }
-
-    if (opt.GetOptionSet("mixed"))
-    {
-        log_mode = mode::MIXED;
-    }
-
-    if (opt.GetOptionSet("fixed_timeStep"))
-    {
-        std::string fixed_timeStep_str = opt.GetOptionArg("fixed_timeStep");
-        if (!fixed_timeStep_str.empty())
+        std::string time_mode_str = opt.GetOptionArg("time_mode");
+        if (!time_mode_str.empty())
         {
-            log_mode = mode::FIXED_TIME_STEP;
-            delta_time_step = 1E-3 * strtod(fixed_timeStep_str);
+            if (time_mode_str == "original" )
+            {
+                log_mode = mode::ORIGINAL;
+            }
+            else if (time_mode_str == "min_step" )
+            {
+                log_mode = mode::MIN_STEP;
+            }
+            else if (time_mode_str == "mixed" )
+            {
+                log_mode = mode::MIXED;
+            }
+            else
+            {
+                LOG("Unsupported time mode: %s - using default (Original)", time_mode_str.c_str());
+            }
+        }
+    }
+
+    if (opt.GetOptionSet("time_step"))
+    {
+        std::string timeStep_str = opt.GetOptionArg("time_step");
+        if (!timeStep_str.empty())
+        {
+            log_mode = mode::TIME_STEP;
+            delta_time_step = strtod(timeStep_str);
         }
         else
         {
             printf("Failed to provide fixed time step, Logging with default mode\n");
         }
     }
-
-
-#if (0)
-
-    if (argc < 1)
-    {
-        printf("Usage: %s <filename>\n", argv[0]);
-        return -1;
-    }
-    std::unique_ptr<Replay> player;
-    static char line[MAX_LINE_LEN];
-
-    std::setlocale(LC_ALL, "C.UTF-8");
-
-    if (argc < 1)
-    {
-        printf("Usage: %s <filename>\n", argv[0]);
-        return -1;
-    }
-
-    std::string   filename = FileNameWithoutExtOf(argv[1]) + ".csv";
-    std::ofstream file;
-    file.open(filename);
-    if (!file.is_open())
-    {
-        printf("Failed to create file %s\n", filename.c_str());
-        return -1;
-    }
-
-    bool use_default_setting = true;
-    if (argc > 2)
-    {
-        std::string   option = argv[2];
-        if (std::strcmp(option.c_str(), "use_delta_time") == 0)
-        {
-            use_default_setting = false;
-        }
-    }
-    // Create replayer object for parsing the binary data file
-    try
-    {
-        player = std::make_unique<Replay>(argv[1]);
-    }
-    catch (const std::exception& e)
-    {
-        printf("%s", e.what());
-        return -1;
-    }
-
-#endif
 
     datLogger::DatHdr        headerNew_;
     headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(player->header_.content);
@@ -180,7 +137,7 @@ int main(int argc, char** argv)
     file << line;
     player->SetShowRestart(true); // include restart details always in csv files
 
-    if (log_mode == mode::MINIMUM_TIME_STEP || log_mode == mode::FIXED_TIME_STEP)
+    if (log_mode == mode::MIN_STEP || log_mode == mode::TIME_STEP)
     { // delta time setting, write for each delta time+sim time. Will skips original time frame
         while (true)
         {
@@ -192,7 +149,7 @@ int main(int argc, char** argv)
 
                 snprintf(line,
                         MAX_LINE_LEN,
-                        "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                        "%.10f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
                         player->scenarioState.sim_time,
                         obj_id,
                         name.c_str(),
@@ -225,7 +182,7 @@ int main(int argc, char** argv)
     }
     else if (log_mode == mode::MIXED)
     { // write for each delta time+sim time and also original time frame if available in between. Dont skip original time frame.
-        double perviousTime = SMALL_NUMBER;
+        double requestedTime = SMALL_NUMBER;
         while (true)
         {
             for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
@@ -263,19 +220,19 @@ int main(int argc, char** argv)
             }
             else
             {
-                if ( isEqualDouble(player->GetTime(), perviousTime) || isEqualDouble(player->GetTime(), player->GetStartTime()))
-                { // first time frame or until reach perviously requested delta time frame, dont move to next delta time frame
+                if ( isEqualDouble(player->GetTime(), requestedTime) || isEqualDouble(player->GetTime(), player->GetStartTime()))
+                { // first time frame or until reach requested time frame reached, dont move to next time frame
+                    requestedTime = player->GetTime() + player->deltaTime_;
                     player->MoveToTime(player->GetTime() + player->deltaTime_, false, true); // continue
                 }
                 else
                 {
-                    player->MoveToTime(perviousTime, false, true); // continue
+                    player->MoveToTime(requestedTime, false, true); // continue
                 }
             }
-            perviousTime = player->GetTime();
         }
     }
-    else if ( log_mode == mode::TIME_STAMPS)
+    else if ( log_mode == mode::ORIGINAL)
     { // default setting, write time stamps available only in dat file
         for (size_t j = 0; j < player->pkgs_.size(); j++)
         {

@@ -914,7 +914,7 @@ void Replay::CheckObjAvailabilityBackward()
 }
 
 
-int Replay::MoveToTime(double t, bool goToEnd, bool goThroughEachFrame)
+int Replay::MoveToTime(double t, bool goToEnd, bool stopAtEachFrame)
 {
     if ((t > stopTime_) || isEqualDouble(t, stopTime_))// go to stop time
     {
@@ -942,7 +942,7 @@ int Replay::MoveToTime(double t, bool goToEnd, bool goThroughEachFrame)
                 {
                     CheckObjAvailabilityForward();
                     UpdateCache();
-                    if (goThroughEachFrame)
+                    if (stopAtEachFrame)
                     {
                         break;
                     }
@@ -963,7 +963,7 @@ int Replay::MoveToTime(double t, bool goToEnd, bool goThroughEachFrame)
                 {
                     CheckObjAvailabilityBackward();
                     UpdateCache();
-                    if (goThroughEachFrame)
+                    if (stopAtEachFrame)
                     {
                         break;
                     }
@@ -981,7 +981,7 @@ int Replay::MoveToTime(double t, bool goToEnd, bool goThroughEachFrame)
     {
         scenarioState.sim_time = time_;
     }
-    else if ( !timeLapsed && goThroughEachFrame)
+    else if ( !timeLapsed && stopAtEachFrame)
     {
         scenarioState.sim_time = time_;
     }

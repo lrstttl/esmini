@@ -721,7 +721,7 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 }
 
 
-TEST(TestDatSimpleScenario, TestGoThroughEachTimeFrame)
+TEST(TestReplay, TestStopAtEachTimeFrame)
 {
     const char* args[] =
         {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
@@ -735,9 +735,6 @@ TEST(TestDatSimpleScenario, TestGoThroughEachTimeFrame)
     }
 
     SE_Close();
-
-    std::filesystem::path cwd = std::filesystem::current_path();
-    std::cout << cwd << std::endl;
 
     scenarioengine::Replay* replay = new scenarioengine::Replay("new_sim.dat");
     ASSERT_EQ(replay->pkgs_.size(), 341);
@@ -761,6 +758,29 @@ TEST(TestDatSimpleScenario, TestGoThroughEachTimeFrame)
 
 }
 
+TEST(TestReplay, TestMixedMode)
+{
+    const char* args[] =
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "new_mixed_sim.dat"};
+    SE_AddPath("../../resources/xosc");
+    SE_AddPath("../../resources/models");
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    while (SE_GetQuitFlag() == 0)
+    {
+        SE_StepDT(0.5f);
+    }
+
+    SE_Close();
+
+    std::filesystem::path cwd = std::filesystem::current_path();
+    std::cout << cwd << std::endl;
+
+    const char* args_new[] =
+        {"dat2csv", "--file", "new_mixed_sim.dat", "--time_mode", "mixed"};
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args_new) / sizeof(char*), args_new), 0);
+
+}
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

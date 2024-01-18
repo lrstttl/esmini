@@ -125,9 +125,9 @@ namespace scenarioengine
          Move to specified timestamp
          @param time_frame Timestamp
          @param goToEnd In case to go to end, Will be faster.
-         @param goThroughEachFrame Always fill cache for each time frame
+         @param stopAtEachFrame Always fill cache for each time frame
         */
-        int     MoveToTime(double time_frame, bool goToEnd = false, bool goThroughEachFrame = false);
+        int     MoveToTime(double time_frame, bool goToEnd = false, bool stopAtEachFrame = false);
         bool    MoveToNextFrame(double t);
         bool    MoveToPreviousFrame(double t);
         void    MoveToDeltaTime(double dt);
