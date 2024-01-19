@@ -6,8 +6,6 @@ import os
 NAME_LEN = 32
 VERSION = 2
 
-
-
 class CommonPkgHdr(ctypes.Structure):
     _fields_ = [
         ('id', ctypes.c_int),
@@ -16,7 +14,8 @@ class CommonPkgHdr(ctypes.Structure):
 
 class CommonPkg():
     def __init__(self):
-        self.hdr = None
+        self.id = None
+        self.content_size = None
         self.content = None
 
 class PkgTime(ctypes.Structure):
@@ -34,7 +33,6 @@ class PkgSpeed(ctypes.Structure):
         ('speed', ctypes.c_double),
     ]
 
-
 class PkgPositions(ctypes.Structure):
     _fields_ = [
         ('x', ctypes.c_double),
@@ -43,6 +41,70 @@ class PkgPositions(ctypes.Structure):
         ('h', ctypes.c_double),
         ('r', ctypes.c_double),
         ('p', ctypes.c_double),
+    ]
+
+class PkgModelId(ctypes.Structure):
+    _fields_ = [
+        ('model_id', ctypes.c_int),
+    ]
+
+class PkgObjType(ctypes.Structure):
+    _fields_ = [
+        ('obj_type', ctypes.c_int),
+    ]
+
+class PkgObjCategory(ctypes.Structure):
+    _fields_ = [
+        ('obj_category', ctypes.c_int),
+    ]
+class PkgCtrlType(ctypes.Structure):
+    _fields_ = [
+        ('ctrl_type', ctypes.c_int),
+    ]
+
+class PkgWheelAngle(ctypes.Structure):
+    _fields_ = [
+        ('wheel_angle', ctypes.c_double),
+    ]
+
+class PkgWheelRot(ctypes.Structure):
+    _fields_ = [
+        ('wheel_rot', ctypes.c_double),
+    ]
+
+class PkgScaleMode(ctypes.Structure):
+    _fields_ = [
+        ('scale_mode', ctypes.c_int),
+    ]
+
+class PkgVisibilityMode(ctypes.Structure):
+    _fields_ = [
+        ('visibility_mask', ctypes.c_int),
+    ]
+
+class PkgRoadId(ctypes.Structure):
+    _fields_ = [
+        ('road_id', ctypes.c_int),
+    ]
+
+class PkgLaneId(ctypes.Structure):
+    _fields_ = [
+        ('lane_id', ctypes.c_int),
+    ]
+
+class PkgPosOffset(ctypes.Structure):
+    _fields_ = [
+        ('pos_offset', ctypes.c_double),
+    ]
+
+class PkgPosT(ctypes.Structure):
+    _fields_ = [
+        ('pos_T', ctypes.c_double),
+    ]
+
+class PkgPosS(ctypes.Structure):
+    _fields_ = [
+        ('pos_s', ctypes.c_double),
     ]
 
 class PkgBB(ctypes.Structure):
@@ -54,6 +116,30 @@ class PkgBB(ctypes.Structure):
         ('length', ctypes.c_float),
         ('height', ctypes.c_float),
     ]
+class PkgId(Enum):
+    HEADER      = 11
+    TIME_SERIES = 12
+    OBJ_ID      = 13
+    MODEL_ID    = 14
+    POSITIONS   = 15
+    SPEED       = 16
+    OBJ_TYPE    = 17
+    OBJ_CATEGORY = 18
+    CTRL_TYPE   = 19
+    WHEEL_ANGLE = 20
+    WHEEL_ROT   = 21
+    BOUNDING_BOX = 22
+    SCALE_MODE = 23
+    VISIBILITY_MASK = 24
+    NAME = 25
+    ROAD_ID = 26
+    LANE_ID = 27
+    POS_OFFSET = 28
+    POS_T = 29
+    POS_S = 30
+    OBJ_DELETED = 31
+    OBJ_ADDED = 32
+    END_OF_SCENARIO = 33
 
 class ObjectStateStructDat(ctypes.Structure):
     _fields_ = [
@@ -92,60 +178,18 @@ class ObjectStateStructDat(ctypes.Structure):
         ("s", ctypes.c_float),
     ]
 
-class PkgId(Enum):
-    HEADER      = 11
-    TIME_SERIES = 12
-    OBJ_ID      = 13
-    MODEL_ID    = 14
-    POSITIONS   = 15
-    SPEED       = 16
-    OBJ_TYPE    = 17
-    OBJ_CATEGORY = 18
-    CTRL_TYPE   = 19
-    WHEEL_ANGLE = 20
-    WHEEL_ROT   = 21
-    BOUNDING_BOX = 22
-    SCALE_MODE = 23
-    VISIBILITY_MASK = 24
-    NAME = 25
-    ROAD_ID = 26
-    LANE_ID = 27
-    POS_OFFSET = 28
-    POS_T = 29
-    POS_S = 30
-    OBJ_DELETED = 31
-    OBJ_ADDED = 32
-    END_OF_SCENARIO = 33
+class objectState():
+    def __init__(self):
+        self.obj_id = None
+        self.obj_active = None
+        self.speed = None
+        self.pos = None
+        self.name = None
 
-class ObjState:
-    def __init__(self, obj_id: PkgObjId, active: bool, speed: PkgSpeed, pos: PkgPositions, model_id: int, obj_type: int, obj_category: int,
-                 ctrl_type: int, wheel_angle: float, wheel_rot: float, bounding_box: PkgBB, scale_mode: int,
-                 visibility_mask: int, name: str, road_id: int, lane_id: int, pos_offset: float, pos_t: float, pos_s: float) -> None:
-        self.obj_id = obj_id
-        self.active = active
-        self.speed = speed
-        self.pos = pos
-        self.model_id = model_id
-        self.obj_type = obj_type
-        self.obj_category = obj_category
-        self.ctrl_type = ctrl_type
-        self.wheel_angle = wheel_angle
-        self.wheel_rot = wheel_rot
-        self.bounding_box = bounding_box
-        self.scale_mode = scale_mode
-        self.visibility_mask = visibility_mask
-        self.name = name
-        self.road_id = road_id
-        self.lane_id = lane_id
-        self.pos_offset = pos_offset
-        self.pos_t = pos_t
-        self.pos_s = pos_s
-
-class CompleteObjectState:
-    def __init__(self, time: int, obj_states: list) -> None:
-        self.time = time
-        self.obj_states = obj_states
-
+class CompleteObjectState():
+    def __init__(self):
+        self.time = None
+        self.objectState_ = []
 
 class DATFile():
     def __init__(self, filename):
@@ -162,14 +206,17 @@ class DATFile():
         self.version = []
         self.odr_filename = []
         self.model_filename = []
-        self.labels = [field[0] for field in ObjectStateStructDat._fields_]
         self.pkgs = []
+        self.get_all_pkg()
+        self.CompleteObjectState_ = CompleteObjectState()
+        self.InitiateStates()
+        self.labels = [field[0] for field in ObjectStateStructDat._fields_]
 
-        # if (self.version != VERSION):
-        #     print('Version mismatch. {} is version {} while supported version is: {}'.format(
-        #         filename, self.version, VERSION)
-        #     )
-        #     exit(-1)
+        if (self.version.value != VERSION):
+            print('Version mismatch. {} is version {} while supported version is: {}'.format(
+                filename, self.version.value, VERSION)
+            )
+            exit(-1)
 
     def get_header_line(self):
         return 'Version: {}, OpenDRIVE: {}, 3DModel: {}'.format(
@@ -178,53 +225,163 @@ class DATFile():
                 self.model_filename
             )
     def get_all_pkg(self):
-        file_read = open(self.filename, 'rb')
-        stat = os.stat(file_read.name)
+        stat = os.stat(self.file.name)
         while True:
-            if file_read.tell() == stat.st_size:
+            if self.file.tell() == stat.st_size:
                 break # reach end of file
-            header_buffer = file_read.read(ctypes.sizeof(CommonPkgHdr))
+            header_buffer = self.file.read(ctypes.sizeof(CommonPkgHdr))
 
             header = CommonPkgHdr.from_buffer_copy(header_buffer)
             pkg = CommonPkg()
-            pkg.hdr.id = header.id
-            pkg.hdr.content_size = header.content_size
+            pkg.id = header.id
+            pkg.content_size = header.content_size
 
             if header.id == PkgId.HEADER.value:
-                version_buffer = file_read.read(ctypes.sizeof(ctypes.c_int))
+                version_buffer = self.file.read(ctypes.sizeof(ctypes.c_int))
                 self.version = ctypes.c_int.from_buffer_copy(version_buffer)
-                odr_size_buffer = file_read.read(ctypes.sizeof(ctypes.c_int))
+                odr_size_buffer = self.file.read(ctypes.sizeof(ctypes.c_int))
                 odr_size = ctypes.c_int.from_buffer_copy(odr_size_buffer)
-                odr_filename_bytes = file_read.read(odr_size.value)
+                odr_filename_bytes = self.file.read(odr_size.value)
                 self.odr_filename = odr_filename_bytes[:odr_size.value].decode('utf-8')
 
-                mdl_size_buffer = file_read.read(ctypes.sizeof(ctypes.c_int))
+                mdl_size_buffer = self.file.read(ctypes.sizeof(ctypes.c_int))
                 mdl_size = ctypes.c_int.from_buffer_copy(mdl_size_buffer)
-                mdl_filename_bytes = file_read.read(mdl_size.value)
+                mdl_filename_bytes = self.file.read(mdl_size.value)
                 self.mdl_filename = mdl_filename_bytes[:mdl_size.value].decode('utf-8')
-            elif header.id == PkgId.TIME_SERIES.value:
 
-                time_buffer = file_read.read(header.content_size)
-                t = PkgTime()
+            elif header.id == PkgId.TIME_SERIES.value:
+                time_buffer = self.file.read(header.content_size)
                 t = PkgTime.from_buffer_copy(time_buffer)
                 pkg.content = t
-                # pkg.content = ctypes.byref(t)
-                # pkg.content = ctypes.cast(t.time, ctypes.byref(ctypes.c_char))
-                # pkg.content = ctypes.c_char_p(ctypes.byref(t.time))
-                # Add the time package to the list
                 self.pkgs.append(pkg)
             elif header.id == PkgId.OBJ_ID.value:
-                obj_id_buffer = file_read.read(header.content_size)
-                time_series = PkgObjId.from_buffer_copy(obj_id_buffer)
+                obj_id_buffer = self.file.read(header.content_size)
+                obj_id = PkgObjId.from_buffer_copy(obj_id_buffer)
+                pkg.content = obj_id
+                self.pkgs.append(pkg)
             elif header.id == PkgId.OBJ_ADDED.value:
                 print (" obj added ")
+                self.pkgs.append(pkg)
             elif header.id == PkgId.SPEED.value:
-                speed_buffer = file_read.read(header.content_size)
+                speed_buffer = self.file.read(header.content_size)
                 speed = PkgSpeed.from_buffer_copy(speed_buffer)
+                pkg.content = speed
+                self.pkgs.append(pkg)
             elif header.id == PkgId.POSITIONS.value:
-                pos_buffer = file_read.read(header.content_size)
+                pos_buffer = self.file.read(header.content_size)
                 pos = PkgPositions.from_buffer_copy(pos_buffer)
-        file_read.close()
+                pkg.content = pos
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.NAME.value:
+                name_buffer = self.file.read(header.content_size)
+                name = name_buffer[:mdl_size.value].decode('utf-8')
+                pkg.content = name
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.MODEL_ID.value:
+                model_id_buffer = self.file.read(header.content_size)
+                model_id = PkgModelId.from_buffer_copy(model_id_buffer)
+                pkg.content = model_id
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.OBJ_TYPE.value:
+                obj_type_buffer = self.file.read(header.content_size)
+                obj_type = PkgObjType.from_buffer_copy(obj_type_buffer)
+                pkg.content = obj_type
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.OBJ_CATEGORY.value:
+                obj_category_buffer = self.file.read(header.content_size)
+                obj_category = PkgObjCategory.from_buffer_copy(obj_category_buffer)
+                pkg.content = obj_category
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.CTRL_TYPE.value:
+                ctrl_type_buffer = self.file.read(header.content_size)
+                ctrl_type = PkgCtrlType.from_buffer_copy(ctrl_type_buffer)
+                pkg.content = ctrl_type
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.WHEEL_ANGLE.value:
+                wheel_angle_buffer = self.file.read(header.content_size)
+                wheel_angle = PkgWheelAngle.from_buffer_copy(wheel_angle_buffer)
+                pkg.content = wheel_angle
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.WHEEL_ROT.value:
+                wheel_rot_buffer = self.file.read(header.content_size)
+                wheel_rot = PkgWheelRot.from_buffer_copy(wheel_rot_buffer)
+                pkg.content = wheel_rot
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.BOUNDING_BOX.value:
+                bb_buffer = self.file.read(header.content_size)
+                bb = PkgBB.from_buffer_copy(bb_buffer)
+                pkg.content = bb
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.SCALE_MODE.value:
+                scale_mode_buffer = self.file.read(header.content_size)
+                scale_mode = PkgScaleMode.from_buffer_copy(scale_mode_buffer)
+                pkg.content = scale_mode
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.VISIBILITY_MASK.value:
+                visibility_mask_buffer = self.file.read(header.content_size)
+                visibility_mask = PkgVisibilityMode.from_buffer_copy(visibility_mask_buffer)
+                pkg.content = visibility_mask
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.ROAD_ID.value:
+                road_id_buffer = self.file.read(header.content_size)
+                road_id = PkgRoadId.from_buffer_copy(road_id_buffer)
+                pkg.content = road_id
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.LANE_ID.value:
+                lane_id_buffer = self.file.read(header.content_size)
+                lane_id = PkgLaneId.from_buffer_copy(lane_id_buffer)
+                pkg.content = lane_id
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.POS_OFFSET.value:
+                pos_offset_buffer = self.file.read(header.content_size)
+                pos_offset = PkgPosOffset.from_buffer_copy(pos_offset_buffer)
+                pkg.content = pos_offset
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.POS_S.value:
+                pos_s_buffer = self.file.read(header.content_size)
+                pos_s = PkgPosOffset.from_buffer_copy(pos_s_buffer)
+                pkg.content = pos_s
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.POS_T.value:
+                pos_t_buffer = self.file.read(header.content_size)
+                pos_t = PkgPosOffset.from_buffer_copy(pos_t_buffer)
+                pkg.content = pos_t
+                self.pkgs.append(pkg)
+            elif header.id == PkgId.END_OF_SCENARIO.value:
+                print (" End of scenario ")
+                self.pkgs.append(pkg)
+            else:
+                print("unknown pkg")
+                ignore_buffer = self.file.read(header.content_size) # ignore it
+
+        self.file.close()
+
+    def InitiateStates(self):
+        first_time_frame = False
+        new_obj = False
+        objectState_ = objectState()
+        for pkg in self.pkgs:
+            if pkg.id == PkgId.TIME_SERIES.value:
+                if first_time_frame == True:
+                    break
+                self.CompleteObjectState_.time = pkg.content
+                first_time_frame = True
+            elif pkg.id == PkgId.OBJ_ID.value:
+                if new_obj == True:
+                    self.CompleteObjectState_.objectState_ .append(objectState_) # append for each object
+                    objectState_ = objectState()
+                    new_obj = False
+                objectState_.obj_id = pkg.content
+                new_obj = True
+            elif pkg.id == PkgId.OBJ_ADDED.value:
+                objectState_.obj_active = True
+            elif pkg.id == PkgId.SPEED.value:
+                objectState_.speed = pkg.content
+            elif pkg.id == PkgId.POSITIONS.value:
+                objectState_.pos = pkg.content
+            elif pkg.id == PkgId.NAME.value:
+                objectState_.name = pkg.content
+        self.CompleteObjectState_.objectState_ .append(objectState_)
 
 if __name__ == "__main__":
     # # Create the parser
@@ -240,6 +397,5 @@ if __name__ == "__main__":
 
     # dat = DATFile(args.filename)
     dat = DATFile('sim.dat')
-    dat.get_all_pkg()
     # dat.print_csv(args.extended, args.file_refs)
     # dat.close()
