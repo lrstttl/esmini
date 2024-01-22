@@ -14,117 +14,40 @@
  * This application uses the Replay class to read and binary recordings and print content in ascii format to stdout
  */
 
-#include <clocale>
-
-#include "Replay.hpp"
+#include "Dat2csv.hpp"
 #include "CommonMini.hpp"
 #include "DatLogger.hpp"
+#include "Replay.hpp"
 
-using namespace scenarioengine;
 
 #define MAX_LINE_LEN 2048
 
-int main(int argc, char** argv)
+Dat2csv::Dat2csv(std::string filename): log_mode_(log_mode::ORIGINAL), step_time_(0.05)
 {
+    printf("Inside constructor\n");
 
-    SE_Options opt;
-    opt.AddOption("file", "Simulation recording data file (.dat)", "filename");
-    opt.AddOption("time_mode", "control timestamps in the csv (original, min_step, mixed)", "mode", "original");
-    opt.AddOption("time_step", "use fixed time step (ms) - overrides time_mode", "time_step", "0.05");
+    std::string filename_ = FileNameWithoutExtOf(filename) + ".csv";
 
-    enum class mode
-    {
-        ORIGINAL = 0, // default
-        MIN_STEP = 1,
-        MIXED = 2,
-        TIME_STEP = 3 // 0.05 default step time
-
-    };
-
-
-    std::unique_ptr<Replay> player;
-    static char line[MAX_LINE_LEN];
-
-    std::setlocale(LC_ALL, "C.UTF-8");
-
-    mode log_mode;
-    log_mode = mode::ORIGINAL;
-
-    if (opt.ParseArgs(argc, argv) != 0 || argc < 1)
-    {
-        opt.PrintUsage();
-        return -1;
-    }
-
-    if (opt.GetOptionArg("file").empty())
-    {
-        printf("Missing file argument\n");
-        opt.PrintUsage();
-        return -1;
-    }
-
-    std::string   filename = FileNameWithoutExtOf(opt.GetOptionArg("file")) + ".csv";
-    std::ofstream file;
-    file.open(filename);
+    file.open(filename_);
     if (!file.is_open())
     {
-        printf("Failed to create file %s\n", filename.c_str());
-        return -1;
+        LOG_AND_QUIT("Failed to create file %s\n", filename_.c_str());
     }
 
     // Create replayer object for parsing the binary data file
     try
     {
-        player = std::make_unique<Replay>(opt.GetOptionArg("file"));
+        player = std::make_unique<scenarioengine::Replay>(filename);
     }
     catch (const std::exception& e)
     {
-        printf("%s", e.what());
-        return -1;
+        LOG_AND_QUIT("%s", e.what());
     }
 
-    double delta_time_step = player->deltaTime_;
-
-    if (opt.GetOptionSet("time_mode"))
-    {
-        std::string time_mode_str = opt.GetOptionArg("time_mode");
-        if (!time_mode_str.empty())
-        {
-            if (time_mode_str == "original" )
-            {
-                log_mode = mode::ORIGINAL;
-            }
-            else if (time_mode_str == "min_step" )
-            {
-                log_mode = mode::MIN_STEP;
-            }
-            else if (time_mode_str == "mixed" )
-            {
-                log_mode = mode::MIXED;
-            }
-            else
-            {
-                LOG("Unsupported time mode: %s - using default (Original)", time_mode_str.c_str());
-            }
-        }
-    }
-
-    if (opt.GetOptionSet("time_step"))
-    {
-        std::string timeStep_str = opt.GetOptionArg("time_step");
-        if (!timeStep_str.empty())
-        {
-            log_mode = mode::TIME_STEP;
-            delta_time_step = strtod(timeStep_str);
-        }
-        else
-        {
-            printf("Failed to provide fixed time step, Logging with default mode\n");
-        }
-    }
-
+    static char line[MAX_LINE_LEN];
     datLogger::DatHdr        headerNew_;
     headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(player->header_.content);
+
     // First output header and CSV labels
     snprintf(line,
              MAX_LINE_LEN,
@@ -137,8 +60,28 @@ int main(int argc, char** argv)
     file << line;
     player->SetShowRestart(true); // include restart details always in csv files
 
-    if (log_mode == mode::MIN_STEP || log_mode == mode::TIME_STEP)
+}
+
+Dat2csv::~Dat2csv()
+{
+    printf("Inside destructor\n");
+}
+
+void Dat2csv::CreateCSV()
+{
+    static char line[MAX_LINE_LEN];
+    if (log_mode_ == log_mode::MIN_STEP || log_mode_ == log_mode::TIME_STEP || log_mode_ == log_mode::TIME_STEP_MIXED)
     { // delta time setting, write for each delta time+sim time. Will skips original time frame
+        double requestedTime = SMALL_NUMBER;
+        double delta_time = SMALL_NUMBER;
+        if (log_mode_ == log_mode::MIN_STEP)
+        {
+            delta_time = player->deltaTime_;
+        }
+        else
+        {
+            delta_time = step_time_;
+        }
         while (true)
         {
             for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
@@ -149,7 +92,7 @@ int main(int argc, char** argv)
 
                 snprintf(line,
                         MAX_LINE_LEN,
-                        "%.10f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                        "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
                         player->scenarioState.sim_time,
                         obj_id,
                         name.c_str(),
@@ -169,18 +112,34 @@ int main(int argc, char** argv)
             {
                 break;  // reached end of file
             }
-            else if (delta_time_step < SMALL_NUMBER)
+            else if (delta_time < SMALL_NUMBER)
             {
                 LOG("Warning: Unexpected delta time zero found! Can't process remaining part of the file");
                 break;
             }
             else
             {
-                player->MoveToTime(player->GetTime() + delta_time_step); // continue
+                if ( log_mode_ == log_mode::MIN_STEP || log_mode_ == log_mode::TIME_STEP)
+                {
+                    player->MoveToTime(player->GetTime() + delta_time); // continue
+                }
+                else
+                {
+                    if ( isEqualDouble(player->GetTime(), requestedTime) || isEqualDouble(player->GetTime(), player->GetStartTime()))
+                    { // first time frame or until reach requested time frame reached, dont move to next time frame
+                        requestedTime = player->GetTime() + delta_time;
+                        player->MoveToTime(player->GetTime() + delta_time, false, true); // continue
+                    }
+                    else
+                    {
+                        player->MoveToTime(requestedTime, false, true); // continue
+                    }
+                }
+
             }
         }
     }
-    else if (log_mode == mode::MIXED)
+    else if (log_mode_ == log_mode::MIN_STEP_MIXED)
     { // write for each delta time+sim time and also original time frame if available in between. Dont skip original time frame.
         double requestedTime = SMALL_NUMBER;
         while (true)
@@ -232,7 +191,7 @@ int main(int argc, char** argv)
             }
         }
     }
-    else if ( log_mode == mode::ORIGINAL)
+    else if ( log_mode_ == log_mode::ORIGINAL)
     { // default setting, write time stamps available only in dat file
         for (size_t j = 0; j < player->pkgs_.size(); j++)
         {
@@ -275,5 +234,4 @@ int main(int argc, char** argv)
         }
     }
     file.close();
-
 }

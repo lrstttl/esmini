@@ -9,6 +9,7 @@
 #include "esminiLib.hpp"
 #include "CommonMini.hpp"
 #include "DatLogger.hpp"
+#include "Dat2csv.hpp"
 #include "Replay.hpp"
 
 using namespace datLogger;
@@ -759,11 +760,11 @@ TEST(TestReplay, TestStopAtEachTimeFrame)
 
 }
 
-#if (0)
-TEST(TestReplay, TestMixedMode)
+
+TEST(TestDat2Csv, TestMixedMode)
 {
     const char* args[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "new_mixed_sim.dat"};
+        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "sim.dat"};
     SE_AddPath("../../resources/xosc");
     SE_AddPath("../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -784,7 +785,7 @@ TEST(TestReplay, TestMixedMode)
 
 }
 
-#endif
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
