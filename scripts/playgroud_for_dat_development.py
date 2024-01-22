@@ -79,7 +79,7 @@ class CompleteObjectState():
         self.time = None
         self.objectState_ = []
 
-file_read = open('sim.dat', 'rb')
+file_read = open('simple_scenario.dat', 'rb')
 stat = os.stat(file_read.name)
 pkgs = []
 while True:
@@ -130,7 +130,7 @@ while True:
         pkgs.append(pkg)
     elif header.id == PkgId.NAME.value:
         name_buffer = file_read.read(header.content_size)
-        name = name_buffer[:mdl_size.value].decode('utf-8')
+        name = name_buffer[:header.content_size].decode('utf-8')
         pkg.content = name
         pkgs.append(pkg)
 file_read.close()
@@ -161,6 +161,9 @@ for pkg in pkgs:
     if pkg.id == PkgId.NAME.value:
         objectState_.name = pkg.content
 CompleteObjectState_.objectState_ .append(objectState_)
+
+# change the Value
+CompleteObjectState_.objectState_[0].speed = 100
 print (" done ")
 
 

@@ -39,8 +39,8 @@ class PkgPositions(ctypes.Structure):
         ('y', ctypes.c_double),
         ('z', ctypes.c_double),
         ('h', ctypes.c_double),
-        ('r', ctypes.c_double),
         ('p', ctypes.c_double),
+        ('r', ctypes.c_double),
     ]
 
 class PkgModelId(ctypes.Structure):
@@ -182,9 +182,24 @@ class objectState():
     def __init__(self):
         self.obj_id = None
         self.obj_active = None
+        self.model_id = None
         self.speed = None
         self.pos = None
+        self.obj_type = None
+        self.obj_category = None
+        self.ctrl_type = None
+        self.wheel_angle = None
+        self.wheel_rot = None
+        self.bb = None
+        self.scale_mode = None
+        self.visibility_mask = None
         self.name = None
+        self.road_id = None
+        self.lane_id = None
+        self.pos_offset = None
+        self.pos_T = None
+        self.pos_S = None
+
 
 class CompleteObjectState():
     def __init__(self):
@@ -205,9 +220,14 @@ class DATFile():
         self.filename = filename
         self.version = []
         self.odr_filename = []
-        self.model_filename = []
+        self.mdl_filename = []
         self.pkgs = []
         self.get_all_pkg()
+        self.start_time = []
+        self.index = 0
+        self.stop_time = []
+        self.fill_time_details()
+        self.time = []
         self.CompleteObjectState_ = CompleteObjectState()
         self.InitiateStates()
         self.labels = [field[0] for field in ObjectStateStructDat._fields_]
@@ -218,11 +238,21 @@ class DATFile():
             )
             exit(-1)
 
+    def fill_time_details(self):
+        for pkg in self.pkgs:
+            if pkg.id == PkgId.TIME_SERIES.value:
+                self.start_time = pkg.content.time
+                break
+        for pkg in reversed(self.pkgs):
+            if pkg.id == PkgId.TIME_SERIES.value:
+                self.stop_time = pkg.content.time
+                break
+
     def get_header_line(self):
         return 'Version: {}, OpenDRIVE: {}, 3DModel: {}'.format(
-                self.version,
+                self.version.value,
                 self.odr_filename,
-                self.model_filename
+                self.mdl_filename,
             )
     def get_all_pkg(self):
         stat = os.stat(self.file.name)
@@ -243,11 +273,15 @@ class DATFile():
                 odr_size = ctypes.c_int.from_buffer_copy(odr_size_buffer)
                 odr_filename_bytes = self.file.read(odr_size.value)
                 self.odr_filename = odr_filename_bytes[:odr_size.value].decode('utf-8')
+                if isinstance(self.odr_filename, str) and len(self.odr_filename) != 0: # remove white space
+                    self.odr_filename = self.odr_filename.rstrip('\x00')
 
                 mdl_size_buffer = self.file.read(ctypes.sizeof(ctypes.c_int))
                 mdl_size = ctypes.c_int.from_buffer_copy(mdl_size_buffer)
                 mdl_filename_bytes = self.file.read(mdl_size.value)
                 self.mdl_filename = mdl_filename_bytes[:mdl_size.value].decode('utf-8')
+                if isinstance(self.mdl_filename, str) and len(self.mdl_filename) != 0: # remove white space
+                    self.mdl_filename = self.mdl_filename.rstrip('\x00')
 
             elif header.id == PkgId.TIME_SERIES.value:
                 time_buffer = self.file.read(header.content_size)
@@ -262,6 +296,9 @@ class DATFile():
             elif header.id == PkgId.OBJ_ADDED.value:
                 print (" obj added ")
                 self.pkgs.append(pkg)
+            elif header.id == PkgId.OBJ_DELETED.value:
+                print (" obj deleted ")
+                self.pkgs.append(pkg)
             elif header.id == PkgId.SPEED.value:
                 speed_buffer = self.file.read(header.content_size)
                 speed = PkgSpeed.from_buffer_copy(speed_buffer)
@@ -274,7 +311,7 @@ class DATFile():
                 self.pkgs.append(pkg)
             elif header.id == PkgId.NAME.value:
                 name_buffer = self.file.read(header.content_size)
-                name = name_buffer[:mdl_size.value].decode('utf-8')
+                name = name_buffer[:header.content_size].decode('utf-8')
                 pkg.content = name
                 self.pkgs.append(pkg)
             elif header.id == PkgId.MODEL_ID.value:
@@ -339,12 +376,12 @@ class DATFile():
                 self.pkgs.append(pkg)
             elif header.id == PkgId.POS_S.value:
                 pos_s_buffer = self.file.read(header.content_size)
-                pos_s = PkgPosOffset.from_buffer_copy(pos_s_buffer)
+                pos_s = PkgPosS.from_buffer_copy(pos_s_buffer)
                 pkg.content = pos_s
                 self.pkgs.append(pkg)
             elif header.id == PkgId.POS_T.value:
                 pos_t_buffer = self.file.read(header.content_size)
-                pos_t = PkgPosOffset.from_buffer_copy(pos_t_buffer)
+                pos_t = PkgPosT.from_buffer_copy(pos_t_buffer)
                 pkg.content = pos_t
                 self.pkgs.append(pkg)
             elif header.id == PkgId.END_OF_SCENARIO.value:
@@ -375,13 +412,165 @@ class DATFile():
                 new_obj = True
             elif pkg.id == PkgId.OBJ_ADDED.value:
                 objectState_.obj_active = True
+            elif pkg.id == PkgId.OBJ_DELETED.value:
+                objectState_.obj_active = False
+            elif pkg.id == PkgId.MODEL_ID.value:
+                objectState_.model_id =pkg.content
             elif pkg.id == PkgId.SPEED.value:
                 objectState_.speed = pkg.content
             elif pkg.id == PkgId.POSITIONS.value:
                 objectState_.pos = pkg.content
+            elif pkg.id == PkgId.OBJ_TYPE.value:
+                objectState_.obj_type = pkg.content
+            elif pkg.id == PkgId.OBJ_CATEGORY.value:
+                objectState_.obj_category = pkg.content
+            elif pkg.id == PkgId.CTRL_TYPE.value:
+                objectState_.ctrl_type = pkg.content
+            elif pkg.id == PkgId.WHEEL_ANGLE.value:
+                objectState_.wheel_angle = pkg.content
+            elif pkg.id == PkgId.WHEEL_ROT.value:
+                objectState_.wheel_rot = pkg.content
+            elif pkg.id == PkgId.BOUNDING_BOX.value:
+                objectState_.bb = pkg.content
+            elif pkg.id == PkgId.SCALE_MODE.value:
+                objectState_.scale_mode = pkg.content
+            elif pkg.id == PkgId.VISIBILITY_MASK.value:
+                objectState_.visibility_mask = pkg.content
             elif pkg.id == PkgId.NAME.value:
                 objectState_.name = pkg.content
+            elif pkg.id == PkgId.ROAD_ID.value:
+                objectState_.road_id = pkg.content
+            elif pkg.id == PkgId.LANE_ID.value:
+                objectState_.lane_id = pkg.content
+            elif pkg.id == PkgId.POS_OFFSET.value:
+                objectState_.pos_offset = pkg.content
+            elif pkg.id == PkgId.POS_T.value:
+                objectState_.pos_T = pkg.content
+            elif pkg.id == PkgId.POS_S.value:
+                objectState_.pos_S = pkg.content
         self.CompleteObjectState_.objectState_ .append(objectState_)
+
+    def get_labels_line_extended(self):
+        return 'time, id, name, x, y, z, h, p, r, roadId, laneId, offset, t, s, speed, wheel_angle, wheel_rot'
+
+    def get_labels_line(self):
+        return 'time, id, name, x, y, z, h, p, r, speed, wheel_angle, wheel_rot'
+
+    def save_csv(self, include_file_refs = True , extended = False):
+
+        csvfile = os.path.splitext(self.filename)[0] + '.csv'
+        try:
+            fcsv = open(csvfile, 'w')
+        except OSError:
+            print('ERROR: Could not open file {} for writing'.format(csvfile))
+            raise
+
+        # Save column headings / value types
+        if include_file_refs:
+            fcsv.write(self.get_header_line() + '\n')
+
+        if extended:
+            fcsv.write(self.get_labels_line_extended() + '\n')
+        else:
+            fcsv.write(self.get_labels_line() + '\n')
+
+        while(True):
+            for state in self.CompleteObjectState_.objectState_:
+                if extended:
+                    data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
+                            self.CompleteObjectState_.time.time,
+                            state.obj_id.id,
+                            state.name.rstrip('\x00'),
+                            state.pos.x,
+                            state.pos.y,
+                            state.pos.z,
+                            state.pos.h,
+                            state.pos.p,
+                            state.pos.r,
+                            state.road_id.road_id,
+                            state.lane_id.lane_id,
+                            state.pos_offset.pos_offset,
+                            state.pos_T.pos_T,
+                            state.pos_S.pos_s,
+                            state.speed.speed,
+                            state.wheel_angle.wheel_angle,
+                            state.wheel_rot.wheel_rot)
+                else:
+                    data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
+                            self.CompleteObjectState_.time.time,
+                            state.obj_id.id,
+                            state.name.rstrip('\x00'),
+                            state.pos.x,
+                            state.pos.y,
+                            state.pos.z,
+                            state.pos.h,
+                            state.pos.p,
+                            state.pos.r,
+                            state.speed.speed,
+                            state.wheel_angle.wheel_angle,
+                            state.wheel_rot.wheel_rot)
+                fcsv.write(data + '\n')
+            if self.CompleteObjectState_.time.time == self.stop_time:
+                break
+            self.moveToNextTime()
+            self.updateCache()
+        fcsv.close()
+
+    def moveToNextTime(self):
+        for i in range(self.index + 1, len(self.pkgs)):
+            if self.pkgs[i].id == PkgId.TIME_SERIES.value:
+                self.time_ = self.pkgs[i].content.time
+                self.index = i
+                self.CompleteObjectState_.time = self.pkgs[i].content
+                break
+
+    def updateCache(self):
+        for i in range(self.index + 1, len(self.pkgs)):
+            if self.pkgs[i].id == PkgId.TIME_SERIES.value:
+                break # next time frame, stop it
+            if self.pkgs[i].id == PkgId.OBJ_ID.value:
+                obj_id = self.pkgs[i].content.id
+                continue
+            for j in range(len(self.CompleteObjectState_.objectState_)):
+                if self.CompleteObjectState_.objectState_[j].obj_id.id != obj_id:
+                    continue    # obj id matched
+                elif self.pkgs[i].id == PkgId.OBJ_DELETED.value:
+                    self.CompleteObjectState_.objectState_[j].obj_active = False
+                elif self.pkgs[i].id == PkgId.MODEL_ID.value:
+                    self.CompleteObjectState_.objectState_[j].model_id =self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.SPEED.value:
+                    self.CompleteObjectState_.objectState_[j].speed = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.POSITIONS.value:
+                    self.CompleteObjectState_.objectState_[j].pos = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.OBJ_TYPE.value:
+                    self.CompleteObjectState_.objectState_[j].obj_type = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.OBJ_CATEGORY.value:
+                    self.CompleteObjectState_.objectState_[j].obj_category = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.CTRL_TYPE.value:
+                    self.CompleteObjectState_.objectState_[j].ctrl_type = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.WHEEL_ANGLE.value:
+                    self.CompleteObjectState_.objectState_[j].wheel_angle = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.WHEEL_ROT.value:
+                    self.CompleteObjectState_.objectState_[j].wheel_rot = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.BOUNDING_BOX.value:
+                    self.CompleteObjectState_.objectState_[j].bb = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.SCALE_MODE.value:
+                    self.CompleteObjectState_.objectState_[j].scale_mode = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.VISIBILITY_MASK.value:
+                    self.CompleteObjectState_.objectState_[j].visibility_mask = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.NAME.value:
+                    self.CompleteObjectState_.objectState_[j].name = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.ROAD_ID.value:
+                    self.CompleteObjectState_.objectState_[j].road_id = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.LANE_ID.value:
+                    self.CompleteObjectState_.objectState_[j].lane_id = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.POS_OFFSET.value:
+                    self.CompleteObjectState_.objectState_[j].pos_offset = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.POS_T.value:
+                    self.CompleteObjectState_.objectState_[j].pos_T = self.pkgs[i].content
+                elif self.pkgs[i].id == PkgId.POS_S.value:
+                    self.CompleteObjectState_.objectState_[j].pos_S = self.pkgs[i].content
+
 
 if __name__ == "__main__":
     # # Create the parser
@@ -398,4 +587,5 @@ if __name__ == "__main__":
     # dat = DATFile(args.filename)
     dat = DATFile('sim.dat')
     # dat.print_csv(args.extended, args.file_refs)
+    dat.save_csv(True)
     # dat.close()
