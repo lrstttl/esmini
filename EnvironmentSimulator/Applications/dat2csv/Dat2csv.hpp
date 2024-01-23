@@ -38,6 +38,16 @@ public:
 
     void CreateCSV();
 
+    void SetLogExtended( bool option)
+    {
+        extended = option;
+    }
+
+    void SetIncludeRefs(bool option)
+    {
+        include_refs = option;
+    }
+
     void SetLogMode( log_mode mode_)
     {
         log_mode_ = mode_;
@@ -51,6 +61,8 @@ public:
 private:
     log_mode log_mode_;
     double step_time_;
+    bool extended = false;
+    bool include_refs = true;
     std::ofstream file;
 
     std::unique_ptr<scenarioengine::Replay> player;

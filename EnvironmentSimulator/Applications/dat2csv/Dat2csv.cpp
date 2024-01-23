@@ -55,9 +55,21 @@ Dat2csv::Dat2csv(std::string filename): log_mode_(log_mode::ORIGINAL), step_time
              headerNew_.version,
              headerNew_.odrFilename.string,
              headerNew_.modelFilename.string);
-    file << line;
-    snprintf(line, MAX_LINE_LEN, "time, id, name, x, y, z, h, p, r, speed, wheel_angle, wheel_rot\n");
-    file << line;
+    if (include_refs)
+    {
+        if(!extended)
+        {
+            file << line;
+            snprintf(line, MAX_LINE_LEN, "time, id, name, x, y, z, h, p, r, speed, wheel_angle, wheel_rot\n");
+            file << line;
+        }
+        else
+        {
+            file << line;
+            snprintf(line, MAX_LINE_LEN, "time, id, name, x, y, z, h, p, r, roadId, laneId, offset, t, s, speed, wheel_angle, wheel_rot\n");
+            file << line;
+        }
+    }
     player->SetShowRestart(true); // include restart details always in csv files
 
 }
@@ -86,26 +98,56 @@ void Dat2csv::CreateCSV()
         {
             for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
             {
-                int obj_id = player->scenarioState.obj_states[i].id;
-                std::string name;
-                player->GetName(player->scenarioState.obj_states[i].id, name);
+                if ( player->scenarioState.obj_states[i].active == true) // only for active members may be its deleted
+                {
+                    int obj_id = player->scenarioState.obj_states[i].id;
+                    std::string name;
+                    player->GetName(player->scenarioState.obj_states[i].id, name);
+                    if(!extended)
+                    {
+                        snprintf(line,
+                                MAX_LINE_LEN,
+                                "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                                player->scenarioState.sim_time,
+                                obj_id,
+                                name.c_str(),
+                                player->GetX(player->scenarioState.obj_states[i].id),
+                                player->GetY(player->scenarioState.obj_states[i].id),
+                                player->GetZ(player->scenarioState.obj_states[i].id),
+                                player->GetH(player->scenarioState.obj_states[i].id),
+                                player->GetP(player->scenarioState.obj_states[i].id),
+                                player->GetR(player->scenarioState.obj_states[i].id),
+                                player->GetSpeed(player->scenarioState.obj_states[i].id),
+                                player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                                player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                        file << line;
+                    }
+                    else
+                    {
+                        snprintf(line,
+                                MAX_LINE_LEN,
+                                "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %d, %d, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                                player->scenarioState.sim_time,
+                                obj_id,
+                                name.c_str(),
+                                player->GetX(player->scenarioState.obj_states[i].id),
+                                player->GetY(player->scenarioState.obj_states[i].id),
+                                player->GetZ(player->scenarioState.obj_states[i].id),
+                                player->GetH(player->scenarioState.obj_states[i].id),
+                                player->GetP(player->scenarioState.obj_states[i].id),
+                                player->GetR(player->scenarioState.obj_states[i].id),
+                                player->GetRoadId(player->scenarioState.obj_states[i].id),
+                                player->GetLaneId(player->scenarioState.obj_states[i].id),
+                                player->GetPosOffset(player->scenarioState.obj_states[i].id),
+                                static_cast<double>(player->GetPosT(player->scenarioState.obj_states[i].id)),
+                                static_cast<double>(player->GetPosS(player->scenarioState.obj_states[i].id)),
+                                player->GetSpeed(player->scenarioState.obj_states[i].id),
+                                player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                                player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                        file << line;
+                    }
+                }
 
-                snprintf(line,
-                        MAX_LINE_LEN,
-                        "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
-                        player->scenarioState.sim_time,
-                        obj_id,
-                        name.c_str(),
-                        player->GetX(player->scenarioState.obj_states[i].id),
-                        player->GetY(player->scenarioState.obj_states[i].id),
-                        player->GetZ(player->scenarioState.obj_states[i].id),
-                        player->GetH(player->scenarioState.obj_states[i].id),
-                        player->GetP(player->scenarioState.obj_states[i].id),
-                        player->GetR(player->scenarioState.obj_states[i].id),
-                        player->GetSpeed(player->scenarioState.obj_states[i].id),
-                        player->GetWheelAngle(player->scenarioState.obj_states[i].id),
-                        player->GetWheelRot(player->scenarioState.obj_states[i].id));
-                file << line;
             }
 
             if (player->GetTime() > player->GetStopTime() - SMALL_NUMBER)
@@ -146,26 +188,55 @@ void Dat2csv::CreateCSV()
         {
             for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
             {
-                int obj_id = player->scenarioState.obj_states[i].id;
-                std::string name;
-                player->GetName(player->scenarioState.obj_states[i].id, name);
-
-                snprintf(line,
-                        MAX_LINE_LEN,
-                        "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
-                        player->scenarioState.sim_time,
-                        obj_id,
-                        name.c_str(),
-                        player->GetX(player->scenarioState.obj_states[i].id),
-                        player->GetY(player->scenarioState.obj_states[i].id),
-                        player->GetZ(player->scenarioState.obj_states[i].id),
-                        player->GetH(player->scenarioState.obj_states[i].id),
-                        player->GetP(player->scenarioState.obj_states[i].id),
-                        player->GetR(player->scenarioState.obj_states[i].id),
-                        player->GetSpeed(player->scenarioState.obj_states[i].id),
-                        player->GetWheelAngle(player->scenarioState.obj_states[i].id),
-                        player->GetWheelRot(player->scenarioState.obj_states[i].id));
-                file << line;
+                if ( player->scenarioState.obj_states[i].active == true) // only for active members may be its deleted
+                {
+                    int obj_id = player->scenarioState.obj_states[i].id;
+                    std::string name;
+                    player->GetName(player->scenarioState.obj_states[i].id, name);
+                    if(!extended)
+                    {
+                        snprintf(line,
+                                MAX_LINE_LEN,
+                                "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                                player->scenarioState.sim_time,
+                                obj_id,
+                                name.c_str(),
+                                player->GetX(player->scenarioState.obj_states[i].id),
+                                player->GetY(player->scenarioState.obj_states[i].id),
+                                player->GetZ(player->scenarioState.obj_states[i].id),
+                                player->GetH(player->scenarioState.obj_states[i].id),
+                                player->GetP(player->scenarioState.obj_states[i].id),
+                                player->GetR(player->scenarioState.obj_states[i].id),
+                                player->GetSpeed(player->scenarioState.obj_states[i].id),
+                                player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                                player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                        file << line;
+                    }
+                    else
+                    {
+                        snprintf(line,
+                                MAX_LINE_LEN,
+                                "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %d, %d, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                                player->scenarioState.sim_time,
+                                obj_id,
+                                name.c_str(),
+                                player->GetX(player->scenarioState.obj_states[i].id),
+                                player->GetY(player->scenarioState.obj_states[i].id),
+                                player->GetZ(player->scenarioState.obj_states[i].id),
+                                player->GetH(player->scenarioState.obj_states[i].id),
+                                player->GetP(player->scenarioState.obj_states[i].id),
+                                player->GetR(player->scenarioState.obj_states[i].id),
+                                player->GetRoadId(player->scenarioState.obj_states[i].id),
+                                player->GetLaneId(player->scenarioState.obj_states[i].id),
+                                player->GetPosOffset(player->scenarioState.obj_states[i].id),
+                                static_cast<double>(player->GetPosT(player->scenarioState.obj_states[i].id)),
+                                static_cast<double>(player->GetPosS(player->scenarioState.obj_states[i].id)),
+                                player->GetSpeed(player->scenarioState.obj_states[i].id),
+                                player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                                player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                        file << line;
+                    }
+                }
             }
 
             if (player->GetTime() > player->GetStopTime() - SMALL_NUMBER)
@@ -208,27 +279,55 @@ void Dat2csv::CreateCSV()
                 player->scenarioState.sim_time = timeTemp;
                 for (size_t i = 0; i < player->scenarioState.obj_states.size(); i++)
                 {
-                    int obj_id = player->scenarioState.obj_states[i].id;
-                    std::string name;
-                    player->GetName(player->scenarioState.obj_states[i].id, name);
-                    std::cout << "x-->" << obj_id << "-->"<< player->GetX(obj_id) << std::endl;
-
-                    snprintf(line,
-                            MAX_LINE_LEN,
-                            "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
-                            player->scenarioState.sim_time,
-                            obj_id,
-                            name.c_str(),
-                            player->GetX(obj_id),
-                            player->GetY(obj_id),
-                            player->GetZ(obj_id),
-                            player->GetH(obj_id),
-                            player->GetP(obj_id),
-                            player->GetR(obj_id),
-                            player->GetSpeed(obj_id),
-                            player->GetWheelAngle(obj_id),
-                            player->GetWheelRot(obj_id));
-                    file << line;
+                    if ( player->scenarioState.obj_states[i].active == true) // only for active members may be its deleted
+                    {
+                        int obj_id = player->scenarioState.obj_states[i].id;
+                        std::string name;
+                        player->GetName(player->scenarioState.obj_states[i].id, name);
+                        if(!extended)
+                        {
+                            snprintf(line,
+                                    MAX_LINE_LEN,
+                                    "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                                    player->scenarioState.sim_time,
+                                    obj_id,
+                                    name.c_str(),
+                                    player->GetX(obj_id),
+                                    player->GetY(obj_id),
+                                    player->GetZ(obj_id),
+                                    player->GetH(obj_id),
+                                    player->GetP(obj_id),
+                                    player->GetR(obj_id),
+                                    player->GetSpeed(obj_id),
+                                    player->GetWheelAngle(obj_id),
+                                    player->GetWheelRot(obj_id));
+                            file << line;
+                        }
+                        else
+                        {
+                            snprintf(line,
+                                    MAX_LINE_LEN,
+                                    "%.3f, %d, %s, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %d, %d, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n",
+                                    player->scenarioState.sim_time,
+                                    obj_id,
+                                    name.c_str(),
+                                    player->GetX(player->scenarioState.obj_states[i].id),
+                                    player->GetY(player->scenarioState.obj_states[i].id),
+                                    player->GetZ(player->scenarioState.obj_states[i].id),
+                                    player->GetH(player->scenarioState.obj_states[i].id),
+                                    player->GetP(player->scenarioState.obj_states[i].id),
+                                    player->GetR(player->scenarioState.obj_states[i].id),
+                                    player->GetRoadId(player->scenarioState.obj_states[i].id),
+                                    player->GetLaneId(player->scenarioState.obj_states[i].id),
+                                    player->GetPosOffset(player->scenarioState.obj_states[i].id),
+                                    static_cast<double>(player->GetPosT(player->scenarioState.obj_states[i].id)),
+                                    static_cast<double>(player->GetPosS(player->scenarioState.obj_states[i].id)),
+                                    player->GetSpeed(player->scenarioState.obj_states[i].id),
+                                    player->GetWheelAngle(player->scenarioState.obj_states[i].id),
+                                    player->GetWheelRot(player->scenarioState.obj_states[i].id));
+                            file << line;
+                        }
+                    }
                 }
             }
         }

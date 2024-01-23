@@ -10,9 +10,10 @@ int main(int argc, char** argv)
 {
     SE_Options opt;
     opt.AddOption("file", "Simulation recording data file (.dat)", "filename");
-    opt.AddOption("time_mode", "control timestamps in the csv (original, min_step, min_step_mixed)", "mode", "original");
+    opt.AddOption("extended", "add road coordinates");
+    opt.AddOption("file_refs", "include odr and model file references");
+    opt.AddOption("time_mode", "control timestamps in the csv (original, min_step, min_step_mixed, time_step, time_step_mixed)", "mode", "original");
     opt.AddOption("time_step", "use fixed time step (ms) - overrides time_mode", "time_step", "0.05");
-    opt.AddOption("time_step_mixed", "use fixed time step (ms) - overrides time_mode", "time_step_mixed", "0.05");
 
     std::setlocale(LC_ALL, "C.UTF-8");
 
@@ -43,6 +44,16 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    if (opt.GetOptionSet("extended"))
+    {
+        dat_to_csv->SetLogExtended(true);
+    }
+
+    if (opt.GetOptionSet("file_refs"))
+    {
+        dat_to_csv->SetIncludeRefs(true);
+    }
+
     log_mode log_mode_;
     if (opt.GetOptionSet("time_mode"))
     {
@@ -61,6 +72,14 @@ int main(int argc, char** argv)
             {
                 log_mode_ = log_mode::MIN_STEP_MIXED;
             }
+            else if ( time_mode_str == "time_step")
+            {
+                log_mode_ = log_mode::TIME_STEP;
+            }
+            else if (time_mode_str == "time_step_mixed")
+            {
+                log_mode_ = log_mode::TIME_STEP_MIXED;
+            }
             else
             {
                 LOG("Unsupported time mode: %s - using default (Original)", time_mode_str.c_str());
@@ -73,28 +92,12 @@ int main(int argc, char** argv)
         std::string timeStep_str = opt.GetOptionArg("time_step");
         if (!timeStep_str.empty())
         {
-            log_mode_ = log_mode::TIME_STEP;
             double delta_time_step = strtod(timeStep_str);
             dat_to_csv->SetStepTime(delta_time_step);
         }
         else
         {
-            printf("Failed to provide fixed time step, Logging with default mode\n");
-        }
-    }
-
-    if (opt.GetOptionSet("time_step_mixed"))
-    {
-        std::string timeStep_str = opt.GetOptionArg("time_step_mixed");
-        if (!timeStep_str.empty())
-        {
-            log_mode_ = log_mode::TIME_STEP_MIXED;
-            double delta_time_step = strtod(timeStep_str);
-            dat_to_csv->SetStepTime(delta_time_step);
-        }
-        else
-        {
-            printf("Failed to provide fixed time step, Logging with default mode\n");
+            printf("Failed to provide fixed time step, Logging with default step time 0.05 \n");
         }
     }
 
