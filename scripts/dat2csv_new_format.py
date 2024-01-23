@@ -1,6 +1,7 @@
 import argparse
 import ctypes
 from enum import Enum, auto
+import math
 import os
 
 NAME_LEN = 32
@@ -141,6 +142,14 @@ class PkgId(Enum):
     OBJ_ADDED = 32
     END_OF_SCENARIO = 33
 
+class Mode(Enum):
+    ORIGINAL = 0
+    MIN_STEP = 1
+    MIN_STEP_MIXED = 2
+    TIME_STEP = 3
+    TIME_STEP_MIXED = 4
+
+
 class ObjectStateStructDat(ctypes.Structure):
     _fields_ = [
 
@@ -221,13 +230,14 @@ class DATFile():
         self.version = []
         self.odr_filename = []
         self.mdl_filename = []
+        self.delta_time = 1e+10
         self.pkgs = []
         self.get_all_pkg()
         self.start_time = []
         self.index = 0
         self.stop_time = []
         self.fill_time_details()
-        self.time = []
+        self.time = self.start_time
         self.CompleteObjectState_ = CompleteObjectState()
         self.InitiateStates()
         self.labels = [field[0] for field in ObjectStateStructDat._fields_]
@@ -256,6 +266,7 @@ class DATFile():
             )
     def get_all_pkg(self):
         stat = os.stat(self.file.name)
+        previousTime_ = float("nan")
         while True:
             if self.file.tell() == stat.st_size:
                 break # reach end of file
@@ -288,6 +299,13 @@ class DATFile():
                 t = PkgTime.from_buffer_copy(time_buffer)
                 pkg.content = t
                 self.pkgs.append(pkg)
+                if not (t.time < 0) or not abs(self.delta_time - 1e+10) < 1e-6:
+                    if not math.isnan(previousTime_):
+                        if abs(t.time - previousTime_) < self.delta_time:
+                            self.delta_time = abs(t.time - previousTime_)
+
+                    previousTime_ = t.time
+
             elif header.id == PkgId.OBJ_ID.value:
                 obj_id_buffer = self.file.read(header.content_size)
                 obj_id = PkgObjId.from_buffer_copy(obj_id_buffer)
@@ -401,7 +419,7 @@ class DATFile():
             if pkg.id == PkgId.TIME_SERIES.value:
                 if first_time_frame == True:
                     break
-                self.CompleteObjectState_.time = pkg.content
+                self.CompleteObjectState_.time = pkg.content.time
                 first_time_frame = True
             elif pkg.id == PkgId.OBJ_ID.value:
                 if new_obj == True:
@@ -474,55 +492,138 @@ class DATFile():
         else:
             fcsv.write(self.get_labels_line() + '\n')
 
-        while(True):
-            for state in self.CompleteObjectState_.objectState_:
-                if extended:
-                    data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
-                            self.CompleteObjectState_.time.time,
-                            state.obj_id.id,
-                            state.name.rstrip('\x00'),
-                            state.pos.x,
-                            state.pos.y,
-                            state.pos.z,
-                            state.pos.h,
-                            state.pos.p,
-                            state.pos.r,
-                            state.road_id.road_id,
-                            state.lane_id.lane_id,
-                            state.pos_offset.pos_offset,
-                            state.pos_T.pos_T,
-                            state.pos_S.pos_s,
-                            state.speed.speed,
-                            state.wheel_angle.wheel_angle,
-                            state.wheel_rot.wheel_rot)
+        mode_ = Mode.TIME_STEP
+
+        if( mode_ == Mode.ORIGINAL):
+            while(True):
+                for state in self.CompleteObjectState_.objectState_:
+                    if extended:
+                        data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
+                                self.CompleteObjectState_.time,
+                                state.obj_id.id,
+                                state.name.rstrip('\x00'),
+                                state.pos.x,
+                                state.pos.y,
+                                state.pos.z,
+                                state.pos.h,
+                                state.pos.p,
+                                state.pos.r,
+                                state.road_id.road_id,
+                                state.lane_id.lane_id,
+                                state.pos_offset.pos_offset,
+                                state.pos_T.pos_T,
+                                state.pos_S.pos_s,
+                                state.speed.speed,
+                                state.wheel_angle.wheel_angle,
+                                state.wheel_rot.wheel_rot)
+                    else:
+                        data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
+                                self.CompleteObjectState_.time,
+                                state.obj_id.id,
+                                state.name.rstrip('\x00'),
+                                state.pos.x,
+                                state.pos.y,
+                                state.pos.z,
+                                state.pos.h,
+                                state.pos.p,
+                                state.pos.r,
+                                state.speed.speed,
+                                state.wheel_angle.wheel_angle,
+                                state.wheel_rot.wheel_rot)
+                    fcsv.write(data + '\n')
+                if abs(self.CompleteObjectState_.time - self.stop_time) < 1e-6:
+                    break
+                self.moveToNextTime()
+                self.CompleteObjectState_.time = self.time
+                self.updateCache()
+        else:
+            perviousTimeToMove = 1e-6
+            stopAtEachFrame = False
+            while(True):
+
+                if mode_ == Mode.MIN_STEP or mode_ == Mode.MIN_STEP_MIXED:
+                    timeToMove = self.CompleteObjectState_.time + self.delta_time
                 else:
-                    data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
-                            self.CompleteObjectState_.time.time,
-                            state.obj_id.id,
-                            state.name.rstrip('\x00'),
-                            state.pos.x,
-                            state.pos.y,
-                            state.pos.z,
-                            state.pos.h,
-                            state.pos.p,
-                            state.pos.r,
-                            state.speed.speed,
-                            state.wheel_angle.wheel_angle,
-                            state.wheel_rot.wheel_rot)
-                fcsv.write(data + '\n')
-            if self.CompleteObjectState_.time.time == self.stop_time:
-                break
-            self.moveToNextTime()
-            self.updateCache()
+                    timeToMove = self.CompleteObjectState_.time + 0.5 # will be taken from user
+
+                if timeToMove > self.stop_time: # set last time stamp
+                    timeToMove = self.stop_time
+
+                if mode_ == Mode.TIME_STEP_MIXED or mode_ == Mode.MIN_STEP_MIXED:
+                    stopAtEachFrame = True
+                    if ((self.IsEqual(perviousTimeToMove, self.CompleteObjectState_.time)) is not True and self.IsEqual(self.CompleteObjectState_.time, self.start_time) is not True): # use pervious time till it reaches, ignore start time
+                        timeToMove = perviousTimeToMove
+
+                for state in self.CompleteObjectState_.objectState_:
+                    if extended:
+                        data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
+                                self.CompleteObjectState_.time,
+                                state.obj_id.id,
+                                state.name.rstrip('\x00'),
+                                state.pos.x,
+                                state.pos.y,
+                                state.pos.z,
+                                state.pos.h,
+                                state.pos.p,
+                                state.pos.r,
+                                state.road_id.road_id,
+                                state.lane_id.lane_id,
+                                state.pos_offset.pos_offset,
+                                state.pos_T.pos_T,
+                                state.pos_S.pos_s,
+                                state.speed.speed,
+                                state.wheel_angle.wheel_angle,
+                                state.wheel_rot.wheel_rot)
+                    else:
+                        data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
+                                self.CompleteObjectState_.time,
+                                state.obj_id.id,
+                                state.name.rstrip('\x00'),
+                                state.pos.x,
+                                state.pos.y,
+                                state.pos.z,
+                                state.pos.h,
+                                state.pos.p,
+                                state.pos.r,
+                                state.speed.speed,
+                                state.wheel_angle.wheel_angle,
+                                state.wheel_rot.wheel_rot)
+                    fcsv.write(data + '\n')
+                if self.IsEqual(self.CompleteObjectState_.time, self.stop_time):
+                    break
+                self.MoveToTime(timeToMove, stopAtEachFrame)
+                perviousTimeToMove = timeToMove
+
         fcsv.close()
 
     def moveToNextTime(self):
         for i in range(self.index + 1, len(self.pkgs)):
             if self.pkgs[i].id == PkgId.TIME_SERIES.value:
-                self.time_ = self.pkgs[i].content.time
+                self.time = self.pkgs[i].content.time
                 self.index = i
-                self.CompleteObjectState_.time = self.pkgs[i].content
                 break
+
+    def MoveToTime(self, t, stopAtEachFrame = False):
+        while(True):
+            if ( self.IsEqual(self.CompleteObjectState_.time, t)): #equal
+                break
+            else:
+                previousTime_ = self.time
+                perviousIndex = self.index
+                self.moveToNextTime()
+                if( self.time > t + 1e-6): # gone past time
+                    self.time = previousTime_ # set the pervious time and index
+                    self.index = perviousIndex
+                    self.CompleteObjectState_.time = t
+                    break
+                else:
+                    self.CompleteObjectState_.time = self.time
+                    self.updateCache()
+                    if stopAtEachFrame:
+                        break
+
+    def IsEqual(self, a, b):
+        return (abs(a - b) < 1e-6)
 
     def updateCache(self):
         for i in range(self.index + 1, len(self.pkgs)):
@@ -531,6 +632,8 @@ class DATFile():
             if self.pkgs[i].id == PkgId.OBJ_ID.value:
                 obj_id = self.pkgs[i].content.id
                 continue
+            if self.pkgs[i].id == PkgId.END_OF_SCENARIO.value:
+                break
             for j in range(len(self.CompleteObjectState_.objectState_)):
                 if self.CompleteObjectState_.objectState_[j].obj_id.id != obj_id:
                     continue    # obj id matched
@@ -585,7 +688,7 @@ if __name__ == "__main__":
     # args = parser.parse_args()
 
     # dat = DATFile(args.filename)
-    dat = DATFile('sim.dat')
+    dat = DATFile('simple.dat')
     # dat.print_csv(args.extended, args.file_refs)
     dat.save_csv(True)
     # dat.close()
