@@ -54,7 +54,7 @@ int main(int argc, char** argv)
         dat_to_csv->SetIncludeRefs(true);
     }
 
-    log_mode log_mode_;
+    Dat2csv::log_mode log_mode_;
     if (opt.GetOptionSet("time_mode"))
     {
         std::string time_mode_str = opt.GetOptionArg("time_mode");
@@ -62,23 +62,23 @@ int main(int argc, char** argv)
         {
             if (time_mode_str == "original" )
             {
-                log_mode_ = log_mode::ORIGINAL;
+                log_mode_ = Dat2csv::log_mode::ORIGINAL;
             }
             else if (time_mode_str == "min_step" )
             {
-                log_mode_ = log_mode::MIN_STEP;
+                log_mode_ = Dat2csv::log_mode::MIN_STEP;
             }
             else if (time_mode_str == "min_step_mixed" )
             {
-                log_mode_ = log_mode::MIN_STEP_MIXED;
+                log_mode_ = Dat2csv::log_mode::MIN_STEP_MIXED;
             }
             else if ( time_mode_str == "time_step")
             {
-                log_mode_ = log_mode::TIME_STEP;
+                log_mode_ = Dat2csv::log_mode::TIME_STEP;
             }
             else if (time_mode_str == "time_step_mixed")
             {
-                log_mode_ = log_mode::TIME_STEP_MIXED;
+                log_mode_ = Dat2csv::log_mode::TIME_STEP_MIXED;
             }
             else
             {

@@ -4,12 +4,13 @@
 #include <chrono>
 #include <filesystem>
 #include <dirent.h>
+#include <unistd.h>
 
 #include "ScenarioEngine.hpp"
 #include "esminiLib.hpp"
 #include "CommonMini.hpp"
 #include "DatLogger.hpp"
-// #include "Dat2csv.hpp"
+#include "Dat2csv.hpp"
 #include "Replay.hpp"
 
 using namespace datLogger;
@@ -763,28 +764,193 @@ TEST(TestReplay, TestStopAtEachTimeFrame)
 
 TEST(TestDat2Csv, TestMixedMode)
 {
+
+    char current_dir[PATH_MAX];
+    if (getcwd(current_dir, sizeof(current_dir)) != nullptr) {
+        std::cout << "Current directory: " << current_dir << std::endl;
+    } else {
+        perror("getcwd");
+    }
+
     const char* args[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "sim.dat"};
-    SE_AddPath("../../resources/xosc");
-    SE_AddPath("../../resources/models");
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "sim.dat"};
+    SE_AddPath("../../../../resources/xosc");
+    SE_AddPath("../../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     while (SE_GetQuitFlag() == 0)
     {
-        SE_StepDT(0.5f);
+        SE_StepDT(0.01f);
     }
 
     SE_Close();
 
-    std::filesystem::path cwd = std::filesystem::current_path();
-    std::cout << cwd << std::endl;
+    std::unique_ptr<Dat2csv> dat_to_csv;
+    dat_to_csv = std::make_unique<Dat2csv>("sim.dat");
 
-    const char* args_new[] =
-        {"dat2csv", "--file", "new_mixed_sim.dat", "--time_mode", "mixed"};
-    ASSERT_EQ(SE_InitWithArgs(sizeof(args_new) / sizeof(char*), args_new), 0);
+    dat_to_csv->SetLogMode(Dat2csv::log_mode::ORIGINAL);
+    dat_to_csv->CreateCSV();
 
+    // Also check a few entries in the csv log file, focus on scenario controlled entity "Target"
+    std::vector<std::vector<std::string>> csv_original;
+    ASSERT_EQ(SE_ReadCSVFile("sim.csv", csv_original, 0), 0);
+    EXPECT_NEAR(std::stod(csv_original[2][0]), 0.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[2][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[3][0]), 4.020, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[3][3]), 25.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[4][0]), 8.340, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[4][3]), 50.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[5][0]), 10.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_original[5][3]), 50.0, 1E-3);
+
+
+    std::unique_ptr<Dat2csv> dat_to_csv1;
+    dat_to_csv1 = std::make_unique<Dat2csv>("sim.dat");
+
+    dat_to_csv1->SetLogMode(Dat2csv::log_mode::MIN_STEP);
+    dat_to_csv1->CreateCSV();
+
+    std::vector<std::vector<std::string>> csv_min_step;
+    ASSERT_EQ(SE_ReadCSVFile("sim.csv", csv_min_step, 0), 0);
+    EXPECT_NEAR(std::stod(csv_min_step[2][0]), 0.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[2][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[3][0]), 1.670, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[3][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[4][0]), 3.340, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[4][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[5][0]), 5.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[5][3]), 25.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[6][0]), 6.680, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[6][3]), 25.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[7][0]), 8.350, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[7][3]), 50.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[8][0]), 10.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step[8][3]), 50.0, 1E-3);
+
+
+    std::unique_ptr<Dat2csv> dat_to_csv2;
+    dat_to_csv2 = std::make_unique<Dat2csv>("sim.dat");
+
+    dat_to_csv2->SetLogMode(Dat2csv::log_mode::MIN_STEP_MIXED);
+    dat_to_csv2->CreateCSV();
+
+    std::vector<std::vector<std::string>> csv_min_step_mixed;
+    ASSERT_EQ(SE_ReadCSVFile("sim.csv", csv_min_step_mixed, 0), 0);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[2][0]), 0.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[2][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[3][0]), 1.670, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[3][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[4][0]), 3.340, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[4][3]), 10.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[5][0]), 4.020, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[5][3]), 25.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[6][0]), 5.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[6][3]), 25.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[7][0]), 6.680, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[7][3]), 25.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[8][0]), 8.340, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[8][3]), 50.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[9][0]), 8.350, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[9][3]), 50.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[10][0]), 10.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_min_step_mixed[10][3]), 50.0, 1E-3);
+
+    std::unique_ptr<Dat2csv> dat_to_csv3;
+    dat_to_csv3 = std::make_unique<Dat2csv>("sim.dat");
+
+    dat_to_csv3->SetLogMode(Dat2csv::log_mode::TIME_STEP);
+    dat_to_csv3->SetStepTime(1);
+    dat_to_csv3->CreateCSV();
+
+    std::vector<std::vector<std::string>> csv_time_step;
+    ASSERT_EQ(SE_ReadCSVFile("sim.csv", csv_time_step, 0), 0);
+    EXPECT_NEAR(std::stod(csv_time_step[2][0]), 0.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[2][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[3][0]), 1.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[3][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[4][0]), 2.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[4][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[5][0]), 3.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[5][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[6][0]), 4.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[6][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[7][0]), 5.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[7][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[8][0]), 6.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[8][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[9][0]), 7.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[9][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[10][0]), 8.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[10][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[11][0]), 9.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[11][3]), 50.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[12][0]), 10.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[12][3]), 50.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step[13][0]), 10.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step[13][3]), 50.0, 1E-3);
+
+    std::unique_ptr<Dat2csv> dat_to_csv4;
+    dat_to_csv4 = std::make_unique<Dat2csv>("sim.dat");
+
+    dat_to_csv4->SetLogMode(Dat2csv::log_mode::TIME_STEP_MIXED);
+    dat_to_csv4->SetStepTime(1);
+    dat_to_csv4->CreateCSV();
+
+    std::vector<std::vector<std::string>> csv_time_step_mixed;
+    ASSERT_EQ(SE_ReadCSVFile("sim.csv", csv_time_step_mixed, 0), 0);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[2][0]), 0.0, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[2][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[3][0]), 1.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[3][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[4][0]), 2.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[4][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[5][0]), 3.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[5][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[6][0]), 4.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[6][3]), 10.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[7][0]), 4.020, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[7][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[8][0]), 5.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[8][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[9][0]), 6.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[9][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[10][0]), 7.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[10][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[11][0]), 8.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[11][3]), 25.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[12][0]), 8.340, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[12][3]), 50.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[13][0]), 9.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[13][3]), 50.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[14][0]), 10.000, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[14][3]), 50.0, 1E-3);
+
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[15][0]), 10.010, 1E-3);
+    EXPECT_NEAR(std::stod(csv_time_step_mixed[15][3]), 50.0, 1E-3);
 }
-
 
 int main(int argc, char** argv)
 {

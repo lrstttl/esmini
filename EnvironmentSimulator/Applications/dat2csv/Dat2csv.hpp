@@ -19,22 +19,23 @@
 
 #include "Replay.hpp"
 
-enum class log_mode
-{
-    ORIGINAL = 0, // default
-    MIN_STEP = 1,
-    MIN_STEP_MIXED = 2,
-    TIME_STEP = 3, // 0.05 default step time.
-    TIME_STEP_MIXED = 4 // 0.05 default step time
-
-
-};
 
 class Dat2csv
 {
 public:
     Dat2csv(std::string filename);
     ~Dat2csv();
+
+    enum class log_mode
+    {
+        ORIGINAL = 0, // default
+        MIN_STEP = 1,
+        MIN_STEP_MIXED = 2,
+        TIME_STEP = 3, // 0.05 default step time.
+        TIME_STEP_MIXED = 4 // 0.05 default step time
+
+
+    };
 
     void CreateCSV();
 
@@ -48,7 +49,7 @@ public:
         include_refs = option;
     }
 
-    void SetLogMode( log_mode mode_)
+    void SetLogMode( Dat2csv::log_mode mode_)
     {
         log_mode_ = mode_;
     }
@@ -59,7 +60,7 @@ public:
     }
 
 private:
-    log_mode log_mode_;
+    Dat2csv::log_mode log_mode_;
     double step_time_;
     bool extended = false;
     bool include_refs = true;

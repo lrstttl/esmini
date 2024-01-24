@@ -76,7 +76,6 @@ Dat2csv::Dat2csv(std::string filename): log_mode_(log_mode::ORIGINAL), step_time
 
 Dat2csv::~Dat2csv()
 {
-    printf("Inside destructor\n");
 }
 
 void Dat2csv::CreateCSV()
