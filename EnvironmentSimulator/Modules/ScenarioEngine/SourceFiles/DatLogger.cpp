@@ -546,6 +546,7 @@ int DatLogger::AddObject( int obj_id)
             {
                 ObjState objState_;
                 objState_.obj_id_.obj_id = obj_id;
+                std::cout << "Obj id added-> " << obj_id << std::endl;
                 completeObjectState.obj_states.push_back(objState_);
                 ObjIdAdded objIdAdded;
                 objIdAdded.id = obj_id;
@@ -573,8 +574,9 @@ int DatLogger::deleteObject()
             pkg.hdr.content_size = 0;
             pkg.content = nullptr;
             writePackage(pkg);
-            completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
             SetObjIdAddPkgWritten(completeObjectState.obj_states[i].obj_id_.obj_id, false);
+            std::cout << "Obj id deleted-> " << completeObjectState.obj_states[i].obj_id_.obj_id << std::endl;
+            completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
         }
         else
         {

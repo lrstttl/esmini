@@ -98,6 +98,8 @@ namespace scenarioengine
 
         // new merge dat methods
         std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>> scenarioData;
+        // std::vector<std::pair<std::pair<std::string, bool>, std::vector<datLogger::CommonPkg>>> scenarioData;
+
         void BuildData();
         double GetLastTime();
         std::vector<int> objectIds;

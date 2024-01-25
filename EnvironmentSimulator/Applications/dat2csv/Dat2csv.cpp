@@ -24,8 +24,6 @@
 
 Dat2csv::Dat2csv(std::string filename): log_mode_(log_mode::ORIGINAL), step_time_(0.05)
 {
-    printf("Inside constructor\n");
-
     std::string filename_ = FileNameWithoutExtOf(filename) + ".csv";
 
     file.open(filename_);
@@ -70,7 +68,7 @@ Dat2csv::Dat2csv(std::string filename): log_mode_(log_mode::ORIGINAL), step_time
             file << line;
         }
     }
-    player->SetShowRestart(true); // include restart details always in csv files
+    // player->SetShowRestart(true); // include restart details always in csv files
 
 }
 

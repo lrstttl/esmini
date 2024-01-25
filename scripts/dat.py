@@ -1,6 +1,6 @@
 import argparse
 import ctypes
-from enum import Enum, auto
+from enum import Enum
 import math
 import os
 
@@ -328,6 +328,8 @@ class DATFile():
             elif header.id == PkgId.NAME.value:
                 name_buffer = self.file.read(header.content_size)
                 name = name_buffer[:header.content_size].decode('utf-8')
+                if isinstance(name, str) and len(name) != 0: # remove white space
+                    name = name.rstrip('\x00')
                 pkg.content = name
                 self.pkgs.append(pkg)
             elif header.id == PkgId.MODEL_ID.value:
@@ -420,6 +422,7 @@ class DATFile():
                 first_time_frame = True
             elif pkg.id == PkgId.OBJ_ID.value:
                 if new_obj == True:
+                    # print("object id added->", pkg.content.id)
                     self.CompleteObjectState_.objectState_ .append(objectState_) # append for each object
                     objectState_ = objectState()
                     new_obj = False
@@ -464,6 +467,7 @@ class DATFile():
             elif pkg.id == PkgId.POS_S.value:
                 objectState_.pos_S = pkg.content
         self.CompleteObjectState_.objectState_ .append(objectState_)
+        # print("object id added->", objectState_.obj_id.id)
 
     def get_labels_line_extended(self):
         return 'time, id, name, x, y, z, h, p, r, roadId, laneId, offset, t, s, speed, wheel_angle, wheel_rot'
@@ -473,6 +477,7 @@ class DATFile():
 
     def save_csv(self, include_file_refs = True , extended = False, mode = "original", step_time = 0.05):
 
+        # print("processing mode:", mode)
         csvfile = os.path.splitext(self.filename)[0] + '.csv'
         try:
             fcsv = open(csvfile, 'w')
@@ -509,7 +514,7 @@ class DATFile():
                             data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
                                     self.CompleteObjectState_.time,
                                     state.obj_id.id,
-                                    state.name.rstrip('\x00'),
+                                    state.name,
                                     state.pos.x,
                                     state.pos.y,
                                     state.pos.z,
@@ -528,7 +533,7 @@ class DATFile():
                             data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
                                     self.CompleteObjectState_.time,
                                     state.obj_id.id,
-                                    state.name.rstrip('\x00'),
+                                    state.name,
                                     state.pos.x,
                                     state.pos.y,
                                     state.pos.z,
@@ -568,7 +573,7 @@ class DATFile():
                             data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
                                     self.CompleteObjectState_.time,
                                     state.obj_id.id,
-                                    state.name.rstrip('\x00'),
+                                    state.name,
                                     state.pos.x,
                                     state.pos.y,
                                     state.pos.z,
@@ -587,7 +592,7 @@ class DATFile():
                             data = '{:.3f}, {}, {}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}, {:.3f}'.format(
                                     self.CompleteObjectState_.time,
                                     state.obj_id.id,
-                                    state.name.rstrip('\x00'),
+                                    state.name,
                                     state.pos.x,
                                     state.pos.y,
                                     state.pos.z,
@@ -639,15 +644,25 @@ class DATFile():
             if self.pkgs[i].id == PkgId.TIME_SERIES.value:
                 break # next time frame, stop it
             if self.pkgs[i].id == PkgId.OBJ_ID.value:
-                obj_id = self.pkgs[i].content.id
+                obj_id = self.pkgs[i].content
+                continue
+            if self.pkgs[i].id == PkgId.OBJ_ADDED.value: # new object added dynamically
+                objectState_ = objectState()
+                objectState_.obj_id = obj_id
+                objectState_.obj_active = True
+                self.CompleteObjectState_.objectState_ .append(objectState_)
+                # print("object id added->", obj_id.id)
                 continue
             if self.pkgs[i].id == PkgId.END_OF_SCENARIO.value:
                 break
             for j in range(len(self.CompleteObjectState_.objectState_)):
-                if self.CompleteObjectState_.objectState_[j].obj_id.id != obj_id:
+                if self.CompleteObjectState_.objectState_[j].obj_id.id != obj_id.id:
                     continue    # obj id matched
                 elif self.pkgs[i].id == PkgId.OBJ_DELETED.value:
                     self.CompleteObjectState_.objectState_[j].obj_active = False
+                    # print("object id-> deleted", self.CompleteObjectState_.objectState_[j].obj_id.id)
+                    self.CompleteObjectState_.objectState_.remove(self.CompleteObjectState_.objectState_[j]) # remove it for safe side
+                    break
                 elif self.pkgs[i].id == PkgId.MODEL_ID.value:
                     self.CompleteObjectState_.objectState_[j].model_id =self.pkgs[i].content
                 elif self.pkgs[i].id == PkgId.SPEED.value:
@@ -707,3 +722,6 @@ if __name__ == "__main__":
 
     dat = DATFile(args.filename)
     dat.save_csv(extended = True if args.extended else False, include_file_refs=args.file_refs, mode = args.time_mode, step_time =args.time_step)
+
+    # dat = DATFile('sim_swarm.dat')
+    # dat.save_csv()

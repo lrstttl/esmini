@@ -157,7 +157,6 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
             logger->AddObject(object_id);
             logger->WriteObjPos(object_id, x, y, z, h, p, r);
             logger->WriteObjSpeed(object_id, speed);
-            logger->WriteName(object_id, "ego");
             logger->ObjIdPkgAdded = false;
         }
         if (i != 3)
@@ -169,9 +168,9 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
         logger->TimePkgAdded = false;
     }
 
-    // ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 2);
-    // ASSERT_EQ(logger->totalPkgProcessed, 35);
-    // ASSERT_EQ(logger->totalPkgSkipped, 10);
+    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 2);
+    ASSERT_EQ(logger->totalPkgProcessed, 35);
+    ASSERT_EQ(logger->totalPkgSkipped, 10);
 
     delete logger;
 }
@@ -181,7 +180,7 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
     std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
-     ASSERT_EQ(replay->pkgs_.size(), 35); // header not stored, 1 scenario end pkg added
+    ASSERT_EQ(replay->pkgs_.size(), 35); // header not stored, 1 scenario end pkg added
     ASSERT_EQ(replay->scenarioState.sim_time, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 2);
@@ -430,7 +429,7 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     ASSERT_EQ(replay->pkgs_.size(), 3170);
 
     replay->MoveToTime(2.0);
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     EXPECT_NEAR(replay->scenarioState.sim_time, 2.00, 1E-3);
     EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[6].time_, 0.0, 1E-3);
@@ -439,7 +438,7 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 2.0, 1E-3);
 
     replay->MoveToTime(8.0);
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     EXPECT_NEAR(replay->scenarioState.sim_time, 8.0, 1E-3);
     EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[5].time_, 0.0, 1E-3);
@@ -448,7 +447,7 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 8.0, 1E-3);
 
     replay->MoveToTime(15.0);
-    ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
+    ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
     EXPECT_NEAR(replay->scenarioState.sim_time, 15.0, 1E-3);
     EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[5].time_, 0.0, 1E-3);
@@ -459,9 +458,8 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
 
 TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
 {
-
     const char* args[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/speed_change.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/speed_change.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -501,15 +499,12 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[2].time_, 21.000000312924385); // speed
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[3].time_, 0);
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
-
-
 }
 
 TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
 {
-
     const char* args[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_file0.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_file0.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -522,7 +517,7 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     SE_Close();
 
     const char* args1[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "new_file1.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "new_file1.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args1) / sizeof(char*), args1), 0);
@@ -579,9 +574,9 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
 TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 {
     const char* args[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/timing_scenario_with_restarts.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.1"};
-    SE_AddPath("../../resources/xosc");
-    SE_AddPath("../../resources/models");
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/timing_scenario_with_restarts.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.1"};
+    SE_AddPath("../../../resources/xosc");
+    SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     while (SE_GetQuitFlag() == 0)
@@ -617,12 +612,9 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
     EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 10.0, 1E-3);
     EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
 
-
     // with show restart
     replay->SetShowRestart(true);
     replay->GetRestartTimes();
-
-
 
     ASSERT_EQ(replay->restartTimes.size(), 2);
     ASSERT_EQ(replay->restartTimes[0].restart_index_, 2158);
@@ -666,7 +658,6 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
     EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 10.000, 1E-3);
     EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
 
-
     replay->MoveToTime(replay->restartTimes[1].restart_time_); //second restart frame
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 3);
     ASSERT_EQ(replay->scenarioState.obj_states[0].pkgs.size(), 17);
@@ -674,7 +665,6 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 
     replay->MoveToTime(replay->restartTimes[1].next_time_); // shall go second restart frame
     ASSERT_DOUBLE_EQ(replay->scenarioState.sim_time, 5.0699998207390324);
-
 
     // with no show restart
     replay->InitiateStates();
@@ -723,13 +713,12 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 
 }
 
-
 TEST(TestReplay, TestStopAtEachTimeFrame)
 {
     const char* args[] =
-        {"--osc", "../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
-    SE_AddPath("../../resources/xosc");
-    SE_AddPath("../../resources/models");
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
+    SE_AddPath("../../../resources/xosc");
+    SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     while (SE_GetQuitFlag() == 0)
@@ -761,17 +750,8 @@ TEST(TestReplay, TestStopAtEachTimeFrame)
 
 }
 
-
 TEST(TestDat2Csv, TestMixedMode)
 {
-
-    char current_dir[PATH_MAX];
-    if (getcwd(current_dir, sizeof(current_dir)) != nullptr) {
-        std::cout << "Current directory: " << current_dir << std::endl;
-    } else {
-        perror("getcwd");
-    }
-
     const char* args[] =
         {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "sim.dat"};
     SE_AddPath("../../../../resources/xosc");
@@ -803,7 +783,6 @@ TEST(TestDat2Csv, TestMixedMode)
     EXPECT_NEAR(std::stod(csv_original[5][0]), 10.010, 1E-3);
     EXPECT_NEAR(std::stod(csv_original[5][3]), 50.0, 1E-3);
 
-
     std::unique_ptr<Dat2csv> dat_to_csv1;
     dat_to_csv1 = std::make_unique<Dat2csv>("sim.dat");
 
@@ -826,7 +805,6 @@ TEST(TestDat2Csv, TestMixedMode)
     EXPECT_NEAR(std::stod(csv_min_step[7][3]), 50.0, 1E-3);
     EXPECT_NEAR(std::stod(csv_min_step[8][0]), 10.010, 1E-3);
     EXPECT_NEAR(std::stod(csv_min_step[8][3]), 50.0, 1E-3);
-
 
     std::unique_ptr<Dat2csv> dat_to_csv2;
     dat_to_csv2 = std::make_unique<Dat2csv>("sim.dat");

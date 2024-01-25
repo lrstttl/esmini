@@ -49,9 +49,21 @@ int main(int argc, char** argv)
         dat_to_csv->SetLogExtended(true);
     }
 
+
     if (opt.GetOptionSet("file_refs"))
     {
-        dat_to_csv->SetIncludeRefs(true);
+        std::string file_refs_str = opt.GetOptionArg("file_refs");
+        if (!file_refs_str.empty())
+        {
+            if (file_refs_str == "false")
+            {
+                dat_to_csv->SetIncludeRefs(false);
+            }
+            else
+            {
+                dat_to_csv->SetIncludeRefs(true);
+            }
+        }
     }
 
     Dat2csv::log_mode log_mode_;
