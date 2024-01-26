@@ -232,74 +232,16 @@ namespace datLogger
                 pkg.hdr.content_size = 0;
                 pkg.content = nullptr;
                 writePackage(pkg);
-                totalPkgReceived += 1;
 
                 data_file_.flush();
                 data_file_.close();
-
-                // std::cout << "Total Package Received: " << totalPkgReceived << std::endl;
-                // std::cout << "Total Package logged: " << totalPkgProcessed << std::endl;
-                // std::cout << "Total Package Skipped: " << totalPkgSkipped << std::endl;
-
-                // std::cout << "LOG Summary: " << std::endl;
-                // std::cout << "Total time Package " << timePkgs << std::endl;
-                // std::cout << "Total id Package: " << objIdPkgs << std::endl;
-                // std::cout << "Total model id:: " << modelIdPkg << std::endl;
-                // std::cout << "Total pos Package: " << posPkgs << std::endl;
-                // std::cout << "Total speed Package: " << speedPkgs << std::endl;
-
-
-                // std::cout << "Total objTypePkg " << objTypePkg << std::endl;
-                // std::cout << "Total objCatePkg: " << objCatePkg << std::endl;
-                // std::cout << "Total ctrlTypPkg: " << ctrlTypPkg << std::endl;
-
-                // std::cout << "Total wheelAnPkg: " << wheelAnPkg << std::endl;
-                // std::cout << "Total wheelRoPkg: " << wheelRoPkg << std::endl;
-                // std::cout << "Total boundinPkg: " << boundinPkg << std::endl;
-                // std::cout << "Total scaleMoPkg: " << scaleMoPkg << std::endl;
-                // std::cout << "Total visibilPkg: " << visibilPkg << std::endl;
-                // std::cout << "Total namePkg: " << namePkg << std::endl;
-
-                // std::cout << "Total raodIdPkg: " << roadIdPkg << std::endl;
-                // std::cout << "Total laneIdPkg: " << laneIdPkg << std::endl;
-                // std::cout << "Total posOffPkg: " << posOffPkg << std::endl;
-                // std::cout << "Total posTPkg: " << posTPkg << std::endl;
-                // std::cout << "Total posSPkg: " << posSPkg << std::endl;
-
-                // std::cout << "File closed successfully in destructure" << std::endl;
             }
         }
 
-        int posPkgs   = 0;
-        int speedPkgs = 0;
-        int timePkgs  = 0;
-        int objIdPkgs = 0;
-        int modelIdPkg = 0;
-        int objTypePkg = 0;
-        int objCatePkg = 0;
-        int ctrlTypPkg = 0;
-        int wheelAnPkg = 0;
-        int wheelRoPkg = 0;
-        int boundinPkg = 0;
-        int scaleMoPkg = 0;
-        int visibilPkg = 0;
-        int namePkg = 0;
-        int roadIdPkg = 0;
-        int laneIdPkg = 0;
-        int posOffPkg = 0;
-        int posTPkg = 0;
-        int posSPkg = 0;
-
-
         bool isFirstEntry      = true;
         bool notFirstEnd       = false;
-        bool display_print     = false;
-        int  totalPkgProcessed = 0;
-        int  totalPkgReceived  = 0;
-        int  totalPkgSkipped   = 0;
         bool TimePkgAdded = false;
         bool ObjIdPkgAdded = false;
-
         double simTimeTemp = SMALL_NUMBER;
 
         CompleteObjectState completeObjectState;
@@ -345,4 +287,4 @@ namespace datLogger
         std::string pkgIdTostring(PackageId id);
     };
 
-}  // namespace datLogger
+}

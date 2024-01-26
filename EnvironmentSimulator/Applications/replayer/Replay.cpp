@@ -1707,8 +1707,10 @@ void Replay::BuildData()
         {
             if ( j == 0)
             {
+                std::cout << "-----------------------------> "<< std::endl;
                 firstIteration = true; // reset the iteration
             }
+           std::cout << "Time looking for : " << cur_timestamp << std::endl;
             if ( scenarioData[j].first.second == false) // file merged, skip looking
             {
                 continue;
@@ -1719,7 +1721,7 @@ void Replay::BuildData()
                 if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
                 {
                     timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
-                    std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
+                    std::cout << "Found Time in file-->" << j << "-->" << timeTemp << std::endl;
                     if(isEqualDouble(timeTemp, cur_timestamp))
                     {
                         timeFound = true;
@@ -1727,6 +1729,7 @@ void Replay::BuildData()
                     else if (timeTemp > cur_timestamp)
                     {
                         timeFound = false;
+                        std::cout << "Ignored Found Time in file-->" << j << "-->" << timeTemp << std::endl;
                         // find the smallest time in the all scenarios for next iteration
                         if (firstIteration) // first iteration base time
                         {
@@ -1770,7 +1773,6 @@ void Replay::BuildData()
         }
         cur_timestamp = min_time_stamp;
         timePkgWritten = false;
-        std::cout << "cur_timestamp: " << cur_timestamp << std::endl;
 
         if (endOfScenarioCount == static_cast<int>(cur_idx.size()))
         {

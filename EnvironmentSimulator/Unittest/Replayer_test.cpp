@@ -15,7 +15,7 @@
 
 using namespace datLogger;
 
-TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
+TEST(TestReplayer, WithOneObject)
 {
     std::string fileName    = "sim.dat";
     std::string odrFileName = "e6mini.xodr";
@@ -25,8 +25,6 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
     DatLogger* logger = new DatLogger;
 
     logger->init(fileName, version_, odrFileName, model_Name);
-    ASSERT_EQ(logger->totalPkgReceived, 1);
-    ASSERT_EQ(logger->totalPkgSkipped, 0);
 
     double x     = 1.0;
     double y     = 2.0;
@@ -38,13 +36,7 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
 
     double current_time = 0.033;
     int    no_of_obj    = 1;
-
-    int pkg_nos    = 2;  // speed and pos pkg
     int total_time = 6;
-    // calc
-    // 1obj
-    // 1 hdr, 6 time, 6 obj id, 6 pos, 6 speed, 1 obj added  = 26 pkg  received
-    // 1 hdr, 6 time, 6 obj id, 2 pos, 5 speed, 1 obj added  = 21 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -74,17 +66,8 @@ TEST(LogOperationsWithOneObject, TestLogOperationsWithOneObject)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 1);
-    ASSERT_EQ(logger->totalPkgProcessed, 21);
-    ASSERT_EQ(logger->totalPkgSkipped, 5);
-
     delete logger;
-}
 
-
-TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
-{
-    std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
 
@@ -109,7 +92,7 @@ TEST(RecordOperationsWithOneObject, TestRecordInitWithOneObject)
 
 }
 
-TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
+TEST(TestReplayer, WithTwoObject)
 {
     std::string fileName    = "sim.dat";
     std::string odrFileName = "e6mini.xodr";
@@ -119,8 +102,6 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
     DatLogger* logger = new DatLogger;
 
     logger->init(fileName, version_, odrFileName, model_Name);
-    ASSERT_EQ(logger->totalPkgReceived, 1);
-    ASSERT_EQ(logger->totalPkgSkipped, 0);
 
     double x     = 1.0;
     double y     = 2.0;
@@ -133,12 +114,7 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
     double current_time = 0.033;
 
     int no_of_obj  = 2;
-    int pkg_nos    = 2;  // speed and pos pkg
     int total_time = 6;
-    // calc
-    // 2obj
-    // 1 hdr, 6 time, 12 obj id, 12 pos, 12 speed, 2 obj added = 43 pkg  received
-    // 1 hdr, 6 time, 12 obj id, 4 pos, 10 speed, 2 obj added = 33 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -168,16 +144,9 @@ TEST(LogOperationsWithTwoObject, TestLogOperationsWithTwoObject)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived, 1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 2);
-    ASSERT_EQ(logger->totalPkgProcessed, 35);
-    ASSERT_EQ(logger->totalPkgSkipped, 10);
 
     delete logger;
-}
 
-TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
-{
-    std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
 
     ASSERT_EQ(replay->pkgs_.size(), 35); // header not stored, 1 scenario end pkg added
@@ -209,7 +178,7 @@ TEST(TestRecordWithTwoObject, TestRecordWithTwoObject)
 
 }
 
-TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
+TEST(TestReplayer, WithTwoObjectAndAddAndDelete)
 {
     std::string fileName    = "sim.dat";
     std::string odrFileName = "e6mini.xodr";
@@ -219,8 +188,6 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
     DatLogger* logger = new DatLogger;
 
     logger->init(fileName, version_, odrFileName, model_Name);
-    ASSERT_EQ(logger->totalPkgReceived, 1);
-    ASSERT_EQ(logger->totalPkgSkipped, 0);
 
     double x     = 1.0;
     double y     = 2.0;
@@ -233,7 +200,6 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
     double current_time = 0.033;
 
     int no_of_obj         = 3;
-    int pkg_nos           = 2;  // speed and pos pkg
     int total_time        = 6;
 
     // calc
@@ -269,17 +235,8 @@ TEST(LogOperationsAddAndDelete, TestLogOperationsAddAndDelete)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived,
-              1 + total_time + (total_time * no_of_obj) + (no_of_obj * total_time * pkg_nos) -1 -1 + 1 + 3);
-    ASSERT_EQ(logger->totalPkgProcessed, 51);
-    ASSERT_EQ(logger->totalPkgSkipped, 13);
-
     delete logger;
-}
 
-TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
-{
-    std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
     ASSERT_EQ(replay->pkgs_.size(), 51); // header not stored.
 
@@ -332,7 +289,7 @@ TEST(TestRecordWithThreeObject, TestRecordWithThereObject)
 
 }
 
-TEST(LogOperationsTime, TestLogOperationsTime)
+TEST(TestReplayer, RepeatedObjectState)
 {
     std::string fileName    = "sim.dat";
     std::string odrFileName = "e6mini.xodr";
@@ -342,8 +299,6 @@ TEST(LogOperationsTime, TestLogOperationsTime)
     DatLogger* logger = new DatLogger;
 
     logger->init(fileName, version_, odrFileName, model_Name);
-    ASSERT_EQ(logger->totalPkgReceived, 1);
-    ASSERT_EQ(logger->totalPkgSkipped, 0);
 
     double x     = 1.0;
     double y     = 2.0;
@@ -355,14 +310,7 @@ TEST(LogOperationsTime, TestLogOperationsTime)
 
     double current_time = 0.033;
     int    no_of_obj    = 1;
-    int valid_time_frame = 1;
-
-    int pkg_nos    = 2;  // speed and pos pkg
     int total_time = 6;
-    // calc  , No pkg change except first time frame
-    // 1obj
-    // 1 hdr, 1 time, 1 obj id, 6 pos, 6 speed, 1 obj added  = 16 pkg  received
-    // 1 hdr, 1 time, 1 obj id, 1 pos, 1 speed, 1 abj added  = 6 pkg  written
 
     for (int i = 0; i < total_time; i++)
     {
@@ -380,16 +328,8 @@ TEST(LogOperationsTime, TestLogOperationsTime)
         logger->TimePkgAdded = false;
     }
 
-    ASSERT_EQ(logger->totalPkgReceived, 1 + valid_time_frame + (valid_time_frame * no_of_obj) + (no_of_obj * total_time * pkg_nos) + 1);
-    ASSERT_EQ(logger->totalPkgProcessed, 6);
-    ASSERT_EQ(logger->totalPkgSkipped, 10);
-
     delete logger;
-}
 
-TEST(RecordOperationsTime, TestRecordOperationsTime)
-{
-    std::string             fileName = "sim.dat";
     std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(fileName);
     ASSERT_EQ(replay->pkgs_.size(), 7); // header not stored, last time added
 
@@ -402,11 +342,12 @@ TEST(RecordOperationsTime, TestRecordOperationsTime)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[0].time_, replay->GetTimeFromCnt(1));
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[1].time_, replay->GetTimeFromCnt(1));
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 1);
+    EXPECT_NEAR(replay->GetTimeFromCnt(2), 5.4779999999999998, 1E-3);
 
 }
 
 
-TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
+TEST(TestReplayer, SimpleScenario)
 {
 
     const char* args[] =
@@ -456,7 +397,7 @@ TEST(TestDatSimpleScenario, TestLogAndRecordSimpleScenario)
     EXPECT_NEAR(replay->scenarioState.obj_states[0].pkgs[7].time_, 15.0, 1E-3);
 }
 
-TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
+TEST(TestReplayer, SpeedChangeScenario)
 {
     const char* args[] =
         {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/speed_change.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
@@ -501,10 +442,10 @@ TEST(TestDatSpeedChange, TestLogAndRecordSpeedChange)
     ASSERT_DOUBLE_EQ(replay->scenarioState.obj_states[0].pkgs[4].time_, 0);
 }
 
-TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
+TEST(TestReplayer, TwoSimpleScenarioMerge)
 {
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_file0.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "simple_scenario_.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -517,7 +458,7 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     SE_Close();
 
     const char* args1[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "new_file1.dat", "--fixed_timestep", "0.5"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario_reversed.xosc", "--record", "simple_scenario_reversed.dat", "--fixed_timestep", "0.5"};
 
     SE_AddPath("../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args1) / sizeof(char*), args1), 0);
@@ -526,10 +467,11 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     {
         SE_StepDT(0.05f);
     }
+    SE_Close();
 
     std::string currentPath = std::filesystem::current_path();
-    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(currentPath, "new_file", "");
-    ASSERT_EQ(replay->pkgs_.size(), 5509);
+    std::unique_ptr<scenarioengine::Replay> replay = std::make_unique<scenarioengine::Replay>(currentPath, "simple_scenario_", "");
+    ASSERT_EQ(replay->pkgs_.size(), 5737);
 
     replay->MoveToTime(2.0);
     ASSERT_EQ(replay->scenarioState.obj_states.size(), 2);
@@ -571,7 +513,7 @@ TEST(DatMergeScenarioTest, TestTwoSimpleScenarioMerge)
     EXPECT_NEAR(replay->scenarioState.obj_states[1].pkgs[7].time_, 15.0, 1E-3);
 }
 
-TEST(ReplayRestartTest, TestShowAndNotShowRestart)
+TEST(TestReplayer, ShowAndNotShowRestart)
 {
     const char* args[] =
         {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/timing_scenario_with_restarts.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.1"};
@@ -713,7 +655,7 @@ TEST(ReplayRestartTest, TestShowAndNotShowRestart)
 
 }
 
-TEST(TestReplay, TestStopAtEachTimeFrame)
+TEST(TestReplayer, StopAtEachTimeFrame)
 {
     const char* args[] =
         {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/simple_scenario.xosc", "--record", "new_sim.dat", "--fixed_timestep", "0.5"};
@@ -750,10 +692,10 @@ TEST(TestReplay, TestStopAtEachTimeFrame)
 
 }
 
-TEST(TestDat2Csv, TestMixedMode)
+TEST(TestDat2Csv, TimeModes)
 {
     const char* args[] =
-        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/test_mixed_csv_log_mode.xosc", "--record", "sim.dat"};
+        {"--osc", "../../../EnvironmentSimulator/Unittest/xosc/test_time_mode.xosc", "--record", "sim.dat"};
     SE_AddPath("../../../../resources/xosc");
     SE_AddPath("../../../../resources/models");
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
