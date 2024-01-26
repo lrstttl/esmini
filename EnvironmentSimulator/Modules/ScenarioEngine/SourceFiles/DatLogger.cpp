@@ -11,11 +11,10 @@
 
 using namespace datLogger;
 
- bool isEqual(double val1, double val2)
- {
+bool isEqual(double val1, double val2)
+{
     return fabs(val1 - val2) < SMALL_NUMBER;
- }
-
+}
 
 void DatLogger::WriteManPkg(int obj_id)
 {
@@ -235,23 +234,20 @@ int DatLogger::WriteBB(int obj_id, float x, float y, float z, float length, floa
                 continue;
             }
             completeObjectState.obj_states[i].active = true;
-            if (completeObjectState.obj_states[i].boundingBox_.x != x ||
-                completeObjectState.obj_states[i].boundingBox_.y != y ||
-                completeObjectState.obj_states[i].boundingBox_.z != z ||
-                completeObjectState.obj_states[i].boundingBox_.height != height ||
-                completeObjectState.obj_states[i].boundingBox_.length != length ||
-                completeObjectState.obj_states[i].boundingBox_.width != width)
+            if (completeObjectState.obj_states[i].boundingBox_.x != x || completeObjectState.obj_states[i].boundingBox_.y != y ||
+                completeObjectState.obj_states[i].boundingBox_.z != z || completeObjectState.obj_states[i].boundingBox_.height != height ||
+                completeObjectState.obj_states[i].boundingBox_.length != length || completeObjectState.obj_states[i].boundingBox_.width != width)
             {
                 WriteManPkg(obj_id);
                 // create pkg
-                CommonPkg pkg;
+                CommonPkg   pkg;
                 BoundingBox bb;
-                bb.height = height;
-                bb.length = length;
-                bb.width = width;
-                bb.x = x;
-                bb.y = y;
-                bb.z = z;
+                bb.height            = height;
+                bb.length            = length;
+                bb.width             = width;
+                bb.x                 = x;
+                bb.y                 = y;
+                bb.z                 = z;
                 pkg.hdr.id           = static_cast<int>(PackageId::BOUNDING_BOX);
                 pkg.hdr.content_size = sizeof(bb);
                 pkg.content          = reinterpret_cast<char*>(&bb);
@@ -324,7 +320,7 @@ int DatLogger::WriteTime(double t)
 {
     if (data_file_.is_open())
     {
-        if( !isEqual( completeObjectState.time.time, t))
+        if (!isEqual(completeObjectState.time.time, t))
         {
             // create pkg
             CommonPkg pkg;
@@ -343,10 +339,10 @@ void DatLogger::WriteStringPkg(std::string name, PackageId pkg_id)
 {
     // create pkg
     CommonPkg pkg;
-    pkg.hdr.id           = static_cast<int>(pkg_id);
+    pkg.hdr.id = static_cast<int>(pkg_id);
     Name nameStr;
-    pkg.hdr.content_size   = static_cast<int>(name.size() + 1);
-    nameStr.string = new char[pkg.hdr.content_size];
+    pkg.hdr.content_size = static_cast<int>(name.size() + 1);
+    nameStr.string       = new char[pkg.hdr.content_size];
     StrCopy(nameStr.string, name.c_str(), static_cast<size_t>(pkg.hdr.content_size));
 
     data_file_.write(reinterpret_cast<char*>(&pkg.hdr), sizeof(CommonPkgHdr));
@@ -399,7 +395,6 @@ bool DatLogger::IsObjIdAddPkgWritten(int id)
 
 void DatLogger::SetObjIdAddPkgWritten(int id, bool status)
 {
-
     for (size_t i = 0; i < objIdAdded_.size(); i++)
     {
         if (objIdAdded_[i].id == id)
@@ -408,7 +403,6 @@ void DatLogger::SetObjIdAddPkgWritten(int id, bool status)
             break;
         }
     }
-
 }
 
 int DatLogger::WriteObjId(int obj_id)
@@ -424,9 +418,9 @@ int DatLogger::WriteObjId(int obj_id)
         if (!IsObjIdAddPkgWritten(obj_id))
         {
             CommonPkg pkg1;
-            pkg1.hdr.id = static_cast<int>(PackageId::OBJ_ADDED);
+            pkg1.hdr.id           = static_cast<int>(PackageId::OBJ_ADDED);
             pkg1.hdr.content_size = 0;
-            pkg1.content = nullptr;
+            pkg1.content          = nullptr;
             writePackage(pkg1);
             SetObjIdAddPkgWritten(obj_id, true);
         }
@@ -434,7 +428,7 @@ int DatLogger::WriteObjId(int obj_id)
     return 0;
 }
 
-int DatLogger::AddObject( int obj_id)
+int DatLogger::AddObject(int obj_id)
 {
     if (completeObjectState.obj_states.size() == 0)  // first time
     {
@@ -480,16 +474,16 @@ int DatLogger::deleteObject()
             }
             WriteObjId(completeObjectState.obj_states[i].obj_id_.obj_id);
             CommonPkg pkg;
-            pkg.hdr.id = static_cast<int>(PackageId::OBJ_DELETED);
+            pkg.hdr.id           = static_cast<int>(PackageId::OBJ_DELETED);
             pkg.hdr.content_size = 0;
-            pkg.content = nullptr;
+            pkg.content          = nullptr;
             writePackage(pkg);
             SetObjIdAddPkgWritten(completeObjectState.obj_states[i].obj_id_.obj_id, false);
             completeObjectState.obj_states.erase(completeObjectState.obj_states.begin() + static_cast<int>(i));
         }
         else
         {
-            completeObjectState.obj_states[i].active = false; // reset for next time frame
+            completeObjectState.obj_states[i].active = false;  // reset for next time frame
         }
     }
     return 0;
@@ -682,16 +676,15 @@ void DatLogger::writePackage(CommonPkg package)
     if (data_file_.is_open())
     {
         data_file_.write(reinterpret_cast<char*>(&package.hdr), sizeof(CommonPkgHdr));
-        if (!(package.hdr.id == static_cast<int>(PackageId::OBJ_ADDED) ||
-            package.hdr.id == static_cast<int>(PackageId::OBJ_DELETED) ||
-            package.hdr.id == static_cast<int>(PackageId::END_OF_SCENARIO)))
-            {
-                data_file_.write(package.content, package.hdr.content_size);
-            }
+        if (!(package.hdr.id == static_cast<int>(PackageId::OBJ_ADDED) || package.hdr.id == static_cast<int>(PackageId::OBJ_DELETED) ||
+              package.hdr.id == static_cast<int>(PackageId::END_OF_SCENARIO)))
+        {
+            data_file_.write(package.content, package.hdr.content_size);
+        }
     }
     else
     {
-        std::printf("File is not open:");
+        LOG_AND_QUIT("Failed to open file\n");
     }
 }
 
@@ -705,7 +698,6 @@ void DatLogger::deleteObjState(int objId)
         }
     }
 }
-
 
 int DatLogger::init(std::string fileName, int ver, std::string odrName, std::string modelName)
 {

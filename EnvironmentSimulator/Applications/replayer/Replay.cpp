@@ -27,7 +27,7 @@ Replay::Replay(std::string filename) : time_(0.0), index_(0), repeat_(false), sh
     // round time step to closest 6:th decimal of a second
     deltaTime_ = std::round(deltaTime_ / SMALL_NUMBER) * SMALL_NUMBER;
 
-    datLogger::DatHdr        headerNew_;
+    datLogger::DatHdr headerNew_;
     headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(header_.content);
 
     LOG("Recording %s opened. dat version: %d odr: %s model: %s",
@@ -73,7 +73,7 @@ Replay::Replay(const std::string directory, const std::string scenario, std::str
         RecordPkgs(scenarios_[i]);
         // round time step to closest 6:th decimal of a second
         deltaTime_ = std::round(deltaTime_ / SMALL_NUMBER) * SMALL_NUMBER;
-        datLogger::DatHdr        headerNew_;
+        datLogger::DatHdr headerNew_;
         headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(header_.content);
         scenarioObjIds.push_back(objectIds);
 
@@ -86,9 +86,9 @@ Replay::Replay(const std::string directory, const std::string scenario, std::str
         if (headerNew_.version != DAT_FILE_FORMAT_VERSION)
         {
             LOG_AND_QUIT("Version mismatch. %s is version %d while supported version is %d. Please re-create dat file.",
-                        scenarios_[i].c_str(),
-                        headerNew_.version,
-                        DAT_FILE_FORMAT_VERSION);
+                         scenarios_[i].c_str(),
+                         headerNew_.version,
+                         DAT_FILE_FORMAT_VERSION);
         }
         // pair <scenario name, scenario data>
         // scenarioData.push_back(std::make_pair(scenarios_[i], pkgs_));
@@ -186,7 +186,6 @@ size_t Replay::GetNumberOfScenarios()
 
 Replay::~Replay()
 {
-    data_.clear();
     delete datLogger;
 }
 
@@ -225,12 +224,11 @@ int Replay::FindIndexAtTimestamp(double timestamp, int startSearchIndex)
         if (static_cast<datLogger::PackageId>(pkgs_[static_cast<unsigned int>(i)].hdr.id) == datLogger::PackageId::TIME_SERIES)
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[static_cast<unsigned int>(i)].content);
-            if ( isEqualDouble(timeTemp, timestamp) || (timeTemp > timestamp))
+            if (isEqualDouble(timeTemp, timestamp) || (timeTemp > timestamp))
             {
                 break;
             }
         }
-
     }
 
     return MIN(i, static_cast<int>(pkgs_.size()) - 1);
@@ -249,7 +247,7 @@ int Replay::RecordPkgs(const std::string& fileName)
 
     if (file_Read_.is_open())
     {
-        std::cout << "File Opened for read" << std::endl;
+        LOG("File Opened for read");
     }
 
     // Get the file size
@@ -296,7 +294,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datHdrRead->odrFilename   = odrStrRead;
                 datHdrRead->modelFilename = mdlStrRead;
                 hdrPkgRead.content        = reinterpret_cast<char*>(datHdrRead);
-                header_ = hdrPkgRead;
+                header_                   = hdrPkgRead;
 
                 // headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(hdrPkgRead.content);
 
@@ -325,7 +323,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 timePkgRead.content = reinterpret_cast<char*>(t);
                 pkgs_.push_back(timePkgRead);
 
-                if ( !(t->time < 0) || !isEqualDouble(deltaTime_, LARGE_NUMBER))  // dont include till ghost reaches 0.0 time
+                if (!(t->time < 0) || !isEqualDouble(deltaTime_, LARGE_NUMBER))  // dont include till ghost reaches 0.0 time
                 {
                     if (!std::isnan(previousTime_))
                     {
@@ -349,19 +347,19 @@ int Replay::RecordPkgs(const std::string& fileName)
                 objIdPkgRead.content = reinterpret_cast<char*>(objIdRead);
                 pkgs_.push_back(objIdPkgRead);
 
-                for( size_t i = 0; i < objectIds.size(); i++)
+                for (size_t i = 0; i < objectIds.size(); i++)
                 {
-                    if ( objectIds[i] == objIdRead->obj_id)
+                    if (objectIds[i] == objIdRead->obj_id)
                     {
                         break;
                     }
-                    else if ( i == objectIds.size())
+                    else if (i == objectIds.size())
                     {
                         objectIds.push_back(objIdRead->obj_id);
                     }
                 }
 
-                if ( objectIds.size() == 0)
+                if (objectIds.size() == 0)
                 {
                     objectIds.push_back(objIdRead->obj_id);
                 }
@@ -415,7 +413,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg objCatPkgRead;
                 objCatPkgRead.hdr = cmnHdrPkgRead;
 
-                datLogger::ObjCategory * objCategory = new datLogger::ObjCategory;
+                datLogger::ObjCategory* objCategory = new datLogger::ObjCategory;
                 file_Read_.read(reinterpret_cast<char*>(&objCategory->obj_category), objCatPkgRead.hdr.content_size);
                 objCatPkgRead.content = reinterpret_cast<char*>(objCategory);
                 pkgs_.push_back(objCatPkgRead);
@@ -439,7 +437,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg wheelAnglePkgRead;
                 wheelAnglePkgRead.hdr = cmnHdrPkgRead;
 
-                datLogger::WheelAngle * wheelAngle = new datLogger::WheelAngle;
+                datLogger::WheelAngle* wheelAngle = new datLogger::WheelAngle;
                 file_Read_.read(reinterpret_cast<char*>(&wheelAngle->wheel_angle), wheelAnglePkgRead.hdr.content_size);
                 wheelAnglePkgRead.content = reinterpret_cast<char*>(wheelAngle);
                 pkgs_.push_back(wheelAnglePkgRead);
@@ -451,7 +449,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg wheelRotPkgRead;
                 wheelRotPkgRead.hdr = cmnHdrPkgRead;
 
-                datLogger::WheelRot * wheelRot = new datLogger::WheelRot;
+                datLogger::WheelRot* wheelRot = new datLogger::WheelRot;
                 file_Read_.read(reinterpret_cast<char*>(&wheelRot->wheel_rot), wheelRotPkgRead.hdr.content_size);
                 wheelRotPkgRead.content = reinterpret_cast<char*>(wheelRot);
                 pkgs_.push_back(wheelRotPkgRead);
@@ -480,7 +478,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg scaleModePkgRead;
                 scaleModePkgRead.hdr = cmnHdrPkgRead;
 
-                datLogger::ScaleMode * scaleMode = new datLogger::ScaleMode;
+                datLogger::ScaleMode* scaleMode = new datLogger::ScaleMode;
                 file_Read_.read(reinterpret_cast<char*>(&scaleMode->scale_mode), scaleModePkgRead.hdr.content_size);
                 scaleModePkgRead.content = reinterpret_cast<char*>(scaleMode);
                 pkgs_.push_back(scaleModePkgRead);
@@ -492,7 +490,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg maskPkgRead;
                 maskPkgRead.hdr = cmnHdrPkgRead;
 
-                datLogger::VisibilityMask * mask = new datLogger::VisibilityMask;
+                datLogger::VisibilityMask* mask = new datLogger::VisibilityMask;
                 file_Read_.read(reinterpret_cast<char*>(&mask->visibility_mask), maskPkgRead.hdr.content_size);
                 maskPkgRead.content = reinterpret_cast<char*>(mask);
                 pkgs_.push_back(maskPkgRead);
@@ -504,7 +502,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg namePkgRead;
                 namePkgRead.hdr = cmnHdrPkgRead;
 
-                datLogger::Name* nameStrRead = new  datLogger::Name;
+                datLogger::Name* nameStrRead = new datLogger::Name;
 
                 nameStrRead->string = new char[namePkgRead.hdr.content_size];
                 file_Read_.read(nameStrRead->string, namePkgRead.hdr.content_size);
@@ -518,7 +516,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg pkg;
                 pkg.hdr = cmnHdrPkgRead;
 
-                datLogger::RoadId * road_id = new datLogger::RoadId;
+                datLogger::RoadId* road_id = new datLogger::RoadId;
                 file_Read_.read(reinterpret_cast<char*>(&road_id->road_id), pkg.hdr.content_size);
                 pkg.content = reinterpret_cast<char*>(road_id);
                 pkgs_.push_back(pkg);
@@ -530,7 +528,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg pkg;
                 pkg.hdr = cmnHdrPkgRead;
 
-                datLogger::LaneId * lane_id = new datLogger::LaneId;
+                datLogger::LaneId* lane_id = new datLogger::LaneId;
                 file_Read_.read(reinterpret_cast<char*>(&lane_id->lane_id), pkg.hdr.content_size);
                 pkg.content = reinterpret_cast<char*>(lane_id);
                 pkgs_.push_back(pkg);
@@ -542,7 +540,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg pkg;
                 pkg.hdr = cmnHdrPkgRead;
 
-                datLogger::PosOffset * pos_offset = new datLogger::PosOffset;
+                datLogger::PosOffset* pos_offset = new datLogger::PosOffset;
                 file_Read_.read(reinterpret_cast<char*>(&pos_offset->offset), pkg.hdr.content_size);
                 pkg.content = reinterpret_cast<char*>(pos_offset);
                 pkgs_.push_back(pkg);
@@ -554,7 +552,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg pkg;
                 pkg.hdr = cmnHdrPkgRead;
 
-                datLogger::PosT * pos_t = new datLogger::PosT;
+                datLogger::PosT* pos_t = new datLogger::PosT;
                 file_Read_.read(reinterpret_cast<char*>(&pos_t->t), pkg.hdr.content_size);
                 pkg.content = reinterpret_cast<char*>(pos_t);
                 pkgs_.push_back(pkg);
@@ -566,7 +564,7 @@ int Replay::RecordPkgs(const std::string& fileName)
                 datLogger::CommonPkg pkg;
                 pkg.hdr = cmnHdrPkgRead;
 
-                datLogger::PosS * pos_s = new datLogger::PosS;
+                datLogger::PosS* pos_s = new datLogger::PosS;
                 file_Read_.read(reinterpret_cast<char*>(&pos_s->s), pkg.hdr.content_size);
                 pkg.content = reinterpret_cast<char*>(pos_s);
                 pkgs_.push_back(pkg);
@@ -645,7 +643,7 @@ std::vector<int> Replay::GetNumberOfObjectsAtTime()
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES) && !timeFound)
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            if  (isEqualDouble(timeTemp, time_))
+            if (isEqualDouble(timeTemp, time_))
             {
                 timeFound = true;
             }
@@ -662,7 +660,6 @@ std::vector<int> Replay::GetNumberOfObjectsAtTime()
     }
     return Indices;
 }
-
 
 bool Replay::IsObjAvailableInCache(int id)  // check in current state
 {
@@ -695,7 +692,7 @@ bool Replay::IsObjAvailableActive(int id)  // check in current state
     return status;
 }
 
-int  Replay::UpdateObjStatus( int id, bool status)
+int Replay::UpdateObjStatus(int id, bool status)
 {
     for (size_t i = 0; i < scenarioState.obj_states.size(); i++)  // loop current state object id to find the object id
     {
@@ -713,8 +710,8 @@ void Replay::MoveToDeltaTime(double dt)
 
 void Replay::GetRestartTimes()
 {
-    double perviousTime = -LARGE_NUMBER;
-    unsigned int  perviousIndex = 0;
+    double       perviousTime  = -LARGE_NUMBER;
+    unsigned int perviousIndex = 0;
     for (size_t i = 0; i < pkgs_.size(); i++)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
@@ -723,21 +720,21 @@ void Replay::GetRestartTimes()
             if (perviousTime > timeTemp)
             {
                 RestartTimes restartTime;
-                restartTime.restart_time_ = perviousTime;
+                restartTime.restart_time_  = perviousTime;
                 restartTime.restart_index_ = perviousIndex;
                 restartTimes.push_back(restartTime);
             }
-            perviousTime = timeTemp;
+            perviousTime  = timeTemp;
             perviousIndex = static_cast<unsigned int>(i);
-            if (restartTimes.size()> 0)
+            if (restartTimes.size() > 0)
             {
-                for ( size_t j = 0; j < restartTimes.size(); j++)
+                for (size_t j = 0; j < restartTimes.size(); j++)
                 {
-                    if ( isEqualDouble(restartTimes[j].next_time_, LARGE_NUMBER)) // only once
+                    if (isEqualDouble(restartTimes[j].next_time_, LARGE_NUMBER))  // only once
                     {
-                        if ( restartTimes[j].restart_time_ < timeTemp)
+                        if (restartTimes[j].restart_time_ < timeTemp)
                         {
-                            restartTimes[j].next_time_ = timeTemp;
+                            restartTimes[j].next_time_  = timeTemp;
                             restartTimes[j].next_index_ = static_cast<unsigned int>(i);
                             break;
                         }
@@ -746,13 +743,12 @@ void Replay::GetRestartTimes()
             }
         }
     }
-
 }
 
 bool Replay::MoveToNextFrame(double time)
 {
     bool timeLapsed = false;
-    IsRestart = false;
+    IsRestart       = false;
 
     for (size_t i = static_cast<size_t>(index_); i < pkgs_.size(); i++)
     {
@@ -760,7 +756,7 @@ bool Replay::MoveToNextFrame(double time)
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
 
-            if( timeTemp > time + SMALL_NUMBER) // gone past time
+            if (timeTemp > time + SMALL_NUMBER)  // gone past time
             {
                 timeLapsed = true;
                 break;
@@ -768,22 +764,20 @@ bool Replay::MoveToNextFrame(double time)
             else if (time_ > timeTemp && show_restart_)
             {
                 index_ = static_cast<unsigned int>(i);
-                time_ = timeTemp; // move to next frame
+                time_  = timeTemp;  // move to next frame
                 if (show_restart_)
                 {
-                    IsRestart = true; // jump to restart
+                    IsRestart = true;  // jump to restart
                 }
 
                 break;
-
             }
-            else if  ( timeTemp > time_) // move to next frame
+            else if (timeTemp > time_)  // move to next frame
             {
                 index_ = static_cast<unsigned int>(i);
-                time_ = timeTemp;
+                time_  = timeTemp;
                 break;
             }
-
         }
     }
     return timeLapsed;
@@ -791,44 +785,43 @@ bool Replay::MoveToNextFrame(double time)
 
 bool Replay::MoveToPreviousFrame(double time)
 {
-
     bool timeLapsed = false;
-    IsRestart = false;
+    IsRestart       = false;
 
     for (size_t i = static_cast<size_t>(index_); static_cast<int>(i) >= 0; i--)
     {
         if (pkgs_[i].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
         {
             double timeTemp = *reinterpret_cast<double*>(pkgs_[i].content);
-            if(!show_restart_)
+            if (!show_restart_)
             {
-                if (restartTimes.size()> 0)
+                if (restartTimes.size() > 0)
                 {
-                    for ( size_t j = 0; j < restartTimes.size(); j++)
+                    for (size_t j = 0; j < restartTimes.size(); j++)
                     {
-                        if ( static_cast<size_t>(restartTimes[j].next_index_) == i)
+                        if (static_cast<size_t>(restartTimes[j].next_index_) == i)
                         {
-                            index_ = restartTimes[j].restart_index_; // jump to restart
-                            time_ = restartTimes[j].restart_time_;
+                            index_    = restartTimes[j].restart_index_;  // jump to restart
+                            time_     = restartTimes[j].restart_time_;
                             IsRestart = true;
                             break;
                         }
                     }
                 }
             }
-            if (IsRestart )
+            if (IsRestart)
             {
                 break;
             }
-            if  ( timeTemp < time + SMALL_NUMBER) // gone past time
+            if (timeTemp < time + SMALL_NUMBER)  // gone past time
             {
                 timeLapsed = true;
                 break;
             }
-            else if ( timeTemp < time_) // pervious frame
+            else if (timeTemp < time_)  // pervious frame
             {
                 index_ = static_cast<unsigned int>(i);
-                time_ = timeTemp;
+                time_  = timeTemp;
             }
         }
     }
@@ -846,11 +839,10 @@ void Replay::UpdateCache()
         {
             if (scenarioState.obj_states[i].id == obj_id)  // found object id
             {
-                for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size();j++)
+                for (size_t j = 0; j < scenarioState.obj_states[i].pkgs.size(); j++)
                 {
-                    for (size_t k = static_cast<size_t>(objIdIndices[l] + 1);
-                            k < static_cast<size_t>(objIdIndices[l] + pkgCnt + 1);
-                            k++)  // start with Index + 1, Index will have object id package index. looking from next package
+                    for (size_t k = static_cast<size_t>(objIdIndices[l] + 1); k < static_cast<size_t>(objIdIndices[l] + pkgCnt + 1);
+                         k++)  // start with Index + 1, Index will have object id package index. looking from next package
                     {
                         datLogger::PackageId id_ = ReadPkgHdr(scenarioState.obj_states[i].pkgs[j].pkg);
                         if (id_ == static_cast<datLogger::PackageId>(pkgs_[k].hdr.id))
@@ -875,17 +867,17 @@ void Replay::CheckObjAvailabilityForward()
         int obj_id = *reinterpret_cast<int*>(pkgs_[static_cast<size_t>(objIdIndices[Index])].content);
         if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_DELETED))
         {
-            UpdateObjStatus( obj_id, false); // obj deleted in cache
+            UpdateObjStatus(obj_id, false);  // obj deleted in cache
             continue;
         }
         else if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_ADDED))
         {
             if (!IsObjAvailableInCache(obj_id))
             {
-                AddObjState(static_cast<size_t>(objIdIndices[Index]), time_); // obj added in cache. this will also take updating pkgs
+                AddObjState(static_cast<size_t>(objIdIndices[Index]), time_);  // obj added in cache. this will also take updating pkgs
                 continue;
             }
-            UpdateObjStatus( obj_id, true);
+            UpdateObjStatus(obj_id, true);
         }
     }
 }
@@ -901,43 +893,43 @@ void Replay::CheckObjAvailabilityBackward()
         {
             if (!IsObjAvailableInCache(obj_id))
             {
-                AddObjState(static_cast<size_t>(objIdIndices[Index]), time_); // obj added in cache. this will also take updating pkgs
+                AddObjState(static_cast<size_t>(objIdIndices[Index]), time_);  // obj added in cache. this will also take updating pkgs
                 continue;
             }
-            UpdateObjStatus( obj_id, true); // obj deleted in cache
+            UpdateObjStatus(obj_id, true);  // obj deleted in cache
         }
-        else if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_ADDED) && !isEqualDouble(time_, startTime_)) // ignore first time frame
+        else if (pkgs_[static_cast<size_t>(objIdIndices[Index] + 1)].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_ADDED) &&
+                 !isEqualDouble(time_, startTime_))  // ignore first time frame
         {
-            UpdateObjStatus( obj_id, false);
+            UpdateObjStatus(obj_id, false);
         }
     }
 }
 
-
 int Replay::MoveToTime(double t, bool goToEnd, bool stopAtEachFrame)
 {
-    if ((t > stopTime_) || isEqualDouble(t, stopTime_))// go to stop time
+    if ((t > stopTime_) || isEqualDouble(t, stopTime_))  // go to stop time
     {
         t = stopTime_;
     }
-    else if (( t < startTime_) || isEqualDouble(t, startTime_)) // go to start time
+    else if ((t < startTime_) || isEqualDouble(t, startTime_))  // go to start time
     {
         t = startTime_;
     }
 
     bool timeLapsed = false;
-    if ( isEqualDouble(t, scenarioState.sim_time))
+    if (isEqualDouble(t, scenarioState.sim_time))
     {
-        return 0; // no update to cache
+        return 0;  // no update to cache
     }
     else
     {
         if (scenarioState.sim_time < t)
         {
-            while ( !timeLapsed && !isEqualDouble(t, time_) && !isEqualDouble(stopTime_, time_)) // gone past time, time equal, reached last time frame, given time
+            while (!timeLapsed && !isEqualDouble(t, time_) &&
+                   !isEqualDouble(stopTime_, time_))  // gone past time, time equal, reached last time frame, given time
             {
-
-                timeLapsed = MoveToNextFrame(t); // move to next time frame in dat. Timelapsed will be true if given t is less than next time.
+                timeLapsed = MoveToNextFrame(t);  // move to next time frame in dat. Timelapsed will be true if given t is less than next time.
                 if (!timeLapsed)
                 {
                     CheckObjAvailabilityForward();
@@ -951,12 +943,12 @@ int Replay::MoveToTime(double t, bool goToEnd, bool stopAtEachFrame)
                 {
                     break;
                 }
-
             }
         }
-        if ( scenarioState.sim_time > t)
+        if (scenarioState.sim_time > t)
         {
-            while ( !timeLapsed && !isEqualDouble(t, time_) && !isEqualDouble(startTime_, time_)) // gone past time, time equal, reached first time frame
+            while (!timeLapsed && !isEqualDouble(t, time_) &&
+                   !isEqualDouble(startTime_, time_))  // gone past time, time equal, reached first time frame
             {
                 timeLapsed = MoveToPreviousFrame(t);
                 if (!timeLapsed)
@@ -969,7 +961,7 @@ int Replay::MoveToTime(double t, bool goToEnd, bool stopAtEachFrame)
                     }
                 }
 
-                if (IsRestart && show_restart_ )
+                if (IsRestart && show_restart_)
                 {
                     break;
                 }
@@ -977,11 +969,11 @@ int Replay::MoveToTime(double t, bool goToEnd, bool stopAtEachFrame)
         }
     }
 
-    if ( IsRestart && show_restart_ && !goToEnd)
+    if (IsRestart && show_restart_ && !goToEnd)
     {
         scenarioState.sim_time = time_;
     }
-    else if ( !timeLapsed && stopAtEachFrame)
+    else if (!timeLapsed && stopAtEachFrame)
     {
         scenarioState.sim_time = time_;
     }
@@ -998,11 +990,11 @@ int Replay::MoveToTime(double t, bool goToEnd, bool stopAtEachFrame)
 
 void Replay::SetStopEntries()
 {
-    for (size_t i = pkgs_.size() - 1;  static_cast<int>(i) >= 0; i--)
+    for (size_t i = pkgs_.size() - 1; static_cast<int>(i) >= 0; i--)
     {
         if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::TIME_SERIES)
         {
-            stopTime_ = *reinterpret_cast<double*>(pkgs_[i].content);
+            stopTime_  = *reinterpret_cast<double*>(pkgs_[i].content);
             stopIndex_ = static_cast<unsigned int>(i);
             break;
         }
@@ -1023,7 +1015,7 @@ bool IsObjAvailableInEntities(const std::vector<ScenarioEntities> entities, int 
             status = true;
             break;
         }
-        else if ( i == entities.size() - 1) // last iteration
+        else if (i == entities.size() - 1)  // last iteration
         {
             status = false;
             break;
@@ -1034,9 +1026,8 @@ bool IsObjAvailableInEntities(const std::vector<ScenarioEntities> entities, int 
 
 void Replay::GetScenarioEntities()
 {
-
     double time = 0.0;
-    int id = -1;
+    int    id   = -1;
     for (size_t i = 0; i < pkgs_.size(); i++)
     {
         if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::TIME_SERIES)
@@ -1047,11 +1038,11 @@ void Replay::GetScenarioEntities()
         if (static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) == datLogger::PackageId::OBJ_ID)
         {
             id = *reinterpret_cast<int*>(pkgs_[i].content);
-            if(!IsObjAvailableInEntities(entities, id))
+            if (!IsObjAvailableInEntities(entities, id))
             {
                 ScenarioEntities entities_;
                 entities_.sim_time = time;
-                entities_.obj_id = id;
+                entities_.obj_id   = id;
                 entities.push_back(entities_);
             }
         }
@@ -1063,7 +1054,7 @@ double Replay::GetTimeFromEntities(int id)
     double t = SMALL_NUMBER;
     for (size_t i = 0; i < entities.size(); i++)
     {
-        if (entities[i].obj_id ==  id)
+        if (entities[i].obj_id == id)
         {
             t = entities[i].sim_time;
             break;
@@ -1098,18 +1089,18 @@ void Replay::AddObjState(size_t idx, double t)
     {
         std::cout << " Initialization error->Stop replay " << std::endl;
     }
-    stateObjId.id = *reinterpret_cast<int*>(pkgs_[idx].content);
+    stateObjId.id     = *reinterpret_cast<int*>(pkgs_[idx].content);
     stateObjId.active = true;
-    int pkgCount  = GetPkgCntBtwObj(idx);
+    int pkgCount      = GetPkgCntBtwObj(idx);
 
     for (size_t i = idx + 1; i < static_cast<size_t>(pkgCount) + idx + 1; i++)
     {  // GetPkgCntBtwObj will return count of package
 
         if (datLogger::PackageId::OBJ_ADDED == static_cast<datLogger::PackageId>(pkgs_[i].hdr.id) ||
             datLogger::PackageId::OBJ_DELETED == static_cast<datLogger::PackageId>(pkgs_[i].hdr.id))
-            {
-                continue; // skip packages.
-            }
+        {
+            continue;  // skip packages.
+        }
         ObjectStateWithPkg statePkg;
         statePkg.pkg   = reinterpret_cast<char*>(&pkgs_[i]);
         statePkg.time_ = t;
@@ -1118,11 +1109,11 @@ void Replay::AddObjState(size_t idx, double t)
     scenarioState.obj_states.push_back(stateObjId);
 }
 
-void  Replay::deleteObjState(int objId)
+void Replay::deleteObjState(int objId)
 {
-    for (size_t i = 0; i < scenarioState.obj_states.size(); i++) // loop current state object id to find the object id
+    for (size_t i = 0; i < scenarioState.obj_states.size(); i++)  // loop current state object id to find the object id
     {
-        if (scenarioState.obj_states[i].id == objId) // found object id
+        if (scenarioState.obj_states[i].id == objId)  // found object id
         {
             scenarioState.obj_states[i].active = false;
             // scenarioState.obj_states.erase(scenarioState.obj_states.begin() + static_cast<unsigned int>(i));
@@ -1132,12 +1123,11 @@ void  Replay::deleteObjState(int objId)
 
 void Replay::InitiateStates()
 {
-
     // reset the timings
     scenarioState.obj_states.clear();
     scenarioState.sim_time = startTime_;
-    time_ = startTime_;
-    index_ = startIndex_;
+    time_                  = startTime_;
+    index_                 = startIndex_;
 
     std::vector<int> objIdIndices = GetNumberOfObjectsAtTime();
 
@@ -1217,12 +1207,12 @@ int Replay::GetBB(int obj_id, OSCBoundingBox& bb)
             }
         }
     }
-    bb.center_.x_ = bb_.x;
-    bb.center_.y_ = bb_.y;
-    bb.center_.z_ = bb_.z;
+    bb.center_.x_          = bb_.x;
+    bb.center_.y_          = bb_.y;
+    bb.center_.z_          = bb_.z;
     bb.dimensions_.height_ = bb_.height;
     bb.dimensions_.length_ = bb_.length;
-    bb.dimensions_.width_ = bb_.width;
+    bb.dimensions_.width_  = bb_.width;
 
     return 0;
 }
@@ -1242,7 +1232,7 @@ int Replay::GetScaleMode(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::SCALE_MODE)
             {
-               scale_mode = *reinterpret_cast<int*>(pkg->content);
+                scale_mode = *reinterpret_cast<int*>(pkg->content);
             }
         }
     }
@@ -1265,7 +1255,7 @@ int Replay::GetVisibility(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::VISIBILITY_MASK)
             {
-               vis = *reinterpret_cast<int*>(pkg->content);
+                vis = *reinterpret_cast<int*>(pkg->content);
             }
         }
     }
@@ -1288,8 +1278,8 @@ datLogger::Pos Replay::GetPos(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POSITIONS)
             {
-               pos = *reinterpret_cast<datLogger::Pos*>(pkg->content);
-               break;
+                pos = *reinterpret_cast<datLogger::Pos*>(pkg->content);
+                break;
             }
         }
     }
@@ -1347,7 +1337,7 @@ int Replay::GetRoadId(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::ROAD_ID)
             {
-               road_id = *reinterpret_cast<int*>(pkg->content);
+                road_id = *reinterpret_cast<int*>(pkg->content);
             }
         }
     }
@@ -1370,7 +1360,7 @@ int Replay::GetLaneId(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::LANE_ID)
             {
-               lane_id = *reinterpret_cast<int*>(pkg->content);
+                lane_id = *reinterpret_cast<int*>(pkg->content);
             }
         }
     }
@@ -1393,7 +1383,7 @@ double Replay::GetPosOffset(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POS_OFFSET)
             {
-               offset = *reinterpret_cast<double*>(pkg->content);
+                offset = *reinterpret_cast<double*>(pkg->content);
             }
         }
     }
@@ -1416,7 +1406,7 @@ float Replay::GetPosT(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POS_T)
             {
-               pos_t = *reinterpret_cast<double*>(pkg->content);
+                pos_t = *reinterpret_cast<double*>(pkg->content);
             }
         }
     }
@@ -1439,7 +1429,7 @@ float Replay::GetPosS(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::POS_S)
             {
-               pos_s = *reinterpret_cast<double*>(pkg->content);
+                pos_s = *reinterpret_cast<double*>(pkg->content);
             }
         }
     }
@@ -1450,19 +1440,19 @@ float Replay::GetPosS(int obj_id)
 ObjectPositionStructDat Replay::GetComPletePos(int obj_id)
 {
     ObjectPositionStructDat complete_pos;
-    datLogger::Pos pos;
-    pos = GetPos(obj_id);
-    complete_pos.h = pos.h;
-    complete_pos.x = pos.x;
-    complete_pos.y = pos.y;
-    complete_pos.z = pos.z;
-    complete_pos.p = pos.p;
-    complete_pos.r = pos.r;
+    datLogger::Pos          pos;
+    pos                 = GetPos(obj_id);
+    complete_pos.h      = pos.h;
+    complete_pos.x      = pos.x;
+    complete_pos.y      = pos.y;
+    complete_pos.z      = pos.z;
+    complete_pos.p      = pos.p;
+    complete_pos.r      = pos.r;
     complete_pos.laneId = GetLaneId(obj_id);
     complete_pos.roadId = GetRoadId(obj_id);
     complete_pos.offset = GetPosOffset(obj_id);
-    complete_pos.t = GetPosT(obj_id);
-    complete_pos.s = GetPosS(obj_id);
+    complete_pos.t      = GetPosT(obj_id);
+    complete_pos.s      = GetPosS(obj_id);
     return complete_pos;
 }
 
@@ -1481,7 +1471,7 @@ double Replay::GetWheelAngle(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::WHEEL_ANGLE)
             {
-               wheel_angle = *reinterpret_cast<double*>(pkg->content);
+                wheel_angle = *reinterpret_cast<double*>(pkg->content);
             }
         }
     }
@@ -1504,7 +1494,7 @@ double Replay::GetWheelRot(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::WHEEL_ROT)
             {
-               wheel_rot = *reinterpret_cast<double*>(pkg->content);
+                wheel_rot = *reinterpret_cast<double*>(pkg->content);
             }
         }
     }
@@ -1527,7 +1517,7 @@ double Replay::GetSpeed(int obj_id)
             pkg = reinterpret_cast<datLogger::CommonPkg*>(scenarioState.obj_states[i].pkgs[j].pkg);
             if (static_cast<datLogger::PackageId>(pkg->hdr.id) == datLogger::PackageId::SPEED)
             {
-               speed = *reinterpret_cast<double*>(pkg->content);
+                speed = *reinterpret_cast<double*>(pkg->content);
             }
         }
     }
@@ -1558,82 +1548,32 @@ int Replay::GetName(int obj_id, std::string& name)
 
 void Replay::SetStartTime(double time)
 {
-    startTime_ = time;
+    startTime_  = time;
     startIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(startTime_));
     if (time_ < startTime_)
     {
-        time_ = startTime_;
+        time_  = startTime_;
         index_ = startIndex_;
     }
 }
 
 void Replay::SetStopTime(double time)
 {
-    stopTime_ = time;
+    stopTime_  = time;
     stopIndex_ = static_cast<unsigned int>(FindIndexAtTimestamp(stopTime_));
     if (time_ > stopTime_)
     {
-        time_ = stopTime_;
+        time_  = stopTime_;
         index_ = stopIndex_;
     }
 }
 
-void Replay::CleanEntries(std::vector<ReplayEntry>& entries)
-{
-    for (unsigned int i = 0; i < entries.size() - 1; i++)
-    {
-        if (entries[i + 1].state.info.timeStamp < entries[i].state.info.timeStamp)
-        {
-            entries.erase(entries.begin() + i + 1);
-            i--;
-        }
-
-        for (unsigned int j = 1; (i + j < entries.size()) && NEAR_NUMBERSF(entries[i + j].state.info.timeStamp, entries[i].state.info.timeStamp); j++)
-        {
-            // Keep the latest instance of entries with same timestamp
-            if (entries[i + j].state.info.id == entries[i].state.info.id)
-            {
-                entries.erase(entries.begin() + i);
-                i--;
-                break;
-            }
-        }
-    }
-}
-
-double Replay::GetLastTime()
-{
-    double maxTime = SMALL_NUMBER;
-    double timeTemp = SMALL_NUMBER;
-    for (size_t j = 0; j < scenarioData.size(); j++)
-    {
-        for (size_t k = scenarioData[j].second.size(); static_cast<int>(k) >= 0; k--)
-        {
-            if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
-            {
-                timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
-                // find the smallest value in the all scenarios
-                if (j == 0)
-                {
-                    maxTime = timeTemp;
-                }
-                else if ( maxTime < timeTemp)
-                {
-                    maxTime = timeTemp;
-                }
-                break;
-            }
-        }
-    }
-    return maxTime;
-}
-
-void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
+void Replay::AdjustObjectId(std::vector<std::vector<int>>& objIds)
 {
     int max = 0;
-    for ( auto ids:objIds)
+    for (auto ids : objIds)
     {
-        for (auto id:ids)
+        for (auto id : ids)
         {
             if (id > max)
             {
@@ -1642,11 +1582,11 @@ void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
         }
     }
 
-    int multiplier = 1;
-    double result = LARGE_NUMBER;
+    int    multiplier = 1;
+    double result     = LARGE_NUMBER;
     for (int i = 10; result > 1; i *= 10)
     {
-        result = max/i;
+        result     = max / i;
         multiplier = i;
     }
 
@@ -1655,7 +1595,10 @@ void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
     {
         // std::string scenario_tmp = scenarioData[i].first;
         std::string scenario_tmp = scenarioData[i].first.first;
-        LOG("Scenarios corresponding to IDs (%d:%d): %s", static_cast<int>(i) * multiplier, ((static_cast<int>(i) + 1) * multiplier) - 1, FileNameOf(scenario_tmp.c_str()).c_str());
+        LOG("Scenarios corresponding to IDs (%d:%d): %s",
+            static_cast<int>(i) * multiplier,
+            ((static_cast<int>(i) + 1) * multiplier) - 1,
+            FileNameOf(scenario_tmp.c_str()).c_str());
     }
 
     for (size_t i = 0; i < scenarioData.size(); i++)
@@ -1663,25 +1606,24 @@ void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
         for (size_t j = 0; j < scenarioData[i].second.size(); j++)
         {
             // Set scenario ID-group (0, 100, 200 etc.)
-            if (scenarioData[i].second[j].hdr.id == static_cast<int>( datLogger::PackageId::OBJ_ID))
+            if (scenarioData[i].second[j].hdr.id == static_cast<int>(datLogger::PackageId::OBJ_ID))
             {
-                int value = *reinterpret_cast<int*>( scenarioData[i].second[j].content);
+                int value = *reinterpret_cast<int*>(scenarioData[i].second[j].content);
                 // value += static_cast<int>(j) * 100;
                 value += static_cast<int>(i) * multiplier;
-                *reinterpret_cast<int*>( scenarioData[i].second[j].content) = value; // store it in the same address
+                *reinterpret_cast<int*>(scenarioData[i].second[j].content) = value;  // store it in the same address
             }
         }
     }
 }
 
-
 void Replay::BuildData()
 {
-
     // Scenario with smallest start time first
     std::sort(scenarioData.begin(),
               scenarioData.end(),
-              [](const auto& sce1, const auto& sce2) { return *reinterpret_cast<double*>(sce1.second[0].content) < *reinterpret_cast<double*>(sce2.second[0].content); });
+              [](const auto& sce1, const auto& sce2)
+              { return *reinterpret_cast<double*>(sce1.second[0].content) < *reinterpret_cast<double*>(sce2.second[0].content); });
 
     // Keep track of current index of each scenario
     std::vector<size_t> cur_idx;
@@ -1691,52 +1633,47 @@ void Replay::BuildData()
         cur_idx.push_back(0);
     }
 
-    // Populate data_ based on first (with lowest timestamp) scenario
-    double cur_timestamp = *reinterpret_cast<double*>( scenarioData[0].second[0].content);
-    // double last_timestamp = GetLastTime();
-    double timeTemp = SMALL_NUMBER;
-    bool timeFound = false;
-    double min_time_stamp = LARGE_NUMBER;
-    bool timePkgWritten = false;
-    int endOfScenarioCount = 0;
-    bool firstIteration = true;
+    // Populate data based on first (with lowest timestamp) scenario
+    double cur_timestamp      = *reinterpret_cast<double*>(scenarioData[0].second[0].content);
+    double timeTemp           = SMALL_NUMBER;
+    bool   timeFound          = false;
+    double min_time_stamp     = LARGE_NUMBER;
+    bool   timePkgWritten     = false;
+    int    endOfScenarioCount = 0;
+    bool   firstIteration     = true;
 
     while (true)
     {
         for (size_t j = 0; j < scenarioData.size(); j++)
         {
-            if ( j == 0)
+            if (j == 0)
             {
-                std::cout << "-----------------------------> "<< std::endl;
-                firstIteration = true; // reset the iteration
+                firstIteration = true;  // reset the iteration
             }
-           std::cout << "Time looking for : " << cur_timestamp << std::endl;
-            if ( scenarioData[j].first.second == false) // file merged, skip looking
+            if (scenarioData[j].first.second == false)  // file merged, skip looking
             {
                 continue;
             }
 
             for (size_t k = cur_idx[j]; k < scenarioData[j].second.size(); k++)
             {
-                if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
+                if (scenarioData[j].second[k].hdr.id == static_cast<int>(datLogger::PackageId::TIME_SERIES))
                 {
-                    timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
-                    std::cout << "Found Time in file-->" << j << "-->" << timeTemp << std::endl;
-                    if(isEqualDouble(timeTemp, cur_timestamp))
+                    timeTemp = *reinterpret_cast<double*>(scenarioData[j].second[k].content);
+                    if (isEqualDouble(timeTemp, cur_timestamp))
                     {
                         timeFound = true;
                     }
                     else if (timeTemp > cur_timestamp)
                     {
                         timeFound = false;
-                        std::cout << "Ignored Found Time in file-->" << j << "-->" << timeTemp << std::endl;
                         // find the smallest time in the all scenarios for next iteration
-                        if (firstIteration) // first iteration base time
+                        if (firstIteration)  // first iteration base time
                         {
                             min_time_stamp = timeTemp;
-                            firstIteration = false; // j wont give iteration number if specific scenario merged.
+                            firstIteration = false;  // j wont give iteration number if specific scenario merged.
                         }
-                        else if ( min_time_stamp > timeTemp)
+                        else if (min_time_stamp > timeTemp)
                         {
                             min_time_stamp = timeTemp;
                         }
@@ -1747,31 +1684,29 @@ void Replay::BuildData()
 
                 datLogger::PackageId pkgId = static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id);
 
-                if(( timeFound && pkgId != datLogger::PackageId::TIME_SERIES) ||
-                ( timeFound && pkgId == datLogger::PackageId::TIME_SERIES && !timePkgWritten))
+                if ((timeFound && pkgId != datLogger::PackageId::TIME_SERIES) ||
+                    (timeFound && pkgId == datLogger::PackageId::TIME_SERIES && !timePkgWritten))
                 {
-                    if( pkgId == datLogger::PackageId::END_OF_SCENARIO) // store time pkg only once
+                    if (pkgId == datLogger::PackageId::END_OF_SCENARIO)  // store time pkg only once
                     {
-                        std::cout << "File--> " << j << " ended in time-->" << timeTemp << std::endl;
-                        scenarioData[j].first.second = false; // indicate already file merged
+                        scenarioData[j].first.second = false;  // indicate already file merged
                         endOfScenarioCount += 1;
                     }
-                    if( pkgId == datLogger::PackageId::TIME_SERIES) // store time pkg only once
+                    if (pkgId == datLogger::PackageId::TIME_SERIES)  // store time pkg only once
                     {
                         timePkgWritten = true;
-                        std::cout << "Written Time --> " << timeTemp << " from file-->" << j << std::endl;
                     }
 
-                    if( pkgId != datLogger::PackageId::END_OF_SCENARIO ||
-                        (pkgId == datLogger::PackageId::END_OF_SCENARIO && endOfScenarioCount == static_cast<int>(cur_idx.size()))) // write end of scenario only once
+                    if (pkgId != datLogger::PackageId::END_OF_SCENARIO ||
+                        (pkgId == datLogger::PackageId::END_OF_SCENARIO &&
+                         endOfScenarioCount == static_cast<int>(cur_idx.size())))  // write end of scenario only once
                     {
                         pkgs_.push_back(scenarioData[j].second[k]);
-                        std::cout << "logged pkg from file--> " << j << "--> " <<  datLogger->pkgIdTostring(static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id)) << std::endl;
                     }
                 }
             }
         }
-        cur_timestamp = min_time_stamp;
+        cur_timestamp  = min_time_stamp;
         timePkgWritten = false;
 
         if (endOfScenarioCount == static_cast<int>(cur_idx.size()))
@@ -1781,103 +1716,11 @@ void Replay::BuildData()
     }
 }
 
-
-#if (0)
-void Replay::BuildData()
-{
-
-    // Scenario with smallest start time first
-    std::sort(scenarioData.begin(),
-              scenarioData.end(),
-              [](const auto& sce1, const auto& sce2) { return *reinterpret_cast<double*>(sce1.second[0].content) < *reinterpret_cast<double*>(sce2.second[0].content); });
-
-    // Keep track of current index of each scenario
-    std::vector<size_t> cur_idx;
-
-    for (size_t j = 0; j < scenarioData.size(); j++)
-    {
-        cur_idx.push_back(0);
-    }
-
-    // Populate data_ based on first (with lowest timestamp) scenario
-    double cur_timestamp = *reinterpret_cast<double*>( scenarioData[0].second[0].content);
-    double last_timestamp = GetLastTime();
-    double timeTemp = SMALL_NUMBER;
-    bool timeFound = false;
-    double min_time_stamp = LARGE_NUMBER;
-    bool lastIteration = false;
-    bool timePkgWritten = false;
-
-    while (cur_timestamp < last_timestamp || isEqualDouble(cur_timestamp, last_timestamp))
-    {
-        for (size_t j = 0; j < scenarioData.size(); j++)
-        {
-            for (size_t k = cur_idx[j]; k < scenarioData[j].second.size(); k++)
-            {
-                if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
-                {
-                    timeTemp = *reinterpret_cast<double*>( scenarioData[j].second[k].content);
-                    std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
-                    if(isEqualDouble(timeTemp, cur_timestamp))
-                    {
-                        timeFound = true;
-                    }
-                    else if (timeTemp > cur_timestamp)
-                    {
-                        timeFound = false;
-                        // find the smallest time in the all scenarios for next iteration
-                        if (j == 0)
-                        {
-                            min_time_stamp = timeTemp;
-                        }
-                        else if ( min_time_stamp > timeTemp)
-                        {
-                            min_time_stamp = timeTemp;
-                        }
-                        cur_idx[j] = k;
-                        break;
-                    }
-                }
-
-                datLogger::PackageId pkgId = static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id);
-
-                if(( timeFound && pkgId != datLogger::PackageId::TIME_SERIES) ||
-                ( timeFound && pkgId == datLogger::PackageId::TIME_SERIES && !timePkgWritten))
-                {
-                    if( pkgId == datLogger::PackageId::END_OF_SCENARIO) // store time pkg only once
-                    {
-                        // std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
-                    }
-                    if( pkgId == datLogger::PackageId::TIME_SERIES) // store time pkg only once
-                    {
-                        timePkgWritten = true;
-                        // std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
-                    }
-                    // std::cout << "logged pkg from file-->" << j << "-->" <<  datLogger->pkgIdTostring(static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id)) << std::endl;
-                    pkgs_.push_back(scenarioData[j].second[k]);
-                }
-            }
-        }
-        cur_timestamp = min_time_stamp;
-        timePkgWritten = false;
-        if ( lastIteration)
-        {
-            break;
-        }
-        if ( isEqualDouble(cur_timestamp, last_timestamp))
-        {
-            lastIteration = true;
-        }
-    }
-}
-
-#endif
 int Replay::CreateMergedDatfile(const std::string filename)
 {
-
     if (!filename.empty())
     {
-        datLogger::DatHdr        headerNew_;
+        datLogger::DatHdr headerNew_;
         headerNew_ = *reinterpret_cast<datLogger::DatHdr*>(header_.content);
         if (datLogger == nullptr)
         {

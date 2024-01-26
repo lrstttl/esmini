@@ -30,7 +30,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-
     std::unique_ptr<Dat2csv> dat_to_csv;
 
     // Create dat2csv object for parsing the binary data file
@@ -48,7 +47,6 @@ int main(int argc, char** argv)
     {
         dat_to_csv->SetLogExtended(true);
     }
-
 
     if (opt.GetOptionSet("file_refs"))
     {
@@ -72,19 +70,19 @@ int main(int argc, char** argv)
         std::string time_mode_str = opt.GetOptionArg("time_mode");
         if (!time_mode_str.empty())
         {
-            if (time_mode_str == "original" )
+            if (time_mode_str == "original")
             {
                 log_mode_ = Dat2csv::log_mode::ORIGINAL;
             }
-            else if (time_mode_str == "min_step" )
+            else if (time_mode_str == "min_step")
             {
                 log_mode_ = Dat2csv::log_mode::MIN_STEP;
             }
-            else if (time_mode_str == "min_step_mixed" )
+            else if (time_mode_str == "min_step_mixed")
             {
                 log_mode_ = Dat2csv::log_mode::MIN_STEP_MIXED;
             }
-            else if ( time_mode_str == "time_step")
+            else if (time_mode_str == "time_step")
             {
                 log_mode_ = Dat2csv::log_mode::TIME_STEP;
             }
@@ -116,5 +114,4 @@ int main(int argc, char** argv)
 
     dat_to_csv->SetLogMode(log_mode_);
     dat_to_csv->CreateCSV();
-
 }

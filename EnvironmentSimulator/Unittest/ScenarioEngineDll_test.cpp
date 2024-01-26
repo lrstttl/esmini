@@ -2286,7 +2286,7 @@ TEST(ExternalControlTest, TestTimings)
             EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 61.0, 1E-3);
             EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
 
-            replay->MoveToTime(2.3); // show restart time
+            replay->MoveToTime(2.3);  // show restart time
             EXPECT_NEAR(replay->scenarioState.sim_time, -0.75, 1E-3);
             replay->GetName(replay->scenarioState.obj_states[0].id, name);
             EXPECT_EQ(name, "Ego");
@@ -2371,7 +2371,7 @@ TEST(ExternalControlTest, TestTimings)
             EXPECT_NEAR(replay->GetX(replay->scenarioState.obj_states[2].id), 257.624, 1E-3);
             EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[2].id), -1.5, 1E-3);
 
-            replay->MoveToTime(8.2); // shall be in secound restart
+            replay->MoveToTime(8.2);  // shall be in secound restart
             EXPECT_NEAR(replay->scenarioState.sim_time, 5.25, 1E-3);
             replay->GetName(replay->scenarioState.obj_states[0].id, name);
             EXPECT_EQ(name, "Ego");

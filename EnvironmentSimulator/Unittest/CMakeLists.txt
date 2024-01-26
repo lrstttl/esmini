@@ -123,4 +123,3 @@ unittest(
     "${Replayer_sources}"
     esminiLib
     CommonMini)
-

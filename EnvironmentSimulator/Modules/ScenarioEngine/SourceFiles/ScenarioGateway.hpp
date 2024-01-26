@@ -77,11 +77,11 @@ namespace scenarioengine
         double h;
         double p;
         double r;
-        int   roadId;
-        int   laneId;
+        int    roadId;
+        int    laneId;
         double offset;
-        float t;
-        float s;
+        float  t;
+        float  s;
     };
 
     struct ObjectStateStructDat

@@ -1012,17 +1012,17 @@ int ScenarioGateway::WriteStatesToFile()
         // Write status to file - for later replay
         for (size_t i = 0; i < objectState_.size(); i++)
         {
-            int objId = objectState_[i]->state_.info.id;
+            int objId              = objectState_[i]->state_.info.id;
             datLogger->simTimeTemp = objectState_[i]->state_.info.timeStamp;
             datLogger->AddObject(objId);
             datLogger->WriteModelId(objId, objectState_[i]->state_.info.model_id);
             datLogger->WriteObjPos(objId,
-                                objectState_[i]->state_.pos.GetX(),
-                                objectState_[i]->state_.pos.GetY(),
-                                objectState_[i]->state_.pos.GetZ(),
-                                objectState_[i]->state_.pos.GetH(),
-                                objectState_[i]->state_.pos.GetP(),
-                                objectState_[i]->state_.pos.GetR());
+                                   objectState_[i]->state_.pos.GetX(),
+                                   objectState_[i]->state_.pos.GetY(),
+                                   objectState_[i]->state_.pos.GetZ(),
+                                   objectState_[i]->state_.pos.GetH(),
+                                   objectState_[i]->state_.pos.GetP(),
+                                   objectState_[i]->state_.pos.GetR());
             datLogger->WriteObjSpeed(objectState_[i]->state_.info.id, objectState_[i]->state_.info.speed);
             datLogger->WriteObjCategory(objId, objectState_[i]->state_.info.obj_category);
             datLogger->WriteObjType(objId, objectState_[i]->state_.info.obj_type);
@@ -1030,12 +1030,12 @@ int ScenarioGateway::WriteStatesToFile()
             datLogger->WriteWheelAngle(objId, objectState_[i]->state_.info.wheel_angle);
             datLogger->WriteWheelRot(objId, objectState_[i]->state_.info.wheel_rot);
             datLogger->WriteBB(objId,
-                            objectState_[i]->state_.info.boundingbox.center_.x_,
-                            objectState_[i]->state_.info.boundingbox.center_.y_,
-                            objectState_[i]->state_.info.boundingbox.center_.z_,
-                            objectState_[i]->state_.info.boundingbox.dimensions_.length_,
-                            objectState_[i]->state_.info.boundingbox.dimensions_.width_,
-                            objectState_[i]->state_.info.boundingbox.dimensions_.height_);
+                               objectState_[i]->state_.info.boundingbox.center_.x_,
+                               objectState_[i]->state_.info.boundingbox.center_.y_,
+                               objectState_[i]->state_.info.boundingbox.center_.z_,
+                               objectState_[i]->state_.info.boundingbox.dimensions_.length_,
+                               objectState_[i]->state_.info.boundingbox.dimensions_.width_,
+                               objectState_[i]->state_.info.boundingbox.dimensions_.height_);
             datLogger->WriteScaleMode(objId, objectState_[i]->state_.info.scaleMode);
             datLogger->WriteVisiblityMask(objId, objectState_[i]->state_.info.visibilityMask);
             datLogger->WriteName(objId, objectState_[i]->state_.info.name);

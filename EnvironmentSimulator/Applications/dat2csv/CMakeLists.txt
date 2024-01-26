@@ -41,10 +41,10 @@ target_include_directories(
     ${TARGET1}
     SYSTEM
     PUBLIC ${ROAD_MANAGER_PATH}
-            ${EXTERNALS_OSI_INCLUDES}
-            ${EXTERNALS_PUGIXML_PATH}
-            ${EXTERNALS_OSG_INCLUDES}
-            ${EXTERNALS_DIRENT_INCLUDES})
+           ${EXTERNALS_OSI_INCLUDES}
+           ${EXTERNALS_PUGIXML_PATH}
+           ${EXTERNALS_OSG_INCLUDES}
+           ${EXTERNALS_DIRENT_INCLUDES})
 
 disable_static_analysis(${TARGET1})
 disable_iwyu(${TARGET1})
@@ -52,4 +52,3 @@ disable_iwyu(${TARGET1})
 install(
     TARGETS ${TARGET1}
     DESTINATION "${INSTALL_PATH}")
-

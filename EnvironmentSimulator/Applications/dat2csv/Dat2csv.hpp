@@ -1,4 +1,4 @@
-    /*
+/*
  * esmini - Environment Simulator Minimalistic
  * https://github.com/esmini/esmini
  *
@@ -19,7 +19,6 @@
 
 #include "Replay.hpp"
 
-
 class Dat2csv
 {
 public:
@@ -28,18 +27,17 @@ public:
 
     enum class log_mode
     {
-        ORIGINAL = 0, // default
-        MIN_STEP = 1,
-        MIN_STEP_MIXED = 2,
-        TIME_STEP = 3, // 0.05 default step time.
-        TIME_STEP_MIXED = 4 // 0.05 default step time
-
+        ORIGINAL        = 0,  // default
+        MIN_STEP        = 1,
+        MIN_STEP_MIXED  = 2,
+        TIME_STEP       = 3,  // 0.05 default step time.
+        TIME_STEP_MIXED = 4   // 0.05 default step time
 
     };
 
     void CreateCSV();
 
-    void SetLogExtended( bool option)
+    void SetLogExtended(bool option)
     {
         extended = option;
     }
@@ -49,23 +47,22 @@ public:
         include_refs = option;
     }
 
-    void SetLogMode( Dat2csv::log_mode mode_)
+    void SetLogMode(Dat2csv::log_mode mode_)
     {
         log_mode_ = mode_;
     }
 
-    void SetStepTime( double t)
+    void SetStepTime(double t)
     {
         step_time_ = t;
     }
 
 private:
     Dat2csv::log_mode log_mode_;
-    double step_time_;
-    bool extended = false;
-    bool include_refs = true;
-    std::ofstream file;
+    double            step_time_;
+    bool              extended     = false;
+    bool              include_refs = true;
+    std::ofstream     file;
 
     std::unique_ptr<scenarioengine::Replay> player;
-
 };

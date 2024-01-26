@@ -17,33 +17,32 @@
 
 #include "CommonMini.hpp"
 
-
 namespace datLogger
 {
     enum class PackageId
     {
-        HEADER      = 11,
-        TIME_SERIES = 12,
-        OBJ_ID      = 13,
-        MODEL_ID    = 14,
-        POSITIONS   = 15,
-        SPEED       = 16,
-        OBJ_TYPE    = 17,
-        OBJ_CATEGORY = 18,
-        CTRL_TYPE   = 19,
-        WHEEL_ANGLE = 20,
-        WHEEL_ROT   = 21,
-        BOUNDING_BOX = 22,
-        SCALE_MODE = 23,
+        HEADER          = 11,
+        TIME_SERIES     = 12,
+        OBJ_ID          = 13,
+        MODEL_ID        = 14,
+        POSITIONS       = 15,
+        SPEED           = 16,
+        OBJ_TYPE        = 17,
+        OBJ_CATEGORY    = 18,
+        CTRL_TYPE       = 19,
+        WHEEL_ANGLE     = 20,
+        WHEEL_ROT       = 21,
+        BOUNDING_BOX    = 22,
+        SCALE_MODE      = 23,
         VISIBILITY_MASK = 24,
-        NAME = 25,
-        ROAD_ID = 26,
-        LANE_ID = 27,
-        POS_OFFSET = 28,
-        POS_T = 29,
-        POS_S = 30,
-        OBJ_DELETED = 31,
-        OBJ_ADDED = 32,
+        NAME            = 25,
+        ROAD_ID         = 26,
+        LANE_ID         = 27,
+        POS_OFFSET      = 28,
+        POS_T           = 29,
+        POS_S           = 30,
+        OBJ_DELETED     = 31,
+        OBJ_ADDED       = 32,
         END_OF_SCENARIO = 33
     };
 
@@ -108,7 +107,6 @@ namespace datLogger
         double wheel_rot = SMALL_NUMBER;
     };
 
-
     struct ScaleMode
     {
         int scale_mode = -1;
@@ -160,10 +158,10 @@ namespace datLogger
 
     struct BoundingBox
     {
-        float x = 0.0;
-        float y = 0.0;
-        float z = 0.0;
-        float width = 0.0;
+        float x      = 0.0;
+        float y      = 0.0;
+        float z      = 0.0;
+        float width  = 0.0;
         float length = 0.0;
         float height = 0.0;
     };
@@ -182,25 +180,25 @@ namespace datLogger
 
     struct ObjState
     {
-        ObjId           obj_id_;
-        bool            active = false;
-        Speed           speed_;
-        Pos             pos_;
-        ModelId         modelId_;
-        ObjType         objType_;
-        ObjCategory     objCategory_;
-        CtrlType        ctrlType_;
-        WheelAngle      wheelAngle_;
-        WheelRot        wheelRot_;
-        BoundingBox     boundingBox_;
-        ScaleMode       scaleMode_;
-        VisibilityMask  visibilityMask_;
-        std::string     name_;
-        RoadId          roadId_;
-        LaneId          laneId_;
-        PosOffset       posOffset_;
-        PosT            posT;
-        PosS            posS;
+        ObjId          obj_id_;
+        bool           active = false;
+        Speed          speed_;
+        Pos            pos_;
+        ModelId        modelId_;
+        ObjType        objType_;
+        ObjCategory    objCategory_;
+        CtrlType       ctrlType_;
+        WheelAngle     wheelAngle_;
+        WheelRot       wheelRot_;
+        BoundingBox    boundingBox_;
+        ScaleMode      scaleMode_;
+        VisibilityMask visibilityMask_;
+        std::string    name_;
+        RoadId         roadId_;
+        LaneId         laneId_;
+        PosOffset      posOffset_;
+        PosT           posT;
+        PosS           posS;
     };
 
     struct CompleteObjectState
@@ -211,7 +209,7 @@ namespace datLogger
 
     struct ObjIdAdded
     {
-        int id;
+        int  id;
         bool status = false;
     };
 
@@ -228,9 +226,9 @@ namespace datLogger
             {
                 WriteTime(simTimeTemp);
                 CommonPkg pkg;
-                pkg.hdr.id = static_cast<int>(PackageId::END_OF_SCENARIO);
+                pkg.hdr.id           = static_cast<int>(PackageId::END_OF_SCENARIO);
                 pkg.hdr.content_size = 0;
-                pkg.content = nullptr;
+                pkg.content          = nullptr;
                 writePackage(pkg);
 
                 data_file_.flush();
@@ -238,18 +236,17 @@ namespace datLogger
             }
         }
 
-        bool isFirstEntry      = true;
-        bool notFirstEnd       = false;
-        bool TimePkgAdded = false;
-        bool ObjIdPkgAdded = false;
-        double simTimeTemp = SMALL_NUMBER;
+        bool   isFirstEntry  = true;
+        bool   notFirstEnd   = false;
+        bool   TimePkgAdded  = false;
+        bool   ObjIdPkgAdded = false;
+        double simTimeTemp   = SMALL_NUMBER;
 
-        CompleteObjectState completeObjectState;
+        CompleteObjectState     completeObjectState;
         std::vector<ObjIdAdded> objIdAdded_;
 
         int  init(std::string fileName, int ver, std::string odrName, std::string modelName);
         void deleteObjState(int objId);
-
 
         void writePackage(CommonPkg package);  // will just write package
         void WriteStringPkg(std::string name, PackageId pkg_id);
@@ -263,28 +260,28 @@ namespace datLogger
             return data_file_.is_open();
         }
 
-        int         WriteObjSpeed(int obj_id, double speed);
-        int         WriteTime(double t);
-        int         WriteObjPos(int obj_id, double x, double y, double z, double h, double p, double r);
-        int         WriteObjId(int obj_id);
-        int         WriteModelId(int obj_id, int model_id);
-        int         WriteObjType(int obj_id, int obj_type);
-        int         WriteObjCategory(int obj_id, int obj_category);
-        int         WriteCtrlType(int obj_id, int ctrl_type);
+        int WriteObjSpeed(int obj_id, double speed);
+        int WriteTime(double t);
+        int WriteObjPos(int obj_id, double x, double y, double z, double h, double p, double r);
+        int WriteObjId(int obj_id);
+        int WriteModelId(int obj_id, int model_id);
+        int WriteObjType(int obj_id, int obj_type);
+        int WriteObjCategory(int obj_id, int obj_category);
+        int WriteCtrlType(int obj_id, int ctrl_type);
 
-        int         WriteWheelAngle(int obj_id, double angle);
-        int         WriteWheelRot(int obj_id, double rot);
-        int         WriteBB(int obj_id, float x, float y, float z, float length, float width, float height);
-        int         WriteScaleMode(int obj_id, int mode);
-        int         WriteVisiblityMask(int obj_id, int mask);
-        int         WriteName(int obj_id, std::string name);
-        int         WriteRoadId(int obj_id, int road_id);
-        int         WriteLaneId(int obj_id, int lane_id);
-        int         WritePosOffset(int obj_id, double pos_offset);
-        int         WritePosT(int obj_id, double t);
-        int         WritePosS(int obj_id, double s);
+        int WriteWheelAngle(int obj_id, double angle);
+        int WriteWheelRot(int obj_id, double rot);
+        int WriteBB(int obj_id, float x, float y, float z, float length, float width, float height);
+        int WriteScaleMode(int obj_id, int mode);
+        int WriteVisiblityMask(int obj_id, int mask);
+        int WriteName(int obj_id, std::string name);
+        int WriteRoadId(int obj_id, int road_id);
+        int WriteLaneId(int obj_id, int lane_id);
+        int WritePosOffset(int obj_id, double pos_offset);
+        int WritePosT(int obj_id, double t);
+        int WritePosS(int obj_id, double s);
 
         std::string pkgIdTostring(PackageId id);
     };
 
-}
+}  // namespace datLogger
