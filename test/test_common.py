@@ -57,7 +57,7 @@ def run_scenario(osc_filename, esmini_arguments, xosc_str = None):
     assert False, 'No log file'
 
 
-def generate_csv(mode_ = "original"):
+def generate_csv(mode_ = "original", time_step_ = 0.05):
 
     # Below is one/the old way of converting dat to csv. Keeping the lines for reference.
     # args = [os.path.join(ESMINI_PATH,'bin','dat2csv'), DAT_FILENAME]
@@ -65,7 +65,7 @@ def generate_csv(mode_ = "original"):
 
     # Below is the Python way of converting dat to csv
     dat = DATFile(DAT_FILENAME)
-    dat.save_csv(mode = mode_)
+    dat.save_csv(mode = mode_, step_time = time_step_)
 
     with open(CSV_FILENAME, "r") as f:
         return f.read()

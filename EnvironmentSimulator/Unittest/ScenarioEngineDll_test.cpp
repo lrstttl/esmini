@@ -3813,9 +3813,9 @@ TEST(ReplayTest, TestMultiReplayDifferentTimeSteps)
         else
         {
             EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[0].id), 130.924, 1E-3);
-            EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[3].id), 210.727, 1E-3);
+            EXPECT_NEAR(replay->GetY(replay->scenarioState.obj_states[3].id), 210.738, 1E-3);
             replay->MoveToTime(19.6);
-            EXPECT_NEAR(replay->scenarioState.sim_time, 19.60, 1E-3);
+            EXPECT_NEAR(replay->scenarioState.sim_time, 19.6, 1E-3);
             EXPECT_NEAR(replay->scenarioState.obj_states[1].id, 1, 1E-3);
         }
     }

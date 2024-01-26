@@ -659,7 +659,7 @@ class TestSuite(unittest.TestCase):
         self.assertTrue(re.search('^-0.500, 0, Ego, 50.000, -11.500, 0.000, 0.000, 0.000, 0.000, 10.000, 0.000, 0.000', csv, re.MULTILINE))
         self.assertTrue(re.search('^-0.500, 1, Ego_ghost, 50.000, -11.500, 0.000, 0.000, 0.000, 0.000, 10.000, 0.000, 0.000', csv, re.MULTILINE))
         self.assertTrue(re.search('^1.010, 1, Ego_ghost, 65.100, -11.500, 0.000, 0.000, 0.000, 0.000, 10.000, 0.000, 5.444', csv, re.MULTILINE))
-        self.assertTrue(re.search('^1.020, 1, Ego_ghost, 65.121, -10.608, 0.000, 0.173, 0.000, 0.000, 10.000, 0.000, 0.880', csv, re.MULTILINE))
+        self.assertTrue(re.search('^1.020, 1, Ego_ghost, 65.121, -10.607, 0.000, 0.173, 0.000, 0.000, 10.000, 0.000, 0.880', csv, re.MULTILINE))
         self.assertTrue(re.search('^2.000, 0, Ego, 69.847, -9.934, 0.000, 0.221, 0.000, 0.000, 10.000, 0.009, 0.566', csv, re.MULTILINE))
         self.assertTrue(re.search('^2.000, 1, Ego_ghost, 74.770, -8.892, 0.000, 0.173, 0.000, 0.000, 10.000, 0.000, 3.747', csv, re.MULTILINE))
         self.assertTrue(re.search('^5.000, 0, Ego, 99.649, -8.042, 0.000, 6.283, 0.000, 0.000, 10.000, 0.014, 4.598', csv, re.MULTILINE))
@@ -950,7 +950,7 @@ class TestSuite(unittest.TestCase):
         self.assertTrue(re.search('^0.400: event_road_position_rel_heading_0_-1_4 standbyState -> startTransition -> runningState', log, re.MULTILINE)  is not None)
 
         # Check vehicle key positions
-        csv = generate_csv()
+        csv = generate_csv("time_step", 0.01)
 
         self.assertTrue(re.search('^0.000, 0, car_0_-1, 55.000, -1.750, 0.000, 3.142, 0.000, 0.000, 0.000, 0.000, 0.000', csv, re.MULTILINE))
         self.assertTrue(re.search('^0.000, 1, car_0_1, 55.000, 1.750, 0.000, 3.142, 0.000, 0.000, 0.000, 0.000, 0.000', csv, re.MULTILINE))

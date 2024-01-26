@@ -95,6 +95,7 @@ int main(int argc, char** argv)
             else
             {
                 LOG("Unsupported time mode: %s - using default (Original)", time_mode_str.c_str());
+                printf("Unsupported time mode: %s - using default (Original)", time_mode_str.c_str());
             }
         }
     }
