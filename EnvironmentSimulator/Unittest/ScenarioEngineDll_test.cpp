@@ -3565,13 +3565,13 @@ TEST(ReplayTest, TestMultiReplayDifferentTimeSteps)
 {
     const char* args[2][2][6] = {
         // First run with smaller timsteps in first scenario
-        {{"--osc", "../../../resources/xosc/follow_ghost.xosc", "--record", "multirep_test1.dat", "--fixed_timestep", "0.01"},
-         {"--osc", "../../../resources/xosc/left-hand-traffic_using_road_rule.xosc", "--record", "multirep_test2.dat", "--fixed_timestep", "0.1"}},
+        {{"--osc", "../../resources/xosc/follow_ghost.xosc", "--record", "multirep_test1.dat", "--fixed_timestep", "0.01"},
+         {"--osc", "../../resources/xosc/left-hand-traffic_using_road_rule.xosc", "--record", "multirep_test2.dat", "--fixed_timestep", "0.1"}},
         // Then run with smaller timsteps in second scenario
-        {{"--osc", "../../../resources/xosc/follow_ghost.xosc", "--record", "multirep_test1.dat", "--fixed_timestep", "0.1"},
-         {"--osc", "../../../resources/xosc/left-hand-traffic_using_road_rule.xosc", "--record", "multirep_test2.dat", "--fixed_timestep", "0.01"}}};
+        {{"--osc", "../../resources/xosc/follow_ghost.xosc", "--record", "multirep_test1.dat", "--fixed_timestep", "0.1"},
+         {"--osc", "../../resources/xosc/left-hand-traffic_using_road_rule.xosc", "--record", "multirep_test2.dat", "--fixed_timestep", "0.01"}}};
 
-    SE_AddPath("../../../resources/models");
+    SE_AddPath("../../resources/models");
 
     for (int k = 0; k < 2; k++)
     {

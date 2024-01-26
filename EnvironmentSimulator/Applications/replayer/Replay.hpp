@@ -97,8 +97,8 @@ namespace scenarioengine
         int CreateMergedDatfile(const std::string filename);
 
         // new merge dat methods
-        std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>> scenarioData;
-        // std::vector<std::pair<std::pair<std::string, bool>, std::vector<datLogger::CommonPkg>>> scenarioData;
+        // std::vector<std::pair<std::string, std::vector<datLogger::CommonPkg>>> scenarioData;
+        std::vector<std::pair<std::pair<std::string, bool>, std::vector<datLogger::CommonPkg>>> scenarioData;
 
         void BuildData();
         double GetLastTime();

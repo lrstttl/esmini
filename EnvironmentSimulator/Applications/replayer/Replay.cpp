@@ -91,8 +91,8 @@ Replay::Replay(const std::string directory, const std::string scenario, std::str
                         DAT_FILE_FORMAT_VERSION);
         }
         // pair <scenario name, scenario data>
-        scenarioData.push_back(std::make_pair(scenarios_[i], pkgs_));
-        // scenarioData.push_back(std::make_pair(std::make_pair(scenarios_[i], true), pkgs_));
+        // scenarioData.push_back(std::make_pair(scenarios_[i], pkgs_));
+        scenarioData.push_back(std::make_pair(std::make_pair(scenarios_[i], true), pkgs_));
         pkgs_ = {};
     }
 
@@ -1653,8 +1653,8 @@ void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
     // Log which scenario belongs to what ID-group (0, 100, 200 etc.)
     for (size_t i = 0; i < scenarioData.size(); i++)
     {
-        std::string scenario_tmp = scenarioData[i].first;
-        // std::string scenario_tmp = scenarioData[i].first.first;
+        // std::string scenario_tmp = scenarioData[i].first;
+        std::string scenario_tmp = scenarioData[i].first.first;
         LOG("Scenarios corresponding to IDs (%d:%d): %s", static_cast<int>(i) * multiplier, ((static_cast<int>(i) + 1) * multiplier) - 1, FileNameOf(scenario_tmp.c_str()).c_str());
     }
 
@@ -1674,7 +1674,7 @@ void Replay::AdjustObjectId( std::vector<std::vector<int>>& objIds)
     }
 }
 
-#if (0)
+
 void Replay::BuildData()
 {
 
@@ -1699,17 +1699,21 @@ void Replay::BuildData()
     double min_time_stamp = LARGE_NUMBER;
     bool timePkgWritten = false;
     int endOfScenarioCount = 0;
-    bool firstIteration = false;
+    bool firstIteration = true;
 
     while (true)
     {
         for (size_t j = 0; j < scenarioData.size(); j++)
         {
+            if ( j == 0)
+            {
+                firstIteration = true; // reset the iteration
+            }
             if ( scenarioData[j].first.second == false) // file merged, skip looking
             {
                 continue;
             }
-            firstIteration = true; // j wont give iteration number if specific scenario merged.
+
             for (size_t k = cur_idx[j]; k < scenarioData[j].second.size(); k++)
             {
                 if (scenarioData[j].second[k].hdr.id == static_cast<int>( datLogger::PackageId::TIME_SERIES))
@@ -1727,6 +1731,7 @@ void Replay::BuildData()
                         if (firstIteration) // first iteration base time
                         {
                             min_time_stamp = timeTemp;
+                            firstIteration = false; // j wont give iteration number if specific scenario merged.
                         }
                         else if ( min_time_stamp > timeTemp)
                         {
@@ -1744,30 +1749,27 @@ void Replay::BuildData()
                 {
                     if( pkgId == datLogger::PackageId::END_OF_SCENARIO) // store time pkg only once
                     {
-                        std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
+                        std::cout << "File--> " << j << " ended in time-->" << timeTemp << std::endl;
                         scenarioData[j].first.second = false; // indicate already file merged
                         endOfScenarioCount += 1;
                     }
                     if( pkgId == datLogger::PackageId::TIME_SERIES) // store time pkg only once
                     {
                         timePkgWritten = true;
-                        std::cout << "Time in file-->" << j << "-->" << timeTemp << std::endl;
+                        std::cout << "Written Time --> " << timeTemp << " from file-->" << j << std::endl;
                     }
 
                     if( pkgId != datLogger::PackageId::END_OF_SCENARIO ||
                         (pkgId == datLogger::PackageId::END_OF_SCENARIO && endOfScenarioCount == static_cast<int>(cur_idx.size()))) // write end of scenario only once
                     {
                         pkgs_.push_back(scenarioData[j].second[k]);
-                        std::cout << "logged pkg from file-->" << j << "-->" <<  datLogger->pkgIdTostring(static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id)) << std::endl;
+                        std::cout << "logged pkg from file--> " << j << "--> " <<  datLogger->pkgIdTostring(static_cast<datLogger::PackageId>(scenarioData[j].second[k].hdr.id)) << std::endl;
                     }
                 }
             }
-            if ( j == scenarioData.size() - 1)
-            {
-                firstIteration = false; // reset the iteration
-            }
         }
         cur_timestamp = min_time_stamp;
+        timePkgWritten = false;
         std::cout << "cur_timestamp: " << cur_timestamp << std::endl;
 
         if (endOfScenarioCount == static_cast<int>(cur_idx.size()))
@@ -1777,8 +1779,8 @@ void Replay::BuildData()
     }
 }
 
-#endif
 
+#if (0)
 void Replay::BuildData()
 {
 
@@ -1867,6 +1869,7 @@ void Replay::BuildData()
     }
 }
 
+#endif
 int Replay::CreateMergedDatfile(const std::string filename)
 {
 
