@@ -1256,8 +1256,8 @@ namespace scenarioengine
         double flashingOnDuration_;
         double cmyk_[4];
 
-        LightStateAction()
-            : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_ACTION, ControlDomains::DOMAIN_LIGHT),
+        LightStateAction(StoryBoardElement* parent)
+            : OSCPrivateAction(OSCPrivateAction::ActionType::LIGHT_STATE_ACTION, parent, ControlDomains::DOMAIN_LIGHT),
               transitionTime_(0.0),
               flashingOffDuration_(0.5),
               flashingOnDuration_(0.5),
@@ -1293,7 +1293,7 @@ namespace scenarioengine
         int parseVehicleLightColor(std::string colorType, Object::VehicleLightActionStatus& lightStatus);
 
         void Step(double simTime, double dt);
-        void Start(double simTime, double dt);
+        void Start(double simTime);
         void AddVehicleLightActionStatus(Object::VehicleLightActionStatus lightStatus);
         int  setLightTransistionValues(Object::VehicleLightMode mode);
 

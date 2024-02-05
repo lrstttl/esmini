@@ -2265,7 +2265,7 @@ void LightStateAction::AddVehicleLightActionStatus(Object::VehicleLightActionSta
 {
     vehicleLightActionStatus = lightStatus;
 }
-void LightStateAction::Start(double simTime, double dt)
+void LightStateAction::Start(double simTime)
 {
     // set initial values
     transitionTimer_  = 0.0;
@@ -2383,7 +2383,7 @@ void LightStateAction::Start(double simTime, double dt)
     checkColorError(initialDiffRgb_, sizeof(initialDiffRgb_) / sizeof(initialDiffRgb_[0]));
     checkColorError(finalDiffRgb_, sizeof(finalDiffRgb_) / sizeof(finalDiffRgb_[0]));
 
-    OSCAction::Start(simTime, dt);
+    OSCAction::Start(simTime);
 }
 
 void LightStateAction::Step(double simTime, double dt)
@@ -2421,7 +2421,7 @@ void LightStateAction::Step(double simTime, double dt)
             object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].diffuseRgb[1] = finalDiffRgb_[1];
             object_->vehicleLightActionStatusList[vehicleLightActionStatus.type].diffuseRgb[2] = finalDiffRgb_[2];
 
-            OSCAction::End(simTime);
+            OSCAction::End();
         }
     }
     else

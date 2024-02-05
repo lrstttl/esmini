@@ -3387,7 +3387,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
         }
         else if (actionChild.name() == std::string("AppearanceAction"))
         {
-            LightStateAction                *lightStateAction = new LightStateAction();
+            LightStateAction                *lightStateAction = new LightStateAction(parent);
             Object::VehicleLightActionStatus LightActionStatus;
             pugi::xml_node                   appearanceActionChild = actionChild.first_child();
             lightStatusOn                                          = true;
