@@ -2371,7 +2371,8 @@ OutlineCornerRoad::OutlineCornerRoad(int    roadId,
                                      double height,
                                      double center_s,
                                      double center_t,
-                                     double center_heading)
+                                     double center_heading,
+                                     int cornerId)
     : roadId_(roadId),
       s_(s),
       t_(t),
@@ -2379,7 +2380,8 @@ OutlineCornerRoad::OutlineCornerRoad(int    roadId,
       height_(height),
       center_s_(center_s),
       center_t_(center_t),
-      center_heading_(center_heading)
+      center_heading_(center_heading),
+      cornerId_(cornerId)
 {
 }
 
@@ -2405,7 +2407,7 @@ void OutlineCornerRoad::GetPosLocal(double& x, double& y, double& z)
     z = pref.GetZ() + dz_;
 }
 
-OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading)
+OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId)
     : roadId_(roadId),
       s_(s),
       t_(t),
@@ -2413,7 +2415,8 @@ OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u,
       v_(v),
       zLocal_(zLocal),
       height_(height),
-      heading_(heading)
+      heading_(heading),
+      cornerId_(cornerId)
 {
 }
 
@@ -4347,7 +4350,8 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                                                            h_start + factor * (h_end - h_start),
                                                                            s,
                                                                            t,
-                                                                           heading));
+                                                                           heading,
+                                                                           0));
 
                                 outline->AddCorner(corner);
                             }
@@ -4425,8 +4429,9 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 double tc      = atof(corner_node.attribute("t").value());
                                 double dz      = atof(corner_node.attribute("dz").value());
                                 double heightc = atof(corner_node.attribute("height").value());
+                                int cornerId   = atoi(corner_node.attribute("id").value());
 
-                                corner = (OutlineCorner*)(new OutlineCornerRoad(r->GetId(), sc, tc, dz, heightc, s, t, heading));
+                                corner = (OutlineCorner*)(new OutlineCornerRoad(r->GetId(), sc, tc, dz, heightc, s, t, heading, cornerId));
                             }
                             else if (!strcmp(corner_node.name(), "cornerLocal"))
                             {
@@ -4434,9 +4439,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 double v       = atof(corner_node.attribute("v").value());
                                 double zLocal  = atof(corner_node.attribute("z").value());
                                 double heightc = atof(corner_node.attribute("height").value());
+                                int cornerId   = atoi(corner_node.attribute("id").value());
 
                                 corner =
-                                    (OutlineCorner*)(new OutlineCornerLocal(r->GetId(), obj->GetS(), obj->GetT(), u, v, zLocal, heightc, heading));
+                                    (OutlineCorner*)(new OutlineCornerLocal(r->GetId(), obj->GetS(), obj->GetT(), u, v, zLocal, heightc, heading, cornerId));
                             }
                             outline->AddCorner(corner);
                         }
@@ -4504,7 +4510,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 pugi::xml_node markings_node = object.child("markings");
                 if (markings_node != NULL)
                 {
-                    Markings* markings = new Markings;
+                    CrossWalk_Markings* markings = new CrossWalk_Markings;
                     for (pugi::xml_node marking_node = markings_node.child("marking"); marking_node; marking_node = marking_node.next_sibling())
                     {
                         Marking* marking = 0;
@@ -4544,26 +4550,23 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             }
 
                             std::string rattr;
-                            std::string side = ((rattr = ReadAttribute(marking_node, "side", true)) == "" ? "none" : std::string(rattr));
                             double width       = atof(marking_node.attribute("width").value());
                             double z_offset    = atof(marking_node.attribute("zOffset").value());
                             double spaceLength = atof(marking_node.attribute("spaceLength").value());
                             double lineLength  = atof(marking_node.attribute("lineLength").value());
                             double startOffset = atof(marking_node.attribute("startOffset").value());
                             double stopOffset  = atof(marking_node.attribute("stopOffset").value());
-                            marking            = (Marking*)new Marking(side, color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset);
+                            marking            = (Marking*)new Marking(color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset);
                         }
-
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())
                         {
-                            double           cornerReference = atof(cornerReference_node.attribute("cornerReference").value());
-                            CornerReference* cornerRef       = new CornerReference(cornerReference);
-                            marking->AddCornerReference(cornerRef);
+                            int           cornerReferenceId = atoi(cornerReference_node.attribute("id").value());
+                            marking->cornerReferenceId_.push_back(cornerReferenceId);
                         }
                         markings->AddMarking(marking);
                     }
-                    obj->AddMarkings(markings);
+                    obj->AddCrosswalkMarkings(markings);
                 }
 
                 for (pugi::xml_node validity_node = object.child("validity"); validity_node; validity_node = validity_node.next_sibling("validity"))

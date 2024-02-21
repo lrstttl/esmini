@@ -2937,7 +2937,7 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color)
+int Viewer::CreateOutlineObject(roadmanager::Outline* outline, roadmanager::CrossWalk_Markings* markings, osg::Vec4 color)
 {
     if (outline == 0)
         return -1;
@@ -2957,6 +2957,7 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color)
         double                      x, y, z;
         roadmanager::OutlineCorner* corner = outline->corner_[i];
         corner->GetPos(x, y, z);
+        int cornerId = corner->GetCornerId();
         (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
         (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
         (*vertices_top)[i].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
@@ -3144,7 +3145,8 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                 {
                     roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                    CreateOutlineObject(outline, color);
+                    roadmanager::CrossWalk_Markings* markings = object->GetCrossWalk_Markings(static_cast<int>(j));
+                    CreateOutlineObject(outline, markings, color);
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
@@ -3194,7 +3196,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                             {
                                 roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                                CreateOutlineObject(outline, color);
+                                CreateOutlineObject(outline, nullptr, color);
                             }
                             continue;
                         }
