@@ -2936,8 +2936,154 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
 
     return true;
 }
+#if (0)
+int Viewer::CreateObjectMarking(roadmanager::RMObject* object)
+{
+    for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++)
+    {
+        roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+        if (markings == 0)
+        {
+            return -1;
+        }
+        int nrPoints = 5; // start with 5
+        osg::ref_ptr<osg::Group> group = new osg::Group();
 
-int Viewer::CreateOutlineObject(roadmanager::Outline* outline, roadmanager::CrossWalk_Markings* markings, osg::Vec4 color)
+        osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);  // one set at bottom and one at top
+        osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
+        for (size_t j = 0; j < markings->marking_.size(); j++)
+        {
+            roadmanager::Marking* marking = markings->marking_[j];
+            if (marking->cornerReferenceId_.size() != 0) // marking having conference refrence
+            {
+                // get coner
+
+            }
+            roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
+        }
+    }
+    return 0;
+}
+#endif
+
+// Structure to represent a point
+struct Point {
+    double s;
+    double t;
+};
+
+int Viewer::CreateObjectMarking(roadmanager::Outline* outline, roadmanager::Markings* markings)
+{
+
+    bool roof = true;
+
+    if (markings == 0 || outline == 0)
+    {
+        return -1;
+    }
+
+    for (size_t i = 0; i < markings->marking_.size(); i++)
+    {
+        roadmanager::Marking* marking = markings->marking_[i];
+        std::vector<roadmanager::OutlineCorner*> corners;
+        if (marking->cornerReferenceId_.size() != 0) // marking having conference refrence
+        {
+            // get coner
+            for (size_t j = 0; j < marking->cornerReferenceId_.size(); j++)
+            {
+                for (size_t k = 0; k < outline->corner_.size(); k++)
+                {
+                    roadmanager::OutlineCorner* corner = outline->corner_[k];
+                    int cornerId = corner->GetCornerId();
+                    if (cornerId == marking->cornerReferenceId_[j])
+                    {
+                        corners.push_back(corner);
+                    }
+                }
+            }
+        }
+
+        double startS = corners[0]->GetS();
+        double endS = corners[1]->GetS();
+        double startT = corners[0]->GetT();
+        double endT = corners[1]->GetT();
+        double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
+        int tota_blocks = static_cast<int>(total_length/(marking->GetLineLength() + marking->GetSpaceLength()));
+
+        Point startPoint = { startS, startT};
+        Point endPoint = { endS, endT};
+
+        int nrPoints = tota_blocks * 4;
+        osg::ref_ptr<osg::Group> group = new osg::Group();
+
+        // osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));  // one set at bottom and one at top
+        osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
+
+        //start with smallest T Value
+        // startS, endS, startT, endT = startT < endT ? startS, endS, startT, endT : endS, startS, endT, startT;
+
+        double alpha = atan2(endS - startS, endT - startT);
+        double deltaTGap = cos(alpha) * marking->GetSpaceLength();
+        double deltaSGap = sin(alpha) * marking->GetSpaceLength();
+        double deltaTLine = cos(alpha) * marking->GetLineLength();
+        double deltaSLine = sin(alpha) * marking->GetLineLength();
+
+        double                      x, y, z;
+        double                      x1, y1, z1;
+        double s = startS;
+        double t = startT;
+
+        double beata = M_PI_2 + alpha;
+        double deltaTFar = cos(beata) * marking->GetWidth();
+        double deltaSFar = sin(beata) * marking->GetWidth();
+
+        for (int i = 0; i < nrPoints; i+=4)
+        {
+            s += deltaSGap;
+            t += deltaTGap;
+            marking->GetPos(s, t, 0, x, y, z); // dz has to be handled
+            marking->GetPos(s + deltaSFar, t + deltaTFar, 0, x1, y1, z1); // dz has to be handled
+
+            (*vertices_top)[i + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + marking->GetZ_offset()));
+            (*vertices_top)[i + 1].set(static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(z1));
+
+            s += deltaSLine;
+            t += deltaTLine;
+            marking->GetPos(s, t, 0, x, y, z); // dz has to be handled
+            marking->GetPos(s + deltaSFar, t + deltaTFar, 0, x1, y1, z1); // dz has to be handled
+
+            (*vertices_top)[i + 2].set(static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(z1));
+            (*vertices_top)[i + 3].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + marking->GetZ_offset()));
+
+        }
+
+        // Finally create and add geometry
+        osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
+        osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+
+        geom->setVertexArray(vertices_top.get());
+        geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, nrPoints));
+
+        // osgUtil::SmoothingVisitor::smooth(*geom, 0.5);
+        geom->setDataVariance(osg::Object::STATIC);
+        geom->setUseDisplayList(true);
+        geode->addDrawable(geom);
+
+        osg::Vec4 color = ODR2OSGColor(marking->GetColor());
+        osg::ref_ptr<osg::Material> material_ = new osg::Material;
+        material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+        material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
+        geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
+
+        group->addChild(geode);
+        envTx_->addChild(group);
+    }
+
+    return 0;
+}
+
+
+int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color)
 {
     if (outline == 0)
         return -1;
@@ -2957,7 +3103,6 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, roadmanager::Cros
         double                      x, y, z;
         roadmanager::OutlineCorner* corner = outline->corner_[i];
         corner->GetPos(x, y, z);
-        int cornerId = corner->GetCornerId();
         (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
         (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
         (*vertices_top)[i].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
@@ -3145,8 +3290,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                 {
                     roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                    roadmanager::CrossWalk_Markings* markings = object->GetCrossWalk_Markings(static_cast<int>(j));
-                    CreateOutlineObject(outline, markings, color);
+                    roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(j));
+                    CreateOutlineObject(outline, color);
+                    CreateObjectMarking(outline, markings);
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
@@ -3196,7 +3342,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                             {
                                 roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                                CreateOutlineObject(outline, nullptr, color);
+                                CreateOutlineObject(outline, color);
                             }
                             continue;
                         }

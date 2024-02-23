@@ -1663,6 +1663,9 @@ namespace roadmanager
         virtual void   GetPosLocal(double &x, double &y, double &z) = 0;
         virtual double GetHeight()                                  = 0;
         virtual int   GetCornerId() = 0;
+        virtual double GetS() = 0;
+        virtual double GetT() = 0;
+
         virtual ~OutlineCorner()
         {
         }
@@ -1681,6 +1684,14 @@ namespace roadmanager
         int   GetCornerId()
         {
             return cornerId_;
+        }
+        double GetS()
+        {
+            return s_;
+        }
+        double GetT()
+        {
+            return t_;
         }
 
     private:
@@ -1701,6 +1712,14 @@ namespace roadmanager
         int   GetCornerId()
         {
             return cornerId_;
+        }
+        double GetS()
+        {
+            return s_;
+        }
+        double GetT()
+        {
+            return t_;
         }
 
     private:
@@ -1742,6 +1761,78 @@ namespace roadmanager
         void AddCorner(OutlineCorner *outlineCorner)
         {
             corner_.push_back(outlineCorner);
+        }
+
+    };
+    class Marking
+    {
+    private:
+        RoadMarkColor color_;
+        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
+        int roadId_;
+
+    public:
+        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset)
+            : roadId_(roadId),
+              color_(color_str),
+              width_(width),
+              z_offset_(z_offset),
+              spaceLength_(spaceLength),
+              lineLength_(lineLength),
+              startOffset_(startOffset),
+              stopOffset_(stopOffset)
+        {
+        }
+        double GetWidth()
+        {
+            return width_;
+        }
+        double GetZ_offset()
+        {
+            return z_offset_;
+        }
+        double GetSpaceLength()
+        {
+            return spaceLength_;
+        }
+        double GetLineLength()
+        {
+            return lineLength_;
+        }
+        double GetStartOffset()
+        {
+            return startOffset_;
+        }
+        double GetStopOffset()
+        {
+            return stopOffset_;
+        }
+        RoadMarkColor GetColor()
+        {
+            return color_;
+        }
+        void GetPos(double s, double t, double dz, double& x, double& y, double& z);
+
+        std::vector<int> cornerReferenceId_;
+        ~Marking()
+        {
+        }
+    };
+
+    class Markings
+    {
+    public:
+        std::vector<Marking *> marking_;
+        ~Markings()
+        {
+            for (size_t i = 0; i < marking_.size(); i++)
+                delete (marking_[i]);
+            marking_.clear();
+        }
+
+        void AddMarking(Marking *Marking)
+        {
+            marking_.push_back(Marking);
         }
     };
 
@@ -1792,49 +1883,6 @@ namespace roadmanager
         Access      access_{};
         std::string restrictions_;
     };
-
-
-    class Marking
-    {
-    private:
-        RoadMarkColor color_;
-        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
-
-    public:
-        Marking(RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset)
-            : color_(color_str),
-              width_(width),
-              z_offset_(z_offset),
-              spaceLength_(spaceLength),
-              lineLength_(lineLength),
-              startOffset_(startOffset),
-              stopOffset_(stopOffset)
-        {
-        }
-        std::vector<int> cornerReferenceId_;
-        ~Marking()
-        {
-        }
-    };
-
-    class CrossWalk_Markings
-    {
-    public:
-        std::vector<Marking *> marking_;
-
-        ~CrossWalk_Markings()
-        {
-            for (size_t i = 0; i < marking_.size(); i++)
-                delete (marking_[i]);
-            marking_.clear();
-        }
-
-        void AddMarking(Marking *Marking)
-        {
-            marking_.push_back(Marking);
-        }
-    };
-
 
     class Repeat
     {
@@ -2130,13 +2178,7 @@ namespace roadmanager
         {
             outlines_.push_back(outline);
         }
-#if (0)
-        void AddParkingSpace(ParkingSpace *parkingSpace)
-        {
-            parkingSpaces_.push_back(parkingSpace);
-        }
-#endif
-        void AddCrosswalkMarkings(CrossWalk_Markings *markings)
+        void AddMarkings(Markings *markings)
         {
             markings_.push_back(markings);
         }
@@ -2159,9 +2201,13 @@ namespace roadmanager
             return (int)repeats_.size();
         }
 
-        CrossWalk_Markings *GetCrossWalk_Markings(int i) const
+        Markings *GetMarkings(int i) const
         {
             return (0 <= i && i < markings_.size()) ? markings_[i] : 0;
+        }
+        int GetNumberOfMarkings() const
+        {
+            return (int)markings_.size();
         }
 
         Outline *GetOutline(int i) const
@@ -2195,7 +2241,7 @@ namespace roadmanager
         Repeat                *repeat_;
         std::vector<Repeat *>  repeats_;
         ParkingSpace           parking_space_;
-        std::vector<CrossWalk_Markings *> markings_;
+        std::vector<Markings *> markings_;
     };
 
     enum class SpeedUnit

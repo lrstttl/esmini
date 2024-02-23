@@ -633,7 +633,9 @@ namespace viewer
     private:
         bool                                         CreateRoadLines(roadmanager::OpenDrive* od);
         bool                                         CreateRoadMarkLines(roadmanager::OpenDrive* od);
-        int                                          CreateOutlineObject(roadmanager::Outline* outline, roadmanager::CrossWalk_Markings* markings, osg::Vec4 color);
+        int                                          CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color);
+        // int                                          CreateObjectMarking(roadmanager::RMObject* object);
+        int                                          CreateObjectMarking(roadmanager::Outline* outline, roadmanager::Markings* markings);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(roadmanager::Road* road, std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
         int                                          InitTraits(osg::ref_ptr<osg::GraphicsContext::Traits> traits,

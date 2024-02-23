@@ -2459,6 +2459,15 @@ std::string RMObject::Type2Str(RMObject::ObjectType type)
     return "";
 }
 
+void Marking::GetPos(double s, double t, double dz, double& x, double& y, double& z)
+{
+    roadmanager::Position pos;
+    pos.SetTrackPos(roadId_, s, t);
+    x = pos.GetX();
+    y = pos.GetY();
+    z = pos.GetZ() + dz;
+}
+
 RMObject::ObjectType RMObject::Str2Type(std::string type)
 {
     int n_types = static_cast<int>(sizeof(object_type_str) / sizeof(char*));
@@ -4498,19 +4507,11 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                     obj->SetParkingSpace(roadmanager::ParkingSpace(access, restrictions));
                 }
-#if (0)
-                pugi::xml_node parkingSpace_node = object.child("parkingSpace");
-                if (parkingSpace_node != NULL)
-                {
-                    std::string access = parkingSpace_node.attribute("access").value();
-                    ParkingSpace *parkingSpace = new ParkingSpace(access);
-                    obj->AddParkingSpace(parkingSpace);
-                }
-#endif
+
                 pugi::xml_node markings_node = object.child("markings");
                 if (markings_node != NULL)
                 {
-                    CrossWalk_Markings* markings = new CrossWalk_Markings;
+                    Markings* markings = new Markings;
                     for (pugi::xml_node marking_node = markings_node.child("marking"); marking_node; marking_node = marking_node.next_sibling())
                     {
                         Marking* marking = 0;
@@ -4556,7 +4557,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             double lineLength  = atof(marking_node.attribute("lineLength").value());
                             double startOffset = atof(marking_node.attribute("startOffset").value());
                             double stopOffset  = atof(marking_node.attribute("stopOffset").value());
-                            marking            = (Marking*)new Marking(color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset);
+                            marking            = (Marking*)new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())
@@ -4566,7 +4567,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         }
                         markings->AddMarking(marking);
                     }
-                    obj->AddCrosswalkMarkings(markings);
+                    obj->AddMarkings(markings);
                 }
 
                 for (pugi::xml_node validity_node = object.child("validity"); validity_node; validity_node = validity_node.next_sibling("validity"))
