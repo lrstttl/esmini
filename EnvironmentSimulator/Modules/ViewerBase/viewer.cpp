@@ -2936,35 +2936,6 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
 
     return true;
 }
-#if (0)
-int Viewer::CreateObjectMarking(roadmanager::RMObject* object)
-{
-    for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++)
-    {
-        roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
-        if (markings == 0)
-        {
-            return -1;
-        }
-        int nrPoints = 5; // start with 5
-        osg::ref_ptr<osg::Group> group = new osg::Group();
-
-        osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);  // one set at bottom and one at top
-        osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
-        for (size_t j = 0; j < markings->marking_.size(); j++)
-        {
-            roadmanager::Marking* marking = markings->marking_[j];
-            if (marking->cornerReferenceId_.size() != 0) // marking having conference refrence
-            {
-                // get coner
-
-            }
-            roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-        }
-    }
-    return 0;
-}
-#endif
 
 // Structure to represent a point
 struct Point {
@@ -3008,25 +2979,20 @@ int Viewer::CreateObjectMarking(roadmanager::Outline* outline, roadmanager::Mark
         double startT = corners[0]->GetT();
         double endT = corners[1]->GetT();
         double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
+        total_length = total_length - marking->GetStartOffset() - marking->GetStopOffset();
         int tota_blocks = static_cast<int>(total_length/(marking->GetLineLength() + marking->GetSpaceLength()));
-
-        Point startPoint = { startS, startT};
-        Point endPoint = { endS, endT};
 
         int nrPoints = tota_blocks * 4;
         osg::ref_ptr<osg::Group> group = new osg::Group();
-
-        // osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));  // one set at bottom and one at top
         osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
-
-        //start with smallest T Value
-        // startS, endS, startT, endT = startT < endT ? startS, endS, startT, endT : endS, startS, endT, startT;
 
         double alpha = atan2(endS - startS, endT - startT);
         double deltaTGap = cos(alpha) * marking->GetSpaceLength();
         double deltaSGap = sin(alpha) * marking->GetSpaceLength();
         double deltaTLine = cos(alpha) * marking->GetLineLength();
         double deltaSLine = sin(alpha) * marking->GetLineLength();
+        double deltaTStartOffset = cos(alpha) * marking->GetStartOffset();
+        double deltaSStartOffset = sin(alpha) * marking->GetStartOffset();
 
         double                      x, y, z;
         double                      x1, y1, z1;
@@ -3041,6 +3007,11 @@ int Viewer::CreateObjectMarking(roadmanager::Outline* outline, roadmanager::Mark
         {
             s += deltaSGap;
             t += deltaTGap;
+            if (i == 0) // handle start offset
+            {
+                s += deltaSStartOffset;
+                t += deltaTStartOffset;
+            }
             marking->GetPos(s, t, 0, x, y, z); // dz has to be handled
             marking->GetPos(s + deltaSFar, t + deltaTFar, 0, x1, y1, z1); // dz has to be handled
 
@@ -3049,6 +3020,7 @@ int Viewer::CreateObjectMarking(roadmanager::Outline* outline, roadmanager::Mark
 
             s += deltaSLine;
             t += deltaTLine;
+
             marking->GetPos(s, t, 0, x, y, z); // dz has to be handled
             marking->GetPos(s + deltaSFar, t + deltaTFar, 0, x1, y1, z1); // dz has to be handled
 
