@@ -1770,9 +1770,10 @@ namespace roadmanager
         RoadMarkColor color_;
         double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
         int roadId_;
+        int side_; // 0 left , 1 right
 
     public:
-        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset)
+        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
             : roadId_(roadId),
               color_(color_str),
               width_(width),
@@ -1780,7 +1781,8 @@ namespace roadmanager
               spaceLength_(spaceLength),
               lineLength_(lineLength),
               startOffset_(startOffset),
-              stopOffset_(stopOffset)
+              stopOffset_(stopOffset),
+              side_(side)
         {
         }
         double GetWidth()
@@ -1810,6 +1812,10 @@ namespace roadmanager
         RoadMarkColor GetColor()
         {
             return color_;
+        }
+        int GetSide()
+        {
+            return side_;
         }
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
 

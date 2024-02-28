@@ -4360,7 +4360,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                                                            s,
                                                                            t,
                                                                            heading,
-                                                                           0));
+                                                                           j + (i * n_segments)));
 
                                 outline->AddCorner(corner);
                             }
@@ -4550,14 +4550,15 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 LOG("Unexpected and unsupported roadmark color %s", color_str_);
                             }
 
-                            std::string rattr;
+                            std::string side_string = marking_node.attribute("side").value();
+                            double side = side_string == "left"? 0 : 1; // 0-left, 1-right, deafult right side
                             double width       = atof(marking_node.attribute("width").value());
                             double z_offset    = atof(marking_node.attribute("zOffset").value());
                             double spaceLength = atof(marking_node.attribute("spaceLength").value());
                             double lineLength  = atof(marking_node.attribute("lineLength").value());
                             double startOffset = atof(marking_node.attribute("startOffset").value());
                             double stopOffset  = atof(marking_node.attribute("stopOffset").value());
-                            marking            = (Marking*)new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset);
+                            marking            = (Marking*)new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())

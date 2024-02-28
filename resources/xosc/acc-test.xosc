@@ -34,9 +34,10 @@
    <RoadNetwork>
       <!-- <LogicFile filepath="../xodr/straight_500m.xodr"/>
       <SceneGraphFile filepath="../models/straight_500m.osgb"/> -->
-      <LogicFile filepath="../xodr/Ex_Pedestrian_Crossing.xodr"/>
+      <!-- <LogicFile filepath="../xodr/Ex_Pedestrian_Crossing.xodr"/> -->
       <!-- <LogicFile filepath="../xodr/Ex_Pedestrian_Crossing_new.xodr"/> -->
-      <!-- <LogicFile filepath="../xodr/Ex_Parkingspace_Rectangular.xodr"/> -->
+      <!-- <LogicFile filepath="../xodr/Ex_Parkingspace_rhomboid.xodr"/> -->
+      <LogicFile filepath="../xodr/Ex_Parkingspace_Rectangular.xodr"/>
    </RoadNetwork>
    <Entities>
       <ScenarioObject name="Ego">
