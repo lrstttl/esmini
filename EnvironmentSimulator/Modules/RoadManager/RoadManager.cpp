@@ -4514,7 +4514,15 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     Markings* markings = new Markings;
                     for (pugi::xml_node marking_node = markings_node.child("marking"); marking_node; marking_node = marking_node.next_sibling())
                     {
-                        Marking* marking = 0;
+                        // default values
+                        RoadMarkColor color = RoadMarkColor::WHITE;
+                        double        width = .1;
+                        double z_offset = 0.005;
+                        double spaceLength = 0.05;
+                        double lineLength = 0.2;
+                        double startOffset, stopOffset = 0.0;
+                        int side = 1; // 0 left , 1 right
+                        Marking* marking = new Marking(r->GetId(),RoadMarkColor::WHITE, 0.1, 0.005, 0.05, 0.2, 0.0, 0.0, 1);
                         if (!strcmp(marking_node.name(), "marking"))
                         {
                             std::string color_str_ = marking_node.attribute("color").value();
@@ -4552,13 +4560,32 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                             std::string side_string = marking_node.attribute("side").value();
                             double side = side_string == "left"? 0 : 1; // 0-left, 1-right, deafult right side
-                            double width       = atof(marking_node.attribute("width").value());
-                            double z_offset    = atof(marking_node.attribute("zOffset").value());
-                            double spaceLength = atof(marking_node.attribute("spaceLength").value());
-                            double lineLength  = atof(marking_node.attribute("lineLength").value());
-                            double startOffset = atof(marking_node.attribute("startOffset").value());
-                            double stopOffset  = atof(marking_node.attribute("stopOffset").value());
-                            marking            = (Marking*)new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
+                            if(!marking_node.attribute("width").empty())
+                            {
+                                width       = atof(marking_node.attribute("width").value());
+                            }
+                            if(!marking_node.attribute("zOffset").empty())
+                            {
+                                z_offset       = atof(marking_node.attribute("zOffset").value());
+                            }
+                            if(!marking_node.attribute("spaceLength").empty())
+                            {
+                                spaceLength       = atof(marking_node.attribute("spaceLength").value());
+                            }
+                            if(!marking_node.attribute("lineLength").empty())
+                            {
+                                lineLength       = atof(marking_node.attribute("lineLength").value());
+                            }
+                            if(!marking_node.attribute("startOffset").empty())
+                            {
+                                startOffset       = atof(marking_node.attribute("startOffset").value());
+                            }
+                            if(!marking_node.attribute("stopOffset").empty())
+                            {
+                                stopOffset       = atof(marking_node.attribute("stopOffset").value());
+                            }
+
+                            marking            = new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())

@@ -3668,9 +3668,14 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                   LOD_DIST_ROAD_FEATURES + MAX(boundingBox.xMax() - boundingBox.xMin(), boundingBox.yMax() - boundingBox.yMin()));
                     objGroup->addChild(lod);
                 }
-                osg::PolygonMode* polygonMode = new osg::PolygonMode;
-                polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
-                LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+
+                if(object->GetNumberOfMarkings() > 0)
+                {
+                    osg::PolygonMode* polygonMode = new osg::PolygonMode;
+                    polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+                    LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+                }
+
             }
         }
     }

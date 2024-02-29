@@ -1769,8 +1769,7 @@ namespace roadmanager
     private:
         RoadMarkColor color_;
         double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
-        int roadId_;
-        int side_; // 0 left , 1 right
+        int roadId_, side_; // 0 left , 1 right
 
     public:
         Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
