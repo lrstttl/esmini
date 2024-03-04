@@ -2394,6 +2394,15 @@ void OutlineCornerRoad::GetPos(double& x, double& y, double& z)
     z = pos.GetZ() + dz_;
 }
 
+void OutlineCornerRoad::GetPos(double s, double t, double dz, double& x, double& y, double& z)
+{
+    roadmanager::Position pos;
+    pos.SetTrackPos(roadId_, s, t);
+    x = pos.GetX();
+    y = pos.GetY();
+    z = pos.GetZ() + dz;
+}
+
 void OutlineCornerRoad::GetPosLocal(double& x, double& y, double& z)
 {
     roadmanager::Position pref;
@@ -2437,11 +2446,37 @@ void OutlineCornerLocal::GetPos(double& x, double& y, double& z)
     z = pref.GetZ() + zLocal_;
 }
 
+void OutlineCornerLocal::GetPos(double s, double t, double dz, double& x, double& y, double& z)
+{
+    roadmanager::Position pref;
+    pref.SetTrackPosMode(roadId_,
+                         s_,
+                         t_,
+                         roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
+                             roadmanager::Position::PosMode::R_REL);
+    double total_heading = GetAngleSum(pref.GetH(), heading_);
+    double u2, v2;
+    RotateVec2D(u_, v_, total_heading, u2, v2);
+
+    x = pref.GetX() + u2;
+    y = pref.GetY() + v2;
+    z = pref.GetZ() + zLocal_;
+}
+
 void OutlineCornerLocal::GetPosLocal(double& x, double& y, double& z)
 {
     x = u_;
     y = v_;
     z = zLocal_;
+}
+
+void Marking::GetPos(double s, double t, double dz, double& x, double& y, double& z)
+{
+    roadmanager::Position pos;
+    pos.SetTrackPos(roadId_, s, t);
+    x = pos.GetX();
+    y = pos.GetY();
+    z = pos.GetZ() + dz;
 }
 
 std::string RMObject::Type2Str(RMObject::ObjectType type)
@@ -2457,15 +2492,6 @@ std::string RMObject::Type2Str(RMObject::ObjectType type)
     }
 
     return "";
-}
-
-void Marking::GetPos(double s, double t, double dz, double& x, double& y, double& z)
-{
-    roadmanager::Position pos;
-    pos.SetTrackPos(roadId_, s, t);
-    x = pos.GetX();
-    y = pos.GetY();
-    z = pos.GetZ() + dz;
 }
 
 RMObject::ObjectType RMObject::Str2Type(std::string type)
@@ -4558,6 +4584,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 LOG("Unexpected and unsupported roadmark color %s", color_str_);
                             }
 
+                            if( obj->GetNumberOfOutlines() == 0 && marking_node.attribute("side").empty())
+                            {
+                                LOG("Side attribute is mandatory in marking  with no outline, skip");
+                            }
                             std::string side_string = marking_node.attribute("side").value();
                             double side = side_string == "left"? 0 : 1; // 0-left, 1-right, deafult right side
                             if(!marking_node.attribute("width").empty())
@@ -4592,6 +4622,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         {
                             int           cornerReferenceId = atoi(cornerReference_node.attribute("id").value());
                             marking->cornerReferenceId_.push_back(cornerReferenceId);
+                        }
+                        if(  obj->GetNumberOfOutlines() > 0 && marking->cornerReferenceId_.size() != 2)
+                        {
+                            LOG("If an outline is used at least two <cornerReference> elements are mandatory, Skipping");
                         }
                         markings->AddMarking(marking);
                     }
@@ -8249,7 +8283,7 @@ Position::ReturnCode Position::SetLongitudinalTrackPos(int track_id, double s)
     return ReturnCode::OK;
 }
 
-Position::ReturnCode Position::SetTrackPos(int track_id, double s, double t, bool UpdateXY)
+Position::ReturnCode Position:: SetTrackPos(int track_id, double s, double t, bool UpdateXY)
 {
     return SetTrackPosMode(track_id, s, t, GetMode(PosModeType::UPDATE), UpdateXY);
 }

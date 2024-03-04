@@ -2937,9 +2937,106 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
+int Viewer::DrawMarking(double startS, double startT, double endS, double endT, roadmanager::Marking* marking)
+{
+    std::cout <<"startS-> "<< startS << " endS->" << endS <<" startT-> "<< startT << " endT->" << endT <<std::endl;
+
+    if (marking == 0)
+    {
+        return -1;
+    }
+    double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
+    total_length = total_length - marking->GetStartOffset() - marking->GetStopOffset();
+    int tota_blocks = static_cast<int>(total_length/(marking->GetLineLength() + marking->GetSpaceLength()));
+
+    int nrPoints = tota_blocks * 4;
+    osg::ref_ptr<osg::Group> group = new osg::Group();
+    osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
+
+    double alpha = atan2(endS - startS, endT - startT);
+    double deltaTGap = cos(alpha) * marking->GetSpaceLength();
+    double deltaSGap = sin(alpha) * marking->GetSpaceLength();
+    double deltaTLine = cos(alpha) * marking->GetLineLength();
+    double deltaSLine = sin(alpha) * marking->GetLineLength();
+    double deltaTStartOffset = cos(alpha) * marking->GetStartOffset();
+    double deltaSStartOffset = sin(alpha) * marking->GetStartOffset();
+
+    double                      x, y, z;
+    double                      x1, y1, z1;
+    double s = startS;
+    double t = startT;
+
+    double beata = marking->GetSide() == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
+
+    double deltaTFar = cos(beata) * marking->GetWidth();
+    double deltaSFar = sin(beata) * marking->GetWidth();
+
+    for (int i = 0; i < nrPoints; i+=4)
+    {
+        s += deltaSGap;
+        t += deltaTGap;
+        if (i == 0) // handle start offset
+        {
+            s += deltaSStartOffset;
+            t += deltaTStartOffset;
+        }
+        x = s;
+        y = t;
+        z = 0;
+        std::cout <<"x-> "<< x << " y->" << y <<" z-> "<< z <<std::endl;
+        x1 = s + deltaSFar;
+        y1 = t + deltaTFar;
+        z1 = 0;
+        std::cout <<"x1-> "<< x1 << " y1->" << y1 <<" z1-> "<< z1 <<std::endl;
+        std::cout <<"---------> "<<std::endl;
+
+        (*vertices_top)[i + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + marking->GetZ_offset()));
+        (*vertices_top)[i + 1].set(static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(z1));
+
+        s += deltaSLine;
+        t += deltaTLine;
+
+        x = s;
+        y = t;
+        z = 0;
+        std::cout <<"x-> "<< x << " y->" << y <<" z-> "<< z <<std::endl;
+        x1 = s + deltaSFar;
+        y1 = t + deltaTFar;
+        z1 = 0;
+        std::cout <<"x1-> "<< x1 << " y1->" << y1 <<" z1-> "<< z1 <<std::endl;
+        std::cout <<"---------> "<<std::endl;
+
+        (*vertices_top)[i + 2].set(static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(z1));
+        (*vertices_top)[i + 3].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + marking->GetZ_offset()));
+
+    }
+
+    // Finally create and add geometry
+    osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
+    osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+
+    geom->setVertexArray(vertices_top.get());
+    geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, nrPoints));
+
+    // osgUtil::SmoothingVisitor::smooth(*geom, 0.5);
+    geom->setDataVariance(osg::Object::STATIC);
+    geom->setUseDisplayList(true);
+    geode->addDrawable(geom);
+
+    osg::Vec4 color = ODR2OSGColor(marking->GetColor());
+    osg::ref_ptr<osg::Material> material_ = new osg::Material;
+    material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+    material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
+    geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
+
+    group->addChild(geode);
+    envTx_->addChild(group);
+    return 0;
+}
+
 int Viewer::DrawMarking(double startS, double startT, double endS, double endT, roadmanager::Marking* marking, int side)
 {
-    std::cout <<"startS-> "<< startS << " endS->" << endS <<" startT-> "<< startT << " endT->" << endT <<" side->" << side <<std::endl;
+    std::cout <<"startS-> "<< startS << " endS->" << endS <<" startT-> "<< startT << " endT->" << endT << "side"<< side << std::endl;
 
     if (marking == 0)
     {
@@ -2981,7 +3078,10 @@ int Viewer::DrawMarking(double startS, double startT, double endS, double endT, 
             t += deltaTStartOffset;
         }
         marking->GetPos(s, t, 0, x, y, z); // dz has to be handled
+        std::cout <<"x-> "<< x << " y->" << y <<" z-> "<< z <<std::endl;
         marking->GetPos(s + deltaSFar, t + deltaTFar, 0, x1, y1, z1); // dz has to be handled
+        std::cout <<"x1-> "<< x1 << " y1->" << y1 <<" z1-> "<< z1 <<std::endl;
+        std::cout <<"---------> "<<std::endl;
 
         (*vertices_top)[i + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + marking->GetZ_offset()));
         (*vertices_top)[i + 1].set(static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(z1));
@@ -2990,7 +3090,10 @@ int Viewer::DrawMarking(double startS, double startT, double endS, double endT, 
         t += deltaTLine;
 
         marking->GetPos(s, t, 0, x, y, z); // dz has to be handled
+        std::cout <<"x-> "<< x << " y->" << y <<" z-> "<< z <<std::endl;
         marking->GetPos(s + deltaSFar, t + deltaTFar, 0, x1, y1, z1); // dz has to be handled
+        std::cout <<"x1-> "<< x1 << " y1->" << y1 <<" z1-> "<< z1 <<std::endl;
+        std::cout <<"---------> "<<std::endl;
 
         (*vertices_top)[i + 2].set(static_cast<float>(x1), static_cast<float>(y1), static_cast<float>(z1));
         (*vertices_top)[i + 3].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + marking->GetZ_offset()));
@@ -3112,38 +3215,54 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
                 }
             }
 
-            if (corners.size() == 2) // draw only when two corners are found
+            roadmanager::OutlineCornerRoad* corner = dynamic_cast<roadmanager::OutlineCornerRoad*>(corners[0]);
+            if(corner) // road corner
             {
-                double startS = corners[0]->GetS();
-                double endS = corners[1]->GetS();
-                double startT = corners[0]->GetT();
-                double endT = corners[1]->GetT();
-                DrawMarking(startS, startT, endS, endT, marking, marking->GetSide());
-            }
-            else
-            {
-                // no corner referrence, corner from reapeat.
-                for (size_t k = 0; k < outline->corner_.size()/2; k+=2)
+                if (corners.size() == 2) // draw only when two corners are found
                 {
-                    if (marking->GetSide() == 0)
+                    double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(corners[0])->GetS();
+                    double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(corners[1])->GetS();
+                    double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(corners[0])->GetT();
+                    double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(corners[1])->GetT();
+                    DrawMarking(startS, startT, endS, endT, marking, marking->GetSide());
+                }
+                else
+                {
+                    // no corner referrence, corner from reapeat.
+                    for (size_t k = 0; k < outline->corner_.size()/2; k+=2)
                     {
-                        double startS = outline->corner_[k]->GetS(); //1st corner
-                        double endS = outline->corner_[outline->corner_.size() - k - 1 ]->GetS(); //last corner
-                        double startT = outline->corner_[k]->GetT();
-                        double endT = outline->corner_[outline->corner_.size() - k - 1 ]->GetT();
-                        DrawMarking(startS, startT, endS, endT, marking, marking->GetSide());
-                    }
-                    else
-                    {
-                        double startS = outline->corner_[k + 1]->GetS(); // secound corner
-                        double endS = outline->corner_[outline->corner_.size() - (k + 1) - 1 ]->GetS(); //last before corner
-                        double startT = outline->corner_[k + 1]->GetT();
-                        double endT = outline->corner_[outline->corner_.size() - (k + 1) - 1 ]->GetT();
-                        DrawMarking(startS, startT, endS, endT, marking, marking->GetSide());
+                        if (marking->GetSide() == 0)
+                        {
+                            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
+                            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
+                            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
+                            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
+                            DrawMarking(startS, startT, endS, endT, marking, marking->GetSide());
+                        }
+                        else
+                        {
+                            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // secound corner
+                            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
+                            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
+                            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
+                            DrawMarking(startS, startT, endS, endT, marking, marking->GetSide());
+                        }
                     }
                 }
             }
-
+            else // local corner
+            {
+                if (corners.size() == 2) // draw only when two corners are found
+                {
+                    roadmanager::OutlineCornerLocal* corner0 = dynamic_cast<roadmanager::OutlineCornerLocal*>(corners[0]);
+                    roadmanager::OutlineCornerLocal* corner1 = dynamic_cast<roadmanager::OutlineCornerLocal*>(corners[1]);
+                    double startX, startY, endX, endY;
+                    double z;
+                    corners[0]->GetPos(startX, startY, z);
+                    corners[1]->GetPos(endX, endY, z);
+                    DrawMarking(startX, startY, endX, endY, marking);
+                }
+            }
         }
     }
 
