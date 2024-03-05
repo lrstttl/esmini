@@ -73,6 +73,7 @@ static struct
     osi3::MovingObject               *mobj;
     std::vector<osi3::Lane *>         ln;
     std::vector<osi3::LaneBoundary *> lnb;
+    osi3::RoadMarking                 *rm;
 } obj_osi_internal;
 
 static struct
@@ -609,7 +610,23 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_pitch(GetAngleInIntervalMinusPIPlusPI(object->GetPitch()));
         obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_yaw(GetAngleInIntervalMinusPIPlusPI(object->GetH() + object->GetHOffset()));
     }
+#if 0
+    if(object->GetNumberOfMarkings() > 0)
+    {
+        obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
+        obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
 
+        for (size_t k = 0; k < static_cast<unsigned int>(object->GetNumberOfMarkings()); k++)
+        {
+            roadmanager::Markings *markings = object->GetMarkings(k);
+            for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); k++)
+            {
+                roadmanager::Marking *marking = markings->marking_[l];
+                obj_osi_internal.rm->mutable_base()->add_base_polygon();
+            }
+        }
+    }
+#endif
     return 0;
 }
 

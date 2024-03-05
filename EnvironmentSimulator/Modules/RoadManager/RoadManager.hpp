@@ -1660,7 +1660,6 @@ namespace roadmanager
     {
     public:
         virtual void   GetPos(double &x, double &y, double &z)      = 0;
-        virtual void   GetPos(double s, double t, double dz, double& x, double& y, double& z) = 0;
         virtual void   GetPosLocal(double &x, double &y, double &z) = 0;
         virtual double GetHeight()                                  = 0;
         virtual int   GetCornerId() = 0;
@@ -1675,7 +1674,6 @@ namespace roadmanager
     public:
         OutlineCornerRoad(int roadId, double s, double t, double dz, double height, double center_s, double center_t, double center_heading, int cornerId);
         void   GetPos(double &x, double &y, double &z) override;
-        void   GetPos(double s, double t, double dz, double& x, double& y, double& z) override;
         void   GetPosLocal(double &x, double &y, double &z) override;
         double GetHeight()
         {
@@ -1704,7 +1702,6 @@ namespace roadmanager
     public:
         OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId);
         void   GetPos(double &x, double &y, double &z) override;
-        void   GetPos(double s, double t, double dz, double& x, double& y, double& z) override;
         void   GetPosLocal(double &x, double &y, double &z) override;
         double GetHeight()
         {
@@ -1763,9 +1760,10 @@ namespace roadmanager
         RoadMarkColor color_;
         double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
         int roadId_, side_; // 0 left , 1 right
+        double center_s_, center_t_, center_heading_;
 
     public:
-        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
+        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side, double center_s, double center_t, double center_heading)
             : roadId_(roadId),
               color_(color_str),
               width_(width),
@@ -1774,7 +1772,10 @@ namespace roadmanager
               lineLength_(lineLength),
               startOffset_(startOffset),
               stopOffset_(stopOffset),
-              side_(side)
+              side_(side),
+              center_s_(center_s),
+              center_t_(center_t),
+              center_heading_(center_heading)
         {
         }
         double GetWidth()
@@ -1810,6 +1811,7 @@ namespace roadmanager
             return side_;
         }
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
+        void GetPosLocal(double s, double t, double dz, double& x, double& y, double& z);
 
         std::vector<int> cornerReferenceId_;
         ~Marking()

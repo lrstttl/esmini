@@ -2394,15 +2394,6 @@ void OutlineCornerRoad::GetPos(double& x, double& y, double& z)
     z = pos.GetZ() + dz_;
 }
 
-void OutlineCornerRoad::GetPos(double s, double t, double dz, double& x, double& y, double& z)
-{
-    roadmanager::Position pos;
-    pos.SetTrackPos(roadId_, s, t);
-    x = pos.GetX();
-    y = pos.GetY();
-    z = pos.GetZ() + dz;
-}
-
 void OutlineCornerRoad::GetPosLocal(double& x, double& y, double& z)
 {
     roadmanager::Position pref;
@@ -2446,23 +2437,6 @@ void OutlineCornerLocal::GetPos(double& x, double& y, double& z)
     z = pref.GetZ() + zLocal_;
 }
 
-void OutlineCornerLocal::GetPos(double s, double t, double dz, double& x, double& y, double& z)
-{
-    roadmanager::Position pref;
-    pref.SetTrackPosMode(roadId_,
-                         s_,
-                         t_,
-                         roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
-                             roadmanager::Position::PosMode::R_REL);
-    double total_heading = GetAngleSum(pref.GetH(), heading_);
-    double u2, v2;
-    RotateVec2D(u_, v_, total_heading, u2, v2);
-
-    x = pref.GetX() + u2;
-    y = pref.GetY() + v2;
-    z = pref.GetZ() + zLocal_;
-}
-
 void OutlineCornerLocal::GetPosLocal(double& x, double& y, double& z)
 {
     x = u_;
@@ -2477,6 +2451,19 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
     x = pos.GetX();
     y = pos.GetY();
     z = pos.GetZ() + dz;
+}
+
+void Marking::GetPosLocal(double s, double t, double dz, double& x, double& y, double& z)
+{
+    roadmanager::Position pref;
+    pref.SetTrackPos(roadId_, center_s_, center_t_);
+    roadmanager::Position point;
+    point.SetTrackPos(roadId_, s, t);
+    double total_heading = GetAngleSum(pref.GetH(), center_heading_);
+
+    Global2LocalCoordinates(point.GetX(), point.GetY(), pref.GetX(), pref.GetY(), total_heading, x, y);
+
+    z = pref.GetZ() + dz;
 }
 
 std::string RMObject::Type2Str(RMObject::ObjectType type)
@@ -4615,7 +4602,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 stopOffset       = atof(marking_node.attribute("stopOffset").value());
                             }
 
-                            marking            = new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
+                            marking            = new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side, s, t, heading);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())
