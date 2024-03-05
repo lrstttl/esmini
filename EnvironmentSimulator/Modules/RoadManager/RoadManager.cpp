@@ -2453,17 +2453,128 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
     z = pos.GetZ() + dz;
 }
 
-void Marking::GetPosLocal(double s, double t, double dz, double& x, double& y, double& z)
+std::vector<roadmanager::Marking::Point3D> Marking::GetVertexPoints(double startS, double startT, double endS, double endT, int cornerType)
 {
-    roadmanager::Position pref;
-    pref.SetTrackPos(roadId_, center_s_, center_t_);
-    roadmanager::Position point;
-    point.SetTrackPos(roadId_, s, t);
-    double total_heading = GetAngleSum(pref.GetH(), center_heading_);
+    std::vector<roadmanager::Marking::Point3D> points;
 
-    Global2LocalCoordinates(point.GetX(), point.GetY(), pref.GetX(), pref.GetY(), total_heading, x, y);
+    double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
+    total_length = total_length - startOffset_ - stopOffset_;
+    int tota_blocks = static_cast<int>(total_length/(lineLength_ + spaceLength_));
 
-    z = pref.GetZ() + dz;
+    int nrOfPoints = tota_blocks * 4;
+
+    double alpha = atan2(endS - startS, endT - startT);
+    double deltaTGap = cos(alpha) * spaceLength_;
+    double deltaSGap = sin(alpha) * spaceLength_;
+    double deltaTLine = cos(alpha) * lineLength_;
+    double deltaSLine = sin(alpha) * lineLength_;
+    double deltaTStartOffset = cos(alpha) * startOffset_;
+    double deltaSStartOffset = sin(alpha) * startOffset_;
+
+    double                      x, y, z;
+    double s = startS;
+    double t = startT;
+
+    double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
+
+    double deltaTFar = cos(beata) * width_;
+    double deltaSFar = sin(beata) * width_;
+
+    for (int i = 0; i < nrOfPoints; i+=4)
+    {
+        roadmanager::Marking::Point3D point;
+        s += deltaSGap;
+        t += deltaTGap;
+        if (i == 0) // handle start offset
+        {
+            s += deltaSStartOffset;
+            t += deltaTStartOffset;
+        }
+
+        if (cornerType == 0) // raod
+        {
+            GetPos(s, t, 0, x, y, z); // convert to world cordinate
+        }
+        else
+        { // already in world cordinate
+            x = s;
+            y = t;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z + z_offset_;
+        points.push_back(point); // point A
+
+        if (cornerType == 0) // raod
+        {
+            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z); // dz has to be handled
+        }
+        else
+        {
+            x = s + deltaSFar;
+            y = t + deltaTFar;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z;
+        points.push_back(point); // point B
+
+        s += deltaSLine;
+        t += deltaTLine;
+        if (cornerType == 0) // raod
+        {
+            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z); // dz has to be handled
+        }
+        else
+        {
+            x = s + deltaSFar;
+            y = t + deltaTFar;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z;
+        points.push_back(point); // point C
+
+        if (cornerType == 0) // raod
+        {
+            GetPos(s, t, 0, x, y, z); // dz has to be handled
+        }
+        else
+        {
+            x = s;
+            y = t;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z + z_offset_;
+        points.push_back(point); // point D
+    }
+    return points;
+}
+
+OutlineCorner* Marking::GetCornerById(int id, RoadObject* object)
+{
+
+    RMObject* obj = static_cast<RMObject*>(object);
+    roadmanager::OutlineCorner* corner = 0;
+    for (size_t i = 0; i < static_cast<unsigned int>(obj->GetNumberOfOutlines()); i++)
+    {
+        roadmanager::Outline* outline = obj->GetOutline(static_cast<int>(i));
+        for (size_t j = 0; j < outline->corner_.size(); j++)
+        {
+            corner = outline->corner_[j];
+            int cornerId = corner->GetCornerId();
+            if (cornerId == id)
+            {
+                return corner;
+            }
+        }
+    }
+    return corner;
 }
 
 std::string RMObject::Type2Str(RMObject::ObjectType type)
@@ -4520,7 +4631,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                     obj->SetParkingSpace(roadmanager::ParkingSpace(access, restrictions));
                 }
-
                 pugi::xml_node markings_node = object.child("markings");
                 if (markings_node != NULL)
                 {
@@ -4602,15 +4712,15 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 stopOffset       = atof(marking_node.attribute("stopOffset").value());
                             }
 
-                            marking            = new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side, s, t, heading);
+                            marking            = new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())
                         {
                             int           cornerReferenceId = atoi(cornerReference_node.attribute("id").value());
-                            marking->cornerReferenceId_.push_back(cornerReferenceId);
+                            marking->cornerReference.push_back(marking->GetCornerById(cornerReferenceId, obj));
                         }
-                        if(  obj->GetNumberOfOutlines() > 0 && marking->cornerReferenceId_.size() != 2)
+                        if(  obj->GetNumberOfOutlines() > 0 && marking->cornerReference.size() != 2)
                         {
                             LOG("If an outline is used at least two <cornerReference> elements are mandatory, Skipping");
                         }
@@ -4618,7 +4728,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     }
                     obj->AddMarkings(markings);
                 }
-
                 for (pugi::xml_node validity_node = object.child("validity"); validity_node; validity_node = validity_node.next_sibling("validity"))
                 {
                     ValidityRecord validity;

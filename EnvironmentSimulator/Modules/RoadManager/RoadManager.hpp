@@ -1754,16 +1754,16 @@ namespace roadmanager
         }
 
     };
+
     class Marking
     {
     private:
         RoadMarkColor color_;
         double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
         int roadId_, side_; // 0 left , 1 right
-        double center_s_, center_t_, center_heading_;
 
     public:
-        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side, double center_s, double center_t, double center_heading)
+        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
             : roadId_(roadId),
               color_(color_str),
               width_(width),
@@ -1772,10 +1772,7 @@ namespace roadmanager
               lineLength_(lineLength),
               startOffset_(startOffset),
               stopOffset_(stopOffset),
-              side_(side),
-              center_s_(center_s),
-              center_t_(center_t),
-              center_heading_(center_heading)
+              side_(side)
         {
         }
         double GetWidth()
@@ -1811,14 +1808,67 @@ namespace roadmanager
             return side_;
         }
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
-        void GetPosLocal(double s, double t, double dz, double& x, double& y, double& z);
 
-        std::vector<int> cornerReferenceId_;
+        std::vector<Point3D> points_;
+
+        std::vector<OutlineCorner*> cornerReference;
+        OutlineCorner* GetCornerById(int id, RoadObject* obj);
+
+        struct Point3D {
+            double x;
+            double y;
+            double z;
+        };
+
+        std::vector<Point3D> GetVertexPoints(double startS, double startT, double endS, double endT, int cornerType); // return all required points
         ~Marking()
         {
         }
     };
+#if 0
+    class Marking
+    {
+    private:
+        RoadMarkColor color_;
+        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
+        int roadId_, side_; // 0 left , 1 right
+        char *parent_;
+    public:
+        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
+            : roadId_(roadId),
+              color_(color_str),
+              width_(width),
+              z_offset_(z_offset),
+              spaceLength_(spaceLength),
+              lineLength_(lineLength),
+              startOffset_(startOffset),
+              stopOffset_(stopOffset),
+              side_(side)
+        {
+        }
 
+        std::vector<int> cornerReferenceId_;
+        void AddMarkingParent(char *parent)
+        {
+            parent_ = parent;
+        }
+        char *GetParent()
+        {
+            return parent_;
+        }
+        int GetNrOfPoint(); //return number of points
+
+        struct points
+        {
+            double x;
+            double y;
+            double z;
+        };
+
+        std::vector<std::vector<points>> GetVertexPoints(); // return all required points
+
+    };
+#endif
     class Markings
     {
     public:
