@@ -1775,41 +1775,18 @@ namespace roadmanager
               side_(side)
         {
         }
-        double GetWidth()
+        int GetSide()
         {
-            return width_;
-        }
-        double GetZ_offset()
-        {
-            return z_offset_;
-        }
-        double GetSpaceLength()
-        {
-            return spaceLength_;
-        }
-        double GetLineLength()
-        {
-            return lineLength_;
-        }
-        double GetStartOffset()
-        {
-            return startOffset_;
-        }
-        double GetStopOffset()
-        {
-            return stopOffset_;
+            return side_;
         }
         RoadMarkColor GetColor()
         {
             return color_;
         }
-        int GetSide()
-        {
-            return side_;
-        }
+
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
 
-        std::vector<Point3D> points_;
+        void FillPoints(RoadObject* obj);
 
         std::vector<OutlineCorner*> cornerReference;
         OutlineCorner* GetCornerById(int id, RoadObject* obj);
@@ -1820,7 +1797,9 @@ namespace roadmanager
             double z;
         };
 
+        std::vector<Point3D> vertexPoints_;
         std::vector<Point3D> GetVertexPoints(double startS, double startT, double endS, double endT, int cornerType); // return all required points
+        void FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType);
         ~Marking()
         {
         }

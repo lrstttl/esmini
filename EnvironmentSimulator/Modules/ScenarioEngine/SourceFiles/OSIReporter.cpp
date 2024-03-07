@@ -610,7 +610,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_pitch(GetAngleInIntervalMinusPIPlusPI(object->GetPitch()));
         obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_yaw(GetAngleInIntervalMinusPIPlusPI(object->GetH() + object->GetHOffset()));
     }
-#if 0
+
     if(object->GetNumberOfMarkings() > 0)
     {
         obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
@@ -622,11 +622,18 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
             for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); k++)
             {
                 roadmanager::Marking *marking = markings->marking_[l];
-                obj_osi_internal.rm->mutable_base()->add_base_polygon();
+                std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
+                for (int m = 0; m < points.size(); m++)
+                {
+                    osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
+                    vec->set_x(points[m].x);
+                    vec->set_y(points[m].y);
+                    obj_osi_internal.rm->mutable_base()->mutable_dimension()->set_height(points[m].z);
+                }
             }
         }
     }
-#endif
+
     return 0;
 }
 

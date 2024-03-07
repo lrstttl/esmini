@@ -2937,16 +2937,19 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::DrawMarking(double startS, double startT, double endS, double endT, roadmanager::Marking* marking, int cornerType)
+int Viewer::DrawMarking(roadmanager::Marking* marking)
 {
-    std::cout <<"startS-> "<< startS << " endS->" << endS <<" startT-> "<< startT << " endT->" << endT << std::endl;
 
     if (marking == 0)
     {
         return -1;
     }
+    if (marking->vertexPoints_.size() == 0) // no points from roadmaanger
+    {
+        return -1;
+    }
 
-    std::vector<roadmanager::Marking::Point3D> points = marking->GetVertexPoints(startS, startT, endS, endT, cornerType);
+    std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
 
     osg::ref_ptr<osg::Group> group = new osg::Group();
     osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(points.size()));      // one set at bottom and one at top
@@ -3052,57 +3055,6 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
         osg::PolygonMode* polygonMode = new osg::PolygonMode;
         polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
         geode->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
-
-        for (size_t i = 0; i < markings->marking_.size(); i++)
-        {
-            roadmanager::Marking* marking = markings->marking_[i];
-            roadmanager::OutlineCornerRoad* corner = dynamic_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[0]);
-            if(corner) // road corner
-            {
-                if (marking->cornerReference.size() == 2) // draw only when two corners are found
-                {
-                    double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[0])->GetS();
-                    double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[1])->GetS();
-                    double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[0])->GetT();
-                    double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[1])->GetT();
-                    DrawMarking(startS, startT, endS, endT, marking, 0);
-                }
-                else
-                {
-                    // no corner referrence, corner from reapeat.
-                    for (size_t k = 0; k < outline->corner_.size()/2; k+=2)
-                    {
-                        if (marking->GetSide() == 0)
-                        {
-                            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
-                            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
-                            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
-                            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
-                            DrawMarking(startS, startT, endS, endT, marking, 0);
-                        }
-                        else
-                        {
-                            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // secound corner
-                            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
-                            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
-                            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
-                            DrawMarking(startS, startT, endS, endT, marking, 0);
-                        }
-                    }
-                }
-            }
-            else // local corner
-            {
-                if (marking->cornerReference.size() == 2) // draw only when two corners are found
-                {
-                    double startX, startY, endX, endY;
-                    double z;
-                    marking->cornerReference[0]->GetPos(startX, startY, z);
-                    marking->cornerReference[1]->GetPos(endX, endY, z);
-                    DrawMarking(startX, startY, endX, endY, marking, 1);
-                }
-            }
-        }
     }
 
     return 0;
@@ -3420,30 +3372,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         osg::Quat quatLocal(orientation + object->GetHOffset(), osg::Vec3(osg::Z_AXIS));  // Heading
                         // Combine
                         clone->setAttitude(quatLocal * quatRoad);
-                        for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
-                        {
-                            roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
-                            for (size_t j = 0; j < markings->marking_.size(); j++)
-                            {
-                                roadmanager::Marking* marking = markings->marking_[j];
-                                if (marking->GetSide() == 0)
-                                {
-                                    double startS = object->GetS() + (object->GetWidth() / 2);
-                                    double endS = object->GetS() + (object->GetWidth() / 2);
-                                    double startT = object->GetT() + (object->GetLength() / 2);
-                                    double endT = object->GetT() - (object->GetLength() / 2);
-                                    DrawMarking(startS, startT, endS, endT, marking, 0);
-                                }
-                                else
-                                {
-                                    double startS = object->GetS() - (object->GetWidth() / 2);
-                                    double endS = object->GetS() - (object->GetWidth() / 2);
-                                    double startT = object->GetT() + (object->GetLength() / 2);
-                                    double endT = object->GetT() - (object->GetLength() / 2);
-                                    DrawMarking(startS, startT, endS, endT, marking, 0);
-                                }
-                            }
-                        }
                     }
                     else  // repeated objects (separate or continuous)
                     {
@@ -3494,6 +3422,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             else
                             {
                                 scale_x = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
+                                length_new = object->GetLength();;
                             }
                             if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
                             {
@@ -3532,30 +3461,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                 pos.DistanceToDS(object->GetLength() < SMALL_NUMBER ? MIN(rep->GetLength(), DEFAULT_LENGTH_FOR_CONTINUOUS_OBJS)
                                                                                     : MIN(object->GetLength(), DEFAULT_LENGTH_FOR_CONTINUOUS_OBJS));
                         }
-                        for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
-                        {
-                            roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
-                            for (size_t j = 0; j < markings->marking_.size(); j++)
-                            {
-                                roadmanager::Marking* marking = markings->marking_[j];
-                                if (marking->GetSide() == 0)
-                                {
-                                    double startS = s + (length_new / 2);
-                                    double endS = s + (length_new / 2);
-                                    double startT = t + (width_new / 2);
-                                    double endT = t - (width_new/ 2);
-                                    DrawMarking(startS, startT, endS, endT, marking, 0);
-                                }
-                                else
-                                {
-                                    double startS = s - (length_new / 2);
-                                    double endS = s - (length_new / 2);
-                                    double startT = t + (width_new / 2);
-                                    double endT = t - (width_new / 2);
-                                    DrawMarking(startS, startT, endS, endT, marking, 0);
-                                }
-                            }
-                        }
                     }
 
                     if (tx != nullptr)  // wait with continuous object
@@ -3577,6 +3482,31 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         }
 
                         LODGroup->addChild(clone);
+                    }
+
+                    for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
+                    {
+                        roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+                        for (size_t j = 0; j < markings->marking_.size(); j++)
+                        {
+                            roadmanager::Marking* marking = markings->marking_[j];
+                            if (marking->GetSide() == 0)
+                            {
+                                double startS = s + (length_new / 2);
+                                double endS = s + (length_new / 2);
+                                double startT = t + (width_new / 2);
+                                double endT = t - (width_new/ 2);
+                                marking->FillVertexPoints(startS, startT, endS, endT, 0);
+                            }
+                            else
+                            {
+                                double startS = s - (length_new / 2);
+                                double endS = s - (length_new / 2);
+                                double startT = t + (width_new / 2);
+                                double endT = t - (width_new / 2);
+                                marking->FillVertexPoints(startS, startT, endS, endT, 0);
+                            }
+                        }
                     }
                 }
                 if (tx == nullptr)
@@ -3634,6 +3564,16 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
                 }
 
+            }
+            //draw marking
+            for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
+            {
+                roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+                for (size_t j = 0; j < markings->marking_.size(); j++)
+                {
+                    roadmanager::Marking* marking = markings->marking_[j];
+                    DrawMarking(marking);
+                }
             }
         }
     }

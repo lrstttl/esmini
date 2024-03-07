@@ -2556,11 +2556,191 @@ std::vector<roadmanager::Marking::Point3D> Marking::GetVertexPoints(double start
     return points;
 }
 
+void Marking::FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType)
+{
+    double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
+    total_length = total_length - startOffset_ - stopOffset_;
+    int tota_blocks = static_cast<int>(total_length/(lineLength_ + spaceLength_));
+
+    int nrOfPoints = tota_blocks * 4;
+
+    double alpha = atan2(endS - startS, endT - startT);
+    double deltaTGap = cos(alpha) * spaceLength_;
+    double deltaSGap = sin(alpha) * spaceLength_;
+    double deltaTLine = cos(alpha) * lineLength_;
+    double deltaSLine = sin(alpha) * lineLength_;
+    double deltaTStartOffset = cos(alpha) * startOffset_;
+    double deltaSStartOffset = sin(alpha) * startOffset_;
+
+    double                      x, y, z;
+    double s = startS;
+    double t = startT;
+
+    double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
+
+    double deltaTFar = cos(beata) * width_;
+    double deltaSFar = sin(beata) * width_;
+
+    for (int i = 0; i < nrOfPoints; i+=4)
+    {
+        roadmanager::Marking::Point3D point;
+        s += deltaSGap;
+        t += deltaTGap;
+        if (i == 0) // handle start offset
+        {
+            s += deltaSStartOffset;
+            t += deltaTStartOffset;
+        }
+
+        if (cornerType == 0) // raod
+        {
+            GetPos(s, t, 0, x, y, z); // convert to world cordinate
+        }
+        else
+        { // already in world cordinate
+            x = s;
+            y = t;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z + z_offset_;
+        vertexPoints_.push_back(point); // point A
+
+        if (cornerType == 0) // raod
+        {
+            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z); // dz has to be handled
+        }
+        else
+        {
+            x = s + deltaSFar;
+            y = t + deltaTFar;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z + z_offset_;
+        vertexPoints_.push_back(point); // point B
+
+        s += deltaSLine;
+        t += deltaTLine;
+        if (cornerType == 0) // raod
+        {
+            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z); // dz has to be handled
+        }
+        else
+        {
+            x = s + deltaSFar;
+            y = t + deltaTFar;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z + z_offset_;
+        vertexPoints_.push_back(point); // point C
+
+        if (cornerType == 0) // raod
+        {
+            GetPos(s, t, 0, x, y, z); // dz has to be handled
+        }
+        else
+        {
+            x = s;
+            y = t;
+            z = 0;
+        }
+        point.x = x;
+        point.y = y;
+        point.z = z + z_offset_;
+        vertexPoints_.push_back(point); // point D
+    }
+
+}
+
+void Marking::FillPoints(RoadObject* object)
+{
+    RMObject* obj = static_cast<RMObject*>(object);
+
+
+    if (cornerReference.size() == 2) // corner referrence found
+    {
+        roadmanager::OutlineCornerRoad* corner = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0]);
+        if(corner) // road corner
+        {
+            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetS();
+            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetS();
+            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetT();
+            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetT();
+            FillVertexPoints(startS, startT, endS, endT, 0);
+        }
+        else
+        {
+            double startX, startY, endX, endY;
+            double z;
+            cornerReference[0]->GetPos(startX, startY, z);
+            cornerReference[1]->GetPos(endX, endY, z);
+            FillVertexPoints(startX, startY, endX, endY, 0);
+        }
+    }
+    else if (cornerReference.size() == 0)
+    {
+        //no corner referrence in marking, check corner from repeat
+        if( obj->GetNumberOfOutlines() != 0)
+        {
+            for (size_t l = 0; l < static_cast<unsigned int>(obj->GetNumberOfOutlines()); l++)
+            {
+                roadmanager::Outline* outline = obj->GetOutline(static_cast<int>(l));
+                for (size_t k = 0; k < outline->corner_.size()/2; k+=2)
+                {
+                    if (side_ == 0)
+                    {
+                        double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
+                        double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
+                        double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
+                        double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
+                        FillVertexPoints(startS, startT, endS, endT, 0);
+                    }
+                    else
+                    {
+                        double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // secound corner
+                        double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
+                        double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
+                        double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
+                        FillVertexPoints(startS, startT, endS, endT, 0);
+                    }
+                }
+            }
+        }
+        // else // no cornerrefernce so no outline, no outline so repeat. create for object
+        // {
+        //     if ((obj->GetLength() > SMALL_NUMBER) && (obj->GetWidth() > SMALL_NUMBER)) // object width and length availble
+        //     {
+        //         if (side_ == 0)
+        //         {
+        //             double startS = obj->GetS() + (obj->GetWidth() / 2);
+        //             double endS = obj->GetS() + (obj->GetWidth() / 2);
+        //             double startT = obj->GetT() + (obj->GetLength() / 2);
+        //             double endT = obj->GetT() - (obj->GetLength() / 2);
+        //             FillVertexPoints(startS, startT, endS, endT, 0);
+        //         }
+        //         else
+        //         {
+        //             double startS = obj->GetS() - (obj->GetWidth() / 2);
+        //             double endS = obj->GetS() - (obj->GetWidth() / 2);
+        //             double startT = obj->GetT() + (obj->GetLength() / 2);
+        //             double endT = obj->GetT() - (obj->GetLength() / 2);
+        //             FillVertexPoints(startS, startT, endS, endT, 0);
+        //         }
+        //     }
+        // }
+    }
+}
+
 OutlineCorner* Marking::GetCornerById(int id, RoadObject* object)
 {
 
     RMObject* obj = static_cast<RMObject*>(object);
-    roadmanager::OutlineCorner* corner = 0;
+    roadmanager::OutlineCorner* corner = nullptr;
     for (size_t i = 0; i < static_cast<unsigned int>(obj->GetNumberOfOutlines()); i++)
     {
         roadmanager::Outline* outline = obj->GetOutline(static_cast<int>(i));
@@ -4724,6 +4904,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         {
                             LOG("If an outline is used at least two <cornerReference> elements are mandatory, Skipping");
                         }
+                        marking->FillPoints(obj);
                         markings->AddMarking(marking);
                     }
                     obj->AddMarkings(markings);
