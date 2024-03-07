@@ -3489,22 +3489,29 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
                         for (size_t j = 0; j < markings->marking_.size(); j++)
                         {
+                            double p0x = 0.0;
+                            double p0y = 0.0;
+                            double p1x = 0.0;
+                            double p1y = 0.0;
                             roadmanager::Marking* marking = markings->marking_[j];
                             if (marking->GetSide() == 0)
                             {
-                                double startS = s + (length_new / 2);
-                                double endS = s + (length_new / 2);
-                                double startT = t + (width_new / 2);
-                                double endT = t - (width_new/ 2);
-                                marking->FillVertexPoints(startS, startT, endS, endT, 0);
+                                // find local lower left corner
+                                RotateVec2D(-length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), p0x, p0y);
+                                // find local upper left corner
+                                RotateVec2D(-length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), p1x, p1y);
+                                marking->FillVertexPoints(pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, 1);
+                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation);
+                                printf("Corners %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
+                                pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, pos.GetH(), object->GetHOffset());
                             }
                             else
                             {
-                                double startS = s - (length_new / 2);
-                                double endS = s - (length_new / 2);
-                                double startT = t + (width_new / 2);
-                                double endT = t - (width_new / 2);
-                                marking->FillVertexPoints(startS, startT, endS, endT, 0);
+                                // find local lower right corner
+                                RotateVec2D(length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), p0x, p0y);
+                                // find local upper right corner
+                                RotateVec2D(length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), p1x, p1y);
+                                marking->FillVertexPoints(pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, 1);
                             }
                         }
                     }

@@ -2453,109 +2453,6 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
     z = pos.GetZ() + dz;
 }
 
-std::vector<roadmanager::Marking::Point3D> Marking::GetVertexPoints(double startS, double startT, double endS, double endT, int cornerType)
-{
-    std::vector<roadmanager::Marking::Point3D> points;
-
-    double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
-    total_length = total_length - startOffset_ - stopOffset_;
-    int tota_blocks = static_cast<int>(total_length/(lineLength_ + spaceLength_));
-
-    int nrOfPoints = tota_blocks * 4;
-
-    double alpha = atan2(endS - startS, endT - startT);
-    double deltaTGap = cos(alpha) * spaceLength_;
-    double deltaSGap = sin(alpha) * spaceLength_;
-    double deltaTLine = cos(alpha) * lineLength_;
-    double deltaSLine = sin(alpha) * lineLength_;
-    double deltaTStartOffset = cos(alpha) * startOffset_;
-    double deltaSStartOffset = sin(alpha) * startOffset_;
-
-    double                      x, y, z;
-    double s = startS;
-    double t = startT;
-
-    double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
-
-    double deltaTFar = cos(beata) * width_;
-    double deltaSFar = sin(beata) * width_;
-
-    for (int i = 0; i < nrOfPoints; i+=4)
-    {
-        roadmanager::Marking::Point3D point;
-        s += deltaSGap;
-        t += deltaTGap;
-        if (i == 0) // handle start offset
-        {
-            s += deltaSStartOffset;
-            t += deltaTStartOffset;
-        }
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s, t, 0, x, y, z); // convert to world cordinate
-        }
-        else
-        { // already in world cordinate
-            x = s;
-            y = t;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        points.push_back(point); // point A
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z); // dz has to be handled
-        }
-        else
-        {
-            x = s + deltaSFar;
-            y = t + deltaTFar;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z;
-        points.push_back(point); // point B
-
-        s += deltaSLine;
-        t += deltaTLine;
-        if (cornerType == 0) // raod
-        {
-            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z); // dz has to be handled
-        }
-        else
-        {
-            x = s + deltaSFar;
-            y = t + deltaTFar;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z;
-        points.push_back(point); // point C
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s, t, 0, x, y, z); // dz has to be handled
-        }
-        else
-        {
-            x = s;
-            y = t;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        points.push_back(point); // point D
-    }
-    return points;
-}
-
 void Marking::FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType)
 {
     double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
@@ -2711,28 +2608,6 @@ void Marking::FillPoints(RoadObject* object)
                 }
             }
         }
-        // else // no cornerrefernce so no outline, no outline so repeat. create for object
-        // {
-        //     if ((obj->GetLength() > SMALL_NUMBER) && (obj->GetWidth() > SMALL_NUMBER)) // object width and length availble
-        //     {
-        //         if (side_ == 0)
-        //         {
-        //             double startS = obj->GetS() + (obj->GetWidth() / 2);
-        //             double endS = obj->GetS() + (obj->GetWidth() / 2);
-        //             double startT = obj->GetT() + (obj->GetLength() / 2);
-        //             double endT = obj->GetT() - (obj->GetLength() / 2);
-        //             FillVertexPoints(startS, startT, endS, endT, 0);
-        //         }
-        //         else
-        //         {
-        //             double startS = obj->GetS() - (obj->GetWidth() / 2);
-        //             double endS = obj->GetS() - (obj->GetWidth() / 2);
-        //             double startT = obj->GetT() + (obj->GetLength() / 2);
-        //             double endT = obj->GetT() - (obj->GetLength() / 2);
-        //             FillVertexPoints(startS, startT, endS, endT, 0);
-        //         }
-        //     }
-        // }
     }
 }
 
