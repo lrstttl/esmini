@@ -2937,16 +2937,20 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::DrawMarking(roadmanager::Marking* marking)
+int Viewer::DrawMarking(roadmanager::Marking* marking, roadmanager::RoadObject* obj)
 {
 
     if (marking == 0)
     {
         return -1;
     }
-    if (marking->vertexPoints_.size() == 0) // no points from roadmaanger
+    if (marking->vertexPoints_.size() == 0) // no points from roadmanager
     {
-        return -1;
+        marking->FillPoints(obj);
+        if( marking->vertexPoints_.size() == 0)
+        {
+            return -1; // nothing to draw
+        }
     }
 
     std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
@@ -3253,6 +3257,16 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                 roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(j));
                                 CreateOutlineObject(outline, color, markings);
                             }
+                            //draw marking
+                            for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
+                            {
+                                roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+                                for (size_t j = 0; j < markings->marking_.size(); j++)
+                                {
+                                    roadmanager::Marking* marking = markings->marking_[j];
+                                    DrawMarking(marking, object);
+                                }
+                            }
                             continue;
                         }
                         else
@@ -3500,8 +3514,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                 RotateVec2D(-length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), p0x, p0y);
                                 // find local upper left corner
                                 RotateVec2D(-length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), p1x, p1y);
-                                marking->FillVertexPoints(pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, 1);
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation);
+                                marking->FillVertexPoints(pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, pos.GetP(), 1);
+
+                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
                                 printf("Corners %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, pos.GetH(), object->GetHOffset());
                             }
@@ -3511,7 +3526,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                 RotateVec2D(length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), p0x, p0y);
                                 // find local upper right corner
                                 RotateVec2D(length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), p1x, p1y);
-                                marking->FillVertexPoints(pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, 1);
+                                marking->FillVertexPoints(pos.GetX() + p0x, pos.GetY() + p0y, pos.GetX() + p1x, pos.GetY() + p1y, pos.GetP(), 1);
                             }
                         }
                     }
@@ -3579,7 +3594,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 for (size_t j = 0; j < markings->marking_.size(); j++)
                 {
                     roadmanager::Marking* marking = markings->marking_[j];
-                    DrawMarking(marking);
+                    DrawMarking(marking, object);
                 }
             }
         }

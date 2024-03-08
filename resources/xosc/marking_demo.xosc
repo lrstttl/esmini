@@ -12,7 +12,7 @@
       </VehicleCatalog>
    </CatalogLocations>
     <RoadNetwork>
-        <LogicFile filepath="../xodr/Ex_Markings.xodr"/>
+        <LogicFile filepath="../xodr/Ex_Marking.xodr"/>
     </RoadNetwork>
     <Entities>
         <ScenarioObject name="Car">

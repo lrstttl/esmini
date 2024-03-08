@@ -1795,7 +1795,7 @@ namespace roadmanager
             double z;
         };
         std::vector<Point3D> vertexPoints_;
-        void FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType);
+        void FillVertexPoints(double startS, double startT, double endS, double endT, double pitch, int cornerType);
         void FillPoints(RoadObject* obj);
 
         ~Marking()
