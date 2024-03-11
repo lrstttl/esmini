@@ -618,12 +618,12 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
 
         for (size_t k = 0; k < static_cast<unsigned int>(object->GetNumberOfMarkings()); k++)
         {
-            roadmanager::Markings *markings = object->GetMarkings(k);
+            roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(k));
             for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); k++)
             {
                 roadmanager::Marking *marking = markings->marking_[l];
                 std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
-                for (int m = 0; m < points.size(); m++)
+                for (size_t m = 0; m < points.size(); m++)
                 {
                     osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
                     vec->set_x(points[m].x);
