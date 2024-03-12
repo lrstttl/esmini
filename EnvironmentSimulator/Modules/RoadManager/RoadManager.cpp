@@ -2474,7 +2474,7 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
     double alpha = atan2(endS - startS, endT - startT);
     double deltaTGap = cos(alpha) * spaceLength_;
     double deltaSGap = sin(alpha) * spaceLength_;
-    double deltaZGap = (endZ - StartZ) * spaceLength_;
+    // double deltaZGap = (endZ - StartZ) * spaceLength_;
     double deltaTLine = cos(alpha) * lineLength_;
     double deltaSLine = sin(alpha) * lineLength_;
     double deltaZLine = (endZ - StartZ) * lineLength_;
@@ -2484,14 +2484,16 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
     double                      x, y, z;
     double s = startS;
     double t = startT;
-    double z_new = StartZ;
+    // double z_new = StartZ;
 
     double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
 
     double deltaTFar = cos(beata) * width_;
     double deltaSFar = sin(beata) * width_;
-    double deltaZFar = (endZ - StartZ) * width_;
+    // double deltaZFar = (endZ - StartZ) * width_;
 
+    roadmanager::Position tmp_pos;
+    tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
     // add first block immediate after start offset for line length
     if ( nrOfPoints >= 4)
     {
@@ -2500,14 +2502,17 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
         roadmanager::Marking::Point3D point;
         if (cornerType == 0) // raod
         {
-            GetPos(s, t, z_new, x, y, z); // convert to world cordinate
+            GetPos(s, t, 0.0, x, y, z); // convert to world cordinate
         }
         else
         { // already in world cordinate
             x = s;
             y = t;
-            z = z_new;
+            z = 0.0;
         }
+
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2516,14 +2521,16 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
         if (cornerType == 0) // raod
         {
-            GetPos(s + deltaSFar, t + deltaTFar, z_new + deltaZFar, x, y, z);
+            GetPos(s + deltaSFar, t + deltaTFar, 0.0, x, y, z);
         }
         else
         {
             x = s + deltaSFar;
             y = t + deltaTFar;
-            z = z_new + deltaZFar;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2532,17 +2539,19 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
         printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
         s += deltaSLine;
         t += deltaTLine;
-        z_new += deltaZLine;
+        // z_new += deltaZLine;
         if (cornerType == 0) // raod
         {
-            GetPos(s + deltaSFar, t + deltaTFar, z_new + deltaZFar, x, y, z);
+            GetPos(s + deltaSFar, t + deltaTFar, 0.0, x, y, z);
         }
         else
         {
             x = s + deltaSFar;
             y = t + deltaTFar;
-            z = z_new + deltaZFar;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2551,14 +2560,16 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
         if (cornerType == 0) // raod
         {
-            GetPos(s, t, z_new, x, y, z);
+            GetPos(s, t, 0.0, x, y, z);
         }
         else
         {
             x = s;
             y = t;
-            z = z_new;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2571,18 +2582,20 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
         roadmanager::Marking::Point3D point;
         s += deltaSGap;
         t += deltaTGap;
-        z_new += deltaZGap;
+        // z_new += deltaZGap;
 
         if (cornerType == 0) // raod
         {
-            GetPos(s, t, z_new, x, y, z); // convert to world cordinate
+            GetPos(s, t, 0.0, x, y, z); // convert to world cordinate
         }
         else
         { // already in world cordinate
             x = s;
             y = t;
-            z = z_new;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2591,14 +2604,16 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
         if (cornerType == 0) // raod
         {
-            GetPos(s + deltaSFar, t + deltaTFar, z_new + deltaZFar, x, y, z);
+            GetPos(s + deltaSFar, t + deltaTFar, 0.0, x, y, z);
         }
         else
         {
             x = s + deltaSFar;
             y = t + deltaTFar;
-            z = z_new + deltaZFar;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2607,17 +2622,19 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
         s += deltaSLine;
         t += deltaTLine;
-        z_new += deltaZLine;
+        // z_new += deltaZLine;
         if (cornerType == 0) // raod
         {
-            GetPos(s + deltaSFar, t + deltaTFar, z_new + deltaZFar, x, y, z);
+            GetPos(s + deltaSFar, t + deltaTFar, 0.0, x, y, z);
         }
         else
         {
             x = s + deltaSFar;
             y = t + deltaTFar;
-            z = z_new + deltaZFar;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2626,14 +2643,16 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
         if (cornerType == 0) // raod
         {
-            GetPos(s, t, z_new, x, y, z);
+            GetPos(s, t, 0.0, x, y, z);
         }
         else
         {
             x = s;
             y = t;
-            z = z_new;
+            z = 0.0;
         }
+        tmp_pos.SetInertiaPos(x , y , 0.0);
+        z = tmp_pos.GetZ();
         point.x = x;
         point.y = y;
         point.z = z + z_offset_;
@@ -2822,7 +2841,8 @@ void Marking::FillVertexPoints(double startS, double startT, double endS, double
 void Marking::FillPoints_new(RoadObject* object)
 {
     RMObject* obj = static_cast<RMObject*>(object);
-
+    roadmanager::Position tmp_pos;
+    tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
     if (cornerReference.size() == 2) // corner referrence found
     {
         roadmanager::OutlineCornerRoad* corner = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0]);
@@ -2833,7 +2853,6 @@ void Marking::FillPoints_new(RoadObject* object)
             double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetT();
             double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetT();
             double z0, z1;
-            roadmanager::Position tmp_pos;
             tmp_pos.SetInertiaPos(startS, startT, 0.0);
             z0 = tmp_pos.GetZ();
             tmp_pos.SetInertiaPos(endS, endT, 0.0);
@@ -2844,51 +2863,12 @@ void Marking::FillPoints_new(RoadObject* object)
         }
         else
         {
-#if 0
-            double startX, startY, endX, endY;
-            double z = 0;
-            double v0[3] = { 0.0, 0.0, 0.0};
-            double v1[3] = { 0.0, 0.0, 0.0};
-            cornerReference[0]->GetPos(startX, startY, z);
-            cornerReference[1]->GetPos(endX, endY, z);
-            printf("outline_local_phasring %.2f %.2f %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-            startX, startY,  z, endX, endY, z, obj->GetH(), obj->GetHOffset());
-            // RotateVec2D(startX , startY, obj->GetH() + obj->GetHOffset(), startX, startY);
-            // RotateVec2D(endX , endY, obj->GetH() + obj->GetHOffset(), endX, endY);
 
-            // find local lower corner
-            RotateVec2D(obj->GetLength()/ 2 , -obj->GetWidth() / 2, obj->GetH() + obj->GetHOffset(), v0[0], v0[1]);
-            // find local upper corner
-            RotateVec2D(obj->GetLength() / 2 , obj->GetWidth() / 2, obj->GetH() + obj->GetHOffset(), v1[0], v1[1]);
-
-            printf("roatated %.2f %.2f %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-            v0[0], v0[1],  z, v1[0], v1[1], z, obj->GetH(), obj->GetHOffset());
-            double z0, z1;
-            roadmanager::Position tmp_pos;
-            tmp_pos.SetInertiaPos(v0[0] + startX, v1[0] + startY, 0.0);
-            z0 = tmp_pos.GetZ();
-            tmp_pos.SetInertiaPos(v1[0] + endX, v1[1] + endY, 0.0);
-            z1 = tmp_pos.GetZ();
-            printf("outline_local_after_setZ %.2f %.2f %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-            v0[0] + startX, v1[0] + startY,  z0, v1[0] + endX, v1[1] + endY, z1, obj->GetH(), obj->GetHOffset());
-            FillVertexPoints_new(startX, startY, z0, endX, endY, z1, 0);
-#endif
-#if 0
-            double v0[3];
-            double v1[3];
-            cornerReference[0]->GetPos(v0[0], v0[1], v0[1]);
-            cornerReference[1]->GetPos(v1[0], v1[1], v1[2]);
-            printf("outline_local_phasring %.2f %.2f %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-            v0[0], v0[1],  v0[2], v1[0], v1[1], v1[2], obj->GetH(), obj->GetHOffset());
-            FillVertexPoints_new(v0[0], v0[1],  v0[2], v1[0], v1[1], v1[2], 0);
-#else
             double v0[3] = { 0.0, 0.0, 0.0};
             double v1[3] = { 0.0, 0.0, 0.0};
             cornerReference[0]->GetPos(v0[0], v0[1], v0[2]);
             cornerReference[1]->GetPos(v1[0], v1[1], v1[2]);
             double z0, z1;
-            roadmanager::Position tmp_pos;
-            tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
             tmp_pos.SetInertiaPos(v0[0] , v1[0] , 0.0);
             z0 = tmp_pos.GetZ();
             tmp_pos.SetInertiaPos(v1[0] , v1[1] , 0.0);
@@ -2896,7 +2876,6 @@ void Marking::FillPoints_new(RoadObject* object)
             printf("outline_local_phasring p1 %.2f %.2f %.2f zIn %.2f p2 %.2f %.2f %.2f zIn %.2f heading %.2f heading_offset %.2f\n",
             v0[0], v0[1], v0[2], z0, v1[0], v1[1], v1[2], z1, obj->GetH(), obj->GetHOffset());
             FillVertexPoints_new(v0[0], v0[1], z0, v1[0], v1[1], z1, 1);
-#endif
 
         }
     }
@@ -2917,7 +2896,6 @@ void Marking::FillPoints_new(RoadObject* object)
                         double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
                         double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
                         double z0, z1;
-                        roadmanager::Position tmp_pos;
                         tmp_pos.SetInertiaPos(startS, startT, 0.0);
                         z0 = tmp_pos.GetZ();
                         tmp_pos.SetInertiaPos(endS, endT, 0.0);
@@ -2931,7 +2909,6 @@ void Marking::FillPoints_new(RoadObject* object)
                         double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
                         double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
                         double z0, z1;
-                        roadmanager::Position tmp_pos;
                         tmp_pos.SetInertiaPos(startS, startT, 0.0);
                         z0 = tmp_pos.GetZ();
                         tmp_pos.SetInertiaPos(endS, endT, 0.0);

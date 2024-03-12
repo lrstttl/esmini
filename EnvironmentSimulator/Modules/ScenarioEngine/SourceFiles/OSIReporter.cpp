@@ -628,7 +628,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
                     vec->set_x(points[m].x);
                     vec->set_y(points[m].y);
-                    obj_osi_internal.rm->mutable_base()->mutable_dimension()->set_height(points[m].z);
+                    vec->set_z(points[m].z)
                 }
             }
         }
