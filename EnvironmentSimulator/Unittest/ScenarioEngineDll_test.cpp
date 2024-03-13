@@ -2602,6 +2602,89 @@ TEST(TestOsiReporter, AssignRoleTest)
 
 #endif  // _USE_OSI
 
+TEST(TestOsiReporter, MarkingTest)
+{
+
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
+
+    std::string scenario_file = "../../resources/xosc/marking_demo.xosc";
+    const char* Scenario_file = scenario_file.c_str();
+    int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
+    ASSERT_EQ(i_init, 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    osi3::RoadMarking_Classification_Type marking_type = osi_gt.road_marking(0).classification().type();
+
+    EXPECT_EQ(marking_type, osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
+    EXPECT_EQ(osi_gt.road_marking(0).base().base_polygon_size(), 116);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).x(), 5.1181757895737503);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).y(), 3.2242564909945828);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(5).x(), 5.1247411112167365);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(5).y(), 2.9550783036321517);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(75).x(), 6.9695964928958354);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(75).y(), -1.0957251500902894);
+
+    EXPECT_EQ(osi_gt.road_marking(1).base().base_polygon_size(), 112);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(0).x(), 12.118175789573751);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(0).y(), -3.2242564909945828);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(25).x(), 12.800969240444314);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(25).y(), -1.8849308758254131);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(100).x(), 14.580171405693568);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(100).y(), 2.5203999466182787);
+
+    EXPECT_EQ(osi_gt.road_marking(2).base().base_polygon_size(), 136);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(0).x(), 205);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(0).y(), -10);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(64).x(), 206.40449376635343);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(64).y(), -13.745316710276171);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(122).x(), 207.61001758247343);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(122).y(), -17.244847011440477);
+
+    EXPECT_EQ(osi_gt.road_marking(3).base().base_polygon_size(), 136);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(7).x(), 212.15800554871475);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(7).y(), -13.42134812990607);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(53).x(), 213.04751826740525);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(53).y(), -16.078182171258231);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(122).x(), 214.61001758247343);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(122).y(), -20.244847011440502);
+
+    EXPECT_EQ(osi_gt.road_marking(4).base().base_polygon_size(), 28);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(8).x(), 52.5);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(8).y(), 1.2000000000000002);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(23).x(), 52.5);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(23).y(), -2);
+
+    EXPECT_EQ(osi_gt.road_marking(5).base().base_polygon_size(), 28);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(4).x(), 263.002489354099);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(4).y(), -60.921927990415845);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(27).x(), 258.46269243159668);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(27).y(), -63.017218877724588);
+
+}
+
 TEST(ParameterTest, GetTypedParameterValues)
 {
     std::string scenario_file = "../../../resources/xosc/lane_change.xosc";

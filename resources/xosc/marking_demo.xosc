@@ -12,7 +12,7 @@
       </VehicleCatalog>
    </CatalogLocations>
     <RoadNetwork>
-        <LogicFile filepath="../xodr/Ex_Markings_demo.xodr"/>
+        <LogicFile filepath="../xodr/markings_demo.xodr"/>
     </RoadNetwork>
     <Entities>
         <ScenarioObject name="Car">
@@ -26,7 +26,7 @@
                     <PrivateAction>
                         <TeleportAction>
                             <Position>
-                                <LanePosition roadId="1" laneId="-1" offset="0" s="$StartPositon"/>
+                                <LanePosition roadId="0" laneId="-1" offset="0" s="$StartPositon"/>
                             </Position>
                         </TeleportAction>
                     </PrivateAction>

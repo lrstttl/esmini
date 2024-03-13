@@ -613,22 +613,28 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
 
     if(object->GetNumberOfMarkings() > 0)
     {
-        obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-        obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-
         for (size_t k = 0; k < static_cast<unsigned int>(object->GetNumberOfMarkings()); k++)
         {
             roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(k));
-            for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); k++)
+            for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); l++)
             {
                 roadmanager::Marking *marking = markings->marking_[l];
+                if (marking->vertexPoints_.size() == 0) // no points from roadmanager
+                {
+                    marking->FillPoints_new(object);
+                    if( marking->vertexPoints_.size() == 0)
+                    {
+                        return -1; // nothing to draw
+                    }
+                }
                 std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
+                obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
+                obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
                 for (size_t m = 0; m < points.size(); m++)
                 {
                     osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
                     vec->set_x(points[m].x);
                     vec->set_y(points[m].y);
-                    vec->set_z(points[m].z)
                 }
             }
         }

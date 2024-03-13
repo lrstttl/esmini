@@ -2881,7 +2881,7 @@ void Marking::FillPoints_new(RoadObject* object)
     }
     else if (cornerReference.size() == 0)
     {
-        //no corner referrence in marking, check corner from repeat
+        //no corner referrence in marking, check corner from repeat without distance
         if( obj->GetNumberOfOutlines() != 0)
         {
             for (size_t l = 0; l < static_cast<unsigned int>(obj->GetNumberOfOutlines()); l++)
