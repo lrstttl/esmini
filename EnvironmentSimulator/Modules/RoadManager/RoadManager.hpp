@@ -1798,7 +1798,7 @@ namespace roadmanager
 
         void FillPoints(RoadObject* object);
 
-        void FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType);
+        void FillVertexPoints(double p00, double p01, double p10, double p11, int cornerType);
 
         ~Marking()
         {
