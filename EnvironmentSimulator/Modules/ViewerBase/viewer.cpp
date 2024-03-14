@@ -2946,7 +2946,7 @@ int Viewer::DrawMarking(roadmanager::Marking* marking, roadmanager::RoadObject* 
     }
     if (marking->vertexPoints_.size() == 0) // no points from roadmanager
     {
-        marking->FillPoints_new(obj);
+        marking->FillPoints(obj);
         if( marking->vertexPoints_.size() == 0)
         {
             return -1; // nothing to draw
@@ -3512,67 +3512,27 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             roadmanager::Marking* marking = markings->marking_[j];
                             if (marking->GetSide() == 0)
                             {
-#if 1
                                 // find local lower left corner
                                 RotateVec2D(-length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
                                 // find local upper left corner
                                 RotateVec2D(-length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
 
-#else
                                 printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
-                                printf("Corners %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
+                                printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
                                 marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                                double v0[3];
-                                // find local lower left corner
-                                RotateVec3d(pos.GetH() + object->GetHOffset(), pos.GetP(), pos.GetR(), -length_new / 2, -width_new / 2, 0, v0[0], v0[1], v0[2]);
-                                double v1[3];
-                                // find local lower left corner
-                                RotateVec3d(pos.GetH() + object->GetHOffset(), pos.GetP(), pos.GetR(), -length_new / 2, width_new / 2, 0, v1[0], v1[1], v1[2]);
-
-
-#endif
-                                double z0, z1;
-                                roadmanager::Position tmp_pos;
-                                tmp_pos.SetInertiaPos(pos.GetX() + v0[0], pos.GetY() + v0[1], 0.0);
-                                z0 = tmp_pos.GetZ();
-                                tmp_pos.SetInertiaPos(pos.GetX() + v1[0], pos.GetY() + v1[1], 0.0);
-                                z1 = tmp_pos.GetZ();
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
-                                printf("Corners_left %.2f %.2f %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                pos.GetX() + v0[0], pos.GetY() + v0[1],  z0, pos.GetX() + v1[0], pos.GetY() + v1[1], z1, pos.GetH(), object->GetHOffset());
-                                marking->FillVertexPoints_new(pos.GetX() + v0[0], pos.GetY() + v0[1], z0, pos.GetX() + v1[0], pos.GetY() + v1[1], z1, 1);
                             }
                             else
                             {
-#if 1
                                 // find local lower right corner
                                 RotateVec2D(length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
                                 // find local upper right corner
                                 RotateVec2D(length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
 
-#else
                                 printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
-                                printf("Corners %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
+                                printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
                                 marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                                double v0[3];
-                                // find local lower left corner
-                                RotateVec3d(pos.GetH() + object->GetHOffset(), pos.GetP(), pos.GetR(), length_new / 2, -width_new / 2, 0, v0[0], v0[1], v0[2]);
-                                double v1[3];
-                                // find local lower left corner
-                                RotateVec3d(pos.GetH() + object->GetHOffset(), pos.GetP(), pos.GetR(), length_new / 2, width_new / 2, 0, v1[0], v1[1], v1[2]);
-#endif
-                                roadmanager::Position tmp_pos;
-                                double z0, z1;
-                                tmp_pos.SetInertiaPos(pos.GetX() + v0[0], pos.GetY() + v0[1], 0.0);
-                                z0 = tmp_pos.GetZ();
-                                tmp_pos.SetInertiaPos(pos.GetX() + v1[0], pos.GetY() + v1[1], 0.0);
-                                z1 = tmp_pos.GetZ();
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
-                                printf("Corners_right %.2f %.2f %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                pos.GetX() + v0[0], pos.GetY() + v0[1], z0, pos.GetX() + v1[0], pos.GetY() + v1[1], z1, pos.GetH(), object->GetHOffset());
-                                marking->FillVertexPoints_new(pos.GetX() + v0[0], pos.GetY() + v0[1], z0, pos.GetX() + v1[0], pos.GetY() + v1[1], z1, 1);
                             }
                         }
                     }

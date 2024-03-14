@@ -621,7 +621,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                 roadmanager::Marking *marking = markings->marking_[l];
                 if (marking->vertexPoints_.size() == 0) // no points from roadmanager
                 {
-                    marking->FillPoints_new(object);
+                    marking->FillPoints(object);
                     if( marking->vertexPoints_.size() == 0)
                     {
                         return -1; // nothing to draw

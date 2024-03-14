@@ -2459,7 +2459,7 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
     z = pos.GetZ() + dz;
 }
 
-void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, double endS, double endT, double endZ, int cornerType)
+void Marking::FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType)
 {
     double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
     total_length = total_length - startOffset_ - stopOffset_;
@@ -2474,23 +2474,19 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
     double alpha = atan2(endS - startS, endT - startT);
     double deltaTGap = cos(alpha) * spaceLength_;
     double deltaSGap = sin(alpha) * spaceLength_;
-    // double deltaZGap = (endZ - StartZ) * spaceLength_;
     double deltaTLine = cos(alpha) * lineLength_;
     double deltaSLine = sin(alpha) * lineLength_;
-    double deltaZLine = (endZ - StartZ) * lineLength_;
     double deltaTStartOffset = cos(alpha) * startOffset_;
     double deltaSStartOffset = sin(alpha) * startOffset_;
 
     double                      x, y, z;
     double s = startS;
     double t = startT;
-    // double z_new = StartZ;
 
     double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
 
     double deltaTFar = cos(beata) * width_;
     double deltaSFar = sin(beata) * width_;
-    // double deltaZFar = (endZ - StartZ) * width_;
 
     roadmanager::Position tmp_pos;
     tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
@@ -2622,7 +2618,6 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
         s += deltaSLine;
         t += deltaTLine;
-        // z_new += deltaZLine;
         if (cornerType == 0) // raod
         {
             GetPos(s + deltaSFar, t + deltaTFar, 0.0, x, y, z);
@@ -2662,220 +2657,35 @@ void Marking::FillVertexPoints_new(double startS, double startT, double StartZ, 
 
 }
 
-void Marking::FillVertexPoints(double startS, double startT, double endS, double endT, int cornerType)
-{
-    double total_length = sqrt(((startS- endS)*(startS - endS)) + ((startT- endT)*(startT - endT)));
-    total_length = total_length - startOffset_ - stopOffset_;
-    int tota_blocks = static_cast<int>(total_length/(lineLength_ + spaceLength_));
-    if (tota_blocks == 0 && total_length >= lineLength_) // add atleast one block in case one linelength can be added
-    {
-        tota_blocks = 1;
-    }
 
-    int nrOfPoints = tota_blocks * 4;
-
-    double alpha = atan2(endS - startS, endT - startT);
-    double deltaTGap = cos(alpha) * spaceLength_;
-    double deltaSGap = sin(alpha) * spaceLength_;
-    double deltaTLine = cos(alpha) * lineLength_;
-    double deltaSLine = sin(alpha) * lineLength_;
-    double deltaTStartOffset = cos(alpha) * startOffset_;
-    double deltaSStartOffset = sin(alpha) * startOffset_;
-
-    double                      x, y, z;
-    double s = startS;
-    double t = startT;
-
-    double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
-
-    double deltaTFar = cos(beata) * width_;
-    double deltaSFar = sin(beata) * width_;
-
-    // add first block immediate after start offset for line length
-    if ( nrOfPoints >= 4)
-    {
-        s += deltaSStartOffset;
-        t += deltaTStartOffset;
-        roadmanager::Marking::Point3D point;
-        if (cornerType == 0) // raod
-        {
-            GetPos(s, t, 0, x, y, z); // convert to world cordinate
-        }
-        else
-        { // already in world cordinate
-            x = s;
-            y = t;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point A
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z);
-        }
-        else
-        {
-            x = s + deltaSFar;
-            y = t + deltaTFar;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point B
-        printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        s += deltaSLine;
-        t += deltaTLine;
-        if (cornerType == 0) // raod
-        {
-            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z);
-        }
-        else
-        {
-            x = s + deltaSFar;
-            y = t + deltaTFar;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point C
-        printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s, t, 0, x, y, z);
-        }
-        else
-        {
-            x = s;
-            y = t;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point D
-        printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
-    }
-
-    for (int i = 4; i < nrOfPoints; i+=4) // loop from secound block
-    {
-        roadmanager::Marking::Point3D point;
-        s += deltaSGap;
-        t += deltaTGap;
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s, t, 0, x, y, z); // convert to world cordinate
-        }
-        else
-        { // already in world cordinate
-            x = s;
-            y = t;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point A
-        printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z);
-        }
-        else
-        {
-            x = s + deltaSFar;
-            y = t + deltaTFar;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point B
-        printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        s += deltaSLine;
-        t += deltaTLine;
-        if (cornerType == 0) // raod
-        {
-            GetPos(s + deltaSFar, t + deltaTFar, 0, x, y, z);
-        }
-        else
-        {
-            x = s + deltaSFar;
-            y = t + deltaTFar;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point C
-        printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(s, t, 0, x, y, z);
-        }
-        else
-        {
-            x = s;
-            y = t;
-            z = 0;
-        }
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point D
-        printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
-    }
-
-}
-
-void Marking::FillPoints_new(RoadObject* object)
+void Marking::FillPoints(RoadObject* object)
 {
     RMObject* obj = static_cast<RMObject*>(object);
     roadmanager::Position tmp_pos;
+    double v0[3] = { 0.0, 0.0, 0.0}; //start points
+    double v1[3] = { 0.0, 0.0, 0.0}; // end points
     tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
     if (cornerReference.size() == 2) // corner referrence found
     {
         roadmanager::OutlineCornerRoad* corner = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0]);
         if(corner) // road corner
         {
-            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetS();
-            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetS();
-            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetT();
-            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetT();
-            double z0, z1;
-            tmp_pos.SetInertiaPos(startS, startT, 0.0);
-            z0 = tmp_pos.GetZ();
-            tmp_pos.SetInertiaPos(endS, endT, 0.0);
-            z1 = tmp_pos.GetZ();
-            printf("outline_road_after %.2f %.2f %.2f %.2f %.2f %.2f\n",
-            startS, startT,  z0, endS, endT, z1);
-            FillVertexPoints_new(startS, startT, z0, endS, endT, z1, 0);
+            v0[0] = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetS();
+            v1[0] = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetS();
+            v0[1] = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetT();
+            v1[1] = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetT();
+
+            printf("outline_road_after %.2f %.2f %.2f %.2f\n",
+            v0[0], v0[1], v1[0], v1[1]);
+            FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
         }
         else
         {
-
-            double v0[3] = { 0.0, 0.0, 0.0};
-            double v1[3] = { 0.0, 0.0, 0.0};
             cornerReference[0]->GetPos(v0[0], v0[1], v0[2]);
             cornerReference[1]->GetPos(v1[0], v1[1], v1[2]);
-            double z0, z1;
-            tmp_pos.SetInertiaPos(v0[0] , v1[0] , 0.0);
-            z0 = tmp_pos.GetZ();
-            tmp_pos.SetInertiaPos(v1[0] , v1[1] , 0.0);
-            z1 = tmp_pos.GetZ();
-            printf("outline_local_phasring p1 %.2f %.2f %.2f zIn %.2f p2 %.2f %.2f %.2f zIn %.2f heading %.2f heading_offset %.2f\n",
-            v0[0], v0[1], v0[2], z0, v1[0], v1[1], v1[2], z1, obj->GetH(), obj->GetHOffset());
-            FillVertexPoints_new(v0[0], v0[1], z0, v1[0], v1[1], z1, 1);
+            printf("outline_local_phasring p1 %.2f %.2f p2 %.2f %.2f heading %.2f heading_offset %.2f\n",
+            v0[0], v0[1], v1[0], v1[1], obj->GetH(), obj->GetHOffset());
+            FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 1);
 
         }
     }
@@ -2891,85 +2701,19 @@ void Marking::FillPoints_new(RoadObject* object)
                 {
                     if (side_ == 0)
                     {
-                        double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
-                        double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
-                        double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
-                        double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
-                        double z0, z1;
-                        tmp_pos.SetInertiaPos(startS, startT, 0.0);
-                        z0 = tmp_pos.GetZ();
-                        tmp_pos.SetInertiaPos(endS, endT, 0.0);
-                        z1 = tmp_pos.GetZ();
-                        FillVertexPoints_new(startS, startT, z0, endS, endT, z1, 0);
+                        v0[0] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
+                        v1[0] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
+                        v0[1] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
+                        v1[1] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
+                        FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
                     }
                     else
                     {
-                        double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // secound corner
-                        double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
-                        double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
-                        double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
-                        double z0, z1;
-                        tmp_pos.SetInertiaPos(startS, startT, 0.0);
-                        z0 = tmp_pos.GetZ();
-                        tmp_pos.SetInertiaPos(endS, endT, 0.0);
-                        z1 = tmp_pos.GetZ();
-                        FillVertexPoints_new(startS, startT, z0, endS, endT, z1, 0);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void Marking::FillPoints(RoadObject* object)
-{
-    RMObject* obj = static_cast<RMObject*>(object);
-
-    if (cornerReference.size() == 2) // corner referrence found
-    {
-        roadmanager::OutlineCornerRoad* corner = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0]);
-        if(corner) // road corner
-        {
-            double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetS();
-            double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetS();
-            double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[0])->GetT();
-            double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(cornerReference[1])->GetT();
-            FillVertexPoints(startS, startT, endS, endT, 0);
-        }
-        else
-        {
-            double startX, startY, endX, endY;
-            double z;
-            cornerReference[0]->GetPos(startX, startY, z);
-            cornerReference[1]->GetPos(endX, endY, z);
-            FillVertexPoints(startX, startY, endX, endY, 0);
-        }
-    }
-    else if (cornerReference.size() == 0)
-    {
-        //no corner referrence in marking, check corner from repeat
-        if( obj->GetNumberOfOutlines() != 0)
-        {
-            for (size_t l = 0; l < static_cast<unsigned int>(obj->GetNumberOfOutlines()); l++)
-            {
-                roadmanager::Outline* outline = obj->GetOutline(static_cast<int>(l));
-                for (size_t k = 0; k < outline->corner_.size()/2; k++)
-                {
-                    if (side_ == 0)
-                    {
-                        double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
-                        double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
-                        double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
-                        double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
-                        FillVertexPoints(startS, startT, endS, endT, 0);
-                    }
-                    else
-                    {
-                        double startS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // secound corner
-                        double endS = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
-                        double startT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
-                        double endT = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
-                        FillVertexPoints(startS, startT, endS, endT, 0);
+                        v0[0] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // secound corner
+                        v1[0] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
+                        v0[1] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
+                        v1[1] = dynamic_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
+                        FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
                     }
                 }
             }
