@@ -2000,6 +2000,17 @@ namespace roadmanager
         {
             return radiusEnd_;
         }
+
+        struct RepeatVertexPoints {
+            double x;
+            double y;
+            double z;
+            double length;
+            double width;
+            double height;
+        };
+        std::vector<RepeatVertexPoints> repeatVertexPoints_;
+
     };
 
     class RMObject : public RoadObject

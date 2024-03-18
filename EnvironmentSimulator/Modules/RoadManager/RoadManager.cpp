@@ -2461,7 +2461,7 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
 
 void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, int cornerType)
 {
-    double total_length = sqrt(((p00- p10)*(p00 - p10)) + ((p01- p11)*(p01 - p11)));
+    double total_length = sqrt(((p00- p10)*(p00 - p10)) + ((p01- p11)*(p01 - p11))) + SMALL_NUMBER; // add small number to round double value
     total_length = total_length - startOffset_ - stopOffset_;
     int tota_blocks = static_cast<int>(total_length/(lineLength_ + spaceLength_));
     if (tota_blocks == 0 && total_length >= lineLength_) // add atleast one block in case one linelength can be added
@@ -2471,190 +2471,192 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
 
     int nrOfPoints = tota_blocks * 4;
 
-    double alpha = atan2(p10 - p00, p11 - p01);
-    double deltaP1Gap = cos(alpha) * spaceLength_;
-    double deltaP0Gap = sin(alpha) * spaceLength_;
-    double deltaP1Line = cos(alpha) * lineLength_;
-    double deltaP0Line = sin(alpha) * lineLength_;
-    double deltaP1StartOffset = cos(alpha) * startOffset_;
-    double deltaP0StartOffset = sin(alpha) * startOffset_;
-
-    double                      x, y, z;
-    double p0 = p00;
-    double p1 = p01;
-
-    double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
-
-    double deltaP1Far = cos(beata) * width_;
-    double deltaP0Far = sin(beata) * width_;
-
-    roadmanager::Position tmp_pos;
-    tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
-    // add first block immediate after start offset for line length
-    if ( nrOfPoints >= 4)
+    if (nrOfPoints != 0)
     {
-        p0 += deltaP0StartOffset;
-        p1 += deltaP1StartOffset;
-        roadmanager::Marking::Point3D point;
-        if (cornerType == 0) // raod
+        double alpha = atan2(p10 - p00, p11 - p01);
+        double deltaP1Gap = cos(alpha) * spaceLength_;
+        double deltaP0Gap = sin(alpha) * spaceLength_;
+        double deltaP1Line = cos(alpha) * lineLength_;
+        double deltaP0Line = sin(alpha) * lineLength_;
+        double deltaP1StartOffset = cos(alpha) * startOffset_;
+        double deltaP0StartOffset = sin(alpha) * startOffset_;
+
+        double                      x, y, z;
+        double p0 = p00;
+        double p1 = p01;
+
+        double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
+
+        double deltaP1Far = cos(beata) * width_;
+        double deltaP0Far = sin(beata) * width_;
+
+        roadmanager::Position tmp_pos;
+        tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
+        // add first block immediate after start offset for line length
+        if ( nrOfPoints >= 4)
         {
-            GetPos(p0, p1, 0.0, x, y, z); // convert to world cordinate
-        }
-        else
-        { // already in world cordinate
-            x = p0;
-            y = p1;
-            z = 0.0;
+            p0 += deltaP0StartOffset;
+            p1 += deltaP1StartOffset;
+            roadmanager::Marking::Point3D point;
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0, p1, 0.0, x, y, z); // convert to world cordinate
+            }
+            else
+            { // already in world cordinate
+                x = p0;
+                y = p1;
+                z = 0.0;
+            }
+
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point A
+            // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
+
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
+            }
+            else
+            {
+                x = p0 + deltaP0Far;
+                y = p1 + deltaP1Far;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point B
+
+            // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            p0 += deltaP0Line;
+            p1 += deltaP1Line;
+            // z_new += deltaZLine;
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
+            }
+            else
+            {
+                x = p0 + deltaP0Far;
+                y = p1 + deltaP1Far;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point C
+            // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0, p1, 0.0, x, y, z);
+            }
+            else
+            {
+                x = p0;
+                y = p1;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point D
+            // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
 
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point A
-        printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
+        for (int i = 4; i < nrOfPoints; i+=4) // loop from secound block
+        {
+            roadmanager::Marking::Point3D point;
+            p0 += deltaP0Gap;
+            p1 += deltaP1Gap;
+            // z_new += deltaZGap;
 
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-        }
-        else
-        {
-            x = p0 + deltaP0Far;
-            y = p1 + deltaP1Far;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point B
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0, p1, 0.0, x, y, z); // convert to world cordinate
+            }
+            else
+            { // already in world cordinate
+                x = p0;
+                y = p1;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point A
+            // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
-        printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
-        p0 += deltaP0Line;
-        p1 += deltaP1Line;
-        // z_new += deltaZLine;
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-        }
-        else
-        {
-            x = p0 + deltaP0Far;
-            y = p1 + deltaP1Far;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point C
-        printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
+            }
+            else
+            {
+                x = p0 + deltaP0Far;
+                y = p1 + deltaP1Far;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point B
+            // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0, p1, 0.0, x, y, z);
+            p0 += deltaP0Line;
+            p1 += deltaP1Line;
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
+            }
+            else
+            {
+                x = p0 + deltaP0Far;
+                y = p1 + deltaP1Far;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point C
+            // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+
+            if (cornerType == 0) // raod
+            {
+                GetPos(p0, p1, 0.0, x, y, z);
+            }
+            else
+            {
+                x = p0;
+                y = p1;
+                z = 0.0;
+            }
+            tmp_pos.SetInertiaPos(x , y , 0.0);
+            z = tmp_pos.GetZ();
+            point.x = x;
+            point.y = y;
+            point.z = z + z_offset_;
+            vertexPoints_.push_back(point); // point D
+            // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
-        else
-        {
-            x = p0;
-            y = p1;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point D
-        printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
     }
-
-    for (int i = 4; i < nrOfPoints; i+=4) // loop from secound block
-    {
-        roadmanager::Marking::Point3D point;
-        p0 += deltaP0Gap;
-        p1 += deltaP1Gap;
-        // z_new += deltaZGap;
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0, p1, 0.0, x, y, z); // convert to world cordinate
-        }
-        else
-        { // already in world cordinate
-            x = p0;
-            y = p1;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point A
-        printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-        }
-        else
-        {
-            x = p0 + deltaP0Far;
-            y = p1 + deltaP1Far;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point B
-        printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        p0 += deltaP0Line;
-        p1 += deltaP1Line;
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-        }
-        else
-        {
-            x = p0 + deltaP0Far;
-            y = p1 + deltaP1Far;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point C
-        printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
-
-        if (cornerType == 0) // raod
-        {
-            GetPos(p0, p1, 0.0, x, y, z);
-        }
-        else
-        {
-            x = p0;
-            y = p1;
-            z = 0.0;
-        }
-        tmp_pos.SetInertiaPos(x , y , 0.0);
-        z = tmp_pos.GetZ();
-        point.x = x;
-        point.y = y;
-        point.z = z + z_offset_;
-        vertexPoints_.push_back(point); // point D
-        printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
-    }
-
 }
 
 
@@ -4645,7 +4647,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 OutlineCorner* corner =
                                     (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
                                                                            rs + factor * rlength,
-                                                                           rtStart + factor * (rtEnd - rtStart) + (i == 0 ? -w_local : w_local),
+                                                                           rtStart + factor * (rtEnd - rtStart) + (i == 0 ? -w_local / 2.0 : w_local / 2.0),
                                                                            rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart),
                                                                            h_start + factor * (h_end - h_start),
                                                                            s,

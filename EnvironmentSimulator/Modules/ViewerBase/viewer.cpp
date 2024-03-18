@@ -3178,6 +3178,12 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             osg::Vec4              color;
             tx = nullptr;
 
+            double object_length = object->GetLength();
+            double object_width = object->GetWidth();
+            double object_height = object->GetHeight();
+
+            bool model_found = false;
+
             // Set color based on object type
             if (object->GetType() == roadmanager::RMObject::ObjectType::BUILDING || object->GetType() == roadmanager::RMObject::ObjectType::BARRIER)
             {
@@ -3235,6 +3241,10 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             filename.c_str(),
                             object->GetName().c_str());
                     }
+                    else
+                    {
+                        model_found = true;
+                    }
                 }
 
                 roadmanager::Repeat*         rep     = object->GetRepeat();
@@ -3286,9 +3296,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         // avoid zero width, length and width - set to a minimum value of 0.05m
                         osg::ref_ptr<osg::ShapeDrawable> shape =
                             new osg::ShapeDrawable(new osg::Box(osg::Vec3(0.0f, 0.0f, 0.5f * MAX(0.05f, static_cast<float>(object->GetHeight()))),
-                                                                MAX(0.05f, static_cast<float>(object->GetLength())),
-                                                                MAX(0.05f, static_cast<float>(object->GetWidth())),
-                                                                MAX(0.05f, static_cast<float>(object->GetHeight()))));
+                                                                MAX(0.05f, static_cast<float>(object_length)),
+                                                                MAX(0.05f, static_cast<float>(object_width)),
+                                                                MAX(0.05f, static_cast<float>(object_height))));
 
                         shape->setColor(color);
                         tx->addChild(shape);
@@ -3309,20 +3319,41 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     dim_x = boundingBox._max.x() - boundingBox._min.x();
                     dim_y = boundingBox._max.y() - boundingBox._min.y();
                     dim_z = boundingBox._max.z() - boundingBox._min.z();
-                    if (object->GetLength() < SMALL_NUMBER && dim_x > SMALL_NUMBER)
+                    if (object_length < SMALL_NUMBER && dim_x > SMALL_NUMBER)
                     {
-                        LOG("Object %s missing length, set to bounding box length %.2f", object->GetName().c_str(), dim_x);
-                        object->SetLength(dim_x);
+                        object_length = dim_x;
+                        if(model_found)
+                        {
+                            object->SetLength(dim_x); // respect width from model in case no width from scenario
+                        }
+                        else
+                        {
+                            LOG("Object %s missing length, Please provide object length. Set to bounding box length %.2f for viewer purpose", object->GetName().c_str(), dim_x);
+                        }
                     }
-                    if (object->GetWidth() < SMALL_NUMBER && dim_y > SMALL_NUMBER)
+                    if (object_width < SMALL_NUMBER && dim_y > SMALL_NUMBER)
                     {
-                        LOG("Object %s missing width, set to bounding box width %.2f", object->GetName().c_str(), dim_y);
-                        object->SetWidth(dim_y);
+                        object_width = dim_y;
+                        if(model_found)
+                        {
+                            object->SetWidth(dim_y); // respect width from model in case no width from scenario
+                        }
+                        else
+                        {
+                            LOG("Object %s missing width, Please provide object width. Set to bounding box width %.2f for viewer purpose", object->GetName().c_str(), dim_y);
+                        }
                     }
-                    if (object->GetHeight() < SMALL_NUMBER && dim_z > SMALL_NUMBER)
+                    if (object_height < SMALL_NUMBER && dim_z > SMALL_NUMBER)
                     {
-                        LOG("Object %s missing height, set to bounding box height %.2f", object->GetName().c_str(), dim_z);
-                        object->SetHeight(dim_z);
+                        object_height = dim_z;
+                        if(model_found)
+                        {
+                            object->SetHeight(dim_z); // respect width from model in case no width from scenario
+                        }
+                        else
+                        {
+                            LOG("Object %s missing height, Please provide object height, set to bounding box height %.2f for viewer purpose", object->GetName().c_str(), dim_z);
+                        }
                     }
                 }
 
@@ -3330,8 +3361,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 osg::ref_ptr<osg::Group>                     LODGroup = 0;
                 osg::ref_ptr<osg::PositionAttitudeTransform> clone    = 0;
 
-                double width_new = object->GetWidth();
-                double length_new = object->GetLength();
+                double object_width_dynamic = object->GetWidth(); // for repeat copies
+                double object_length_dynamic = object->GetLength();
+                double object_height_dynamic = object->GetHeight();
                 for (; nCopies < 1 ||
                        (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < road->GetLength());
                      nCopies++)
@@ -3355,17 +3387,17 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         s       = object->GetS();
                         zOffset = object->GetZOffset();
 
-                        if (object->GetLength() > SMALL_NUMBER)
+                        if (object_length > SMALL_NUMBER)
                         {
-                            scale_x = object->GetLength() / dim_x;
+                            scale_x = object_length / dim_x;
                         }
-                        if (object->GetWidth() > SMALL_NUMBER)
+                        if (object_width > SMALL_NUMBER)
                         {
-                            scale_y = object->GetWidth() / dim_y;
+                            scale_y = object_width / dim_y;
                         }
-                        if (object->GetHeight() > SMALL_NUMBER)
+                        if (object_height > SMALL_NUMBER)
                         {
-                            scale_z = object->GetHeight() / dim_z;
+                            scale_z = object_height / dim_z;
                         }
 
                         // position mode relative for aligning to road heading
@@ -3431,21 +3463,22 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
                             {
                                 scale_x = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset)) / dim_x;
-                                length_new = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
+                                object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
                             }
                             else
                             {
                                 scale_x = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
-                                length_new = object->GetLength();;
+                                object_length_dynamic = object->GetLength();;
                             }
                             if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
                             {
                                 scale_y = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart())) / dim_y;
-                                width_new = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
+                                object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
                             }
                             if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
                             {
                                 scale_z = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart())) / dim_z;
+                                object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
                             }
 
                             clone->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::ON);
@@ -3497,27 +3530,34 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 
                         LODGroup->addChild(clone);
                     }
+                    if (rep != nullptr && rep->GetDistance() > SMALL_NUMBER)
+                    {
+                        roadmanager::Repeat::RepeatVertexPoints points;
+                        points.x = pos.GetX();
+                        points.y = pos.GetY();
+                        points.z = pos.GetZ() + object->GetZOffset();
+                        points.height = object_height_dynamic;
+                        points.length = object_length_dynamic;
+                        points.width = object_width_dynamic;
+                        rep->repeatVertexPoints_.push_back(points);
+                    }
 
                     for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
                     {
                         roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
                         for (size_t j = 0; j < markings->marking_.size(); j++)
                         {
-                            // double p0x = 0.0;
-                            // double p0y = 0.0;
-                            // double p1x = 0.0;
-                            // double p1y = 0.0;
                             double v0[3] = { 0.0, 0.0, 0.0};
                             double v1[3] = { 0.0, 0.0, 0.0};
                             roadmanager::Marking* marking = markings->marking_[j];
                             if (marking->GetSide() == 0)
                             {
                                 // find local lower left corner
-                                RotateVec2D(-length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
+                                RotateVec2D(-object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
                                 // find local upper left corner
-                                RotateVec2D(-length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
+                                RotateVec2D(-object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
 
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
+                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, orientation, pos.GetP(), pos.GetR());
                                 printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
                                 marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
@@ -3525,11 +3565,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             else
                             {
                                 // find local lower right corner
-                                RotateVec2D(length_new / 2 , -width_new / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
+                                RotateVec2D(object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
                                 // find local upper right corner
-                                RotateVec2D(length_new / 2 , width_new / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
+                                RotateVec2D(object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
 
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), length_new, width_new, orientation, pos.GetP(), pos.GetR());
+                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, orientation, pos.GetP(), pos.GetR());
                                 printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
                                 marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
