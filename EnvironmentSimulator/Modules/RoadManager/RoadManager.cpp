@@ -4752,6 +4752,143 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     }
                 }
 
+                if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() > 0) // create copies of outline for repeat
+                {
+                    // find number of outlines required from the repeat
+                    Repeat* repeat = obj->GetRepeat();
+                    if (repeat->GetDistance() > SMALL_NUMBER)
+                    {
+                        double dim_x = 0.0;
+                        double dim_y = 0.0;
+                        double dim_z = 0.0;
+
+
+                        double corner_size = 0.0;
+                        roadmanager::Outline* outlineOriginal = 0;
+                        double first_corner_x = 0.0;
+                        double first_corner_y = 0.0;
+                        double first_corner_z = 0.0;
+                        // find the bounding box from the outline
+                        if (obj->GetNumberOfOutlines() > 0)
+                        {
+                            roadmanager::OutlineCorner* corner = obj->GetOutline(0)->corner_[0]; // set first corner values as initial values
+                            corner->GetPos(first_corner_x, first_corner_y, first_corner_z);
+                            double bb_max_x = first_corner_x;
+                            double bb_max_y = first_corner_y;
+                            double bb_max_z = first_corner_z;
+                            double bb_min_x = first_corner_x;
+                            double bb_min_y = first_corner_y;
+                            double bb_min_z = first_corner_z;
+
+                            for (size_t j = 0; j < static_cast<unsigned int>(obj->GetNumberOfOutlines()); j++)
+                            {
+                                roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(j));
+                                corner_size = outlineOriginal->corner_.size();
+                                double                      x, y, z;
+                                for (size_t i = 0; i < outlineOriginal->corner_.size(); i++)
+                                {
+                                    roadmanager::OutlineCorner* corner = outlineOriginal->corner_[i];
+                                    corner->GetPos(x, y, z);
+                                    if ( x > bb_max_x)
+                                    {
+                                        bb_max_x = x;
+                                    }
+                                    if (x < bb_min_x)
+                                    {
+                                        bb_min_x = x;
+                                    }
+
+                                    if (y > bb_max_y)
+                                    {
+                                        bb_max_y = y;
+                                    }
+                                    if (y < bb_min_y)
+                                    {
+                                        bb_min_y = y;
+                                    }
+
+                                    if (z > bb_max_z)
+                                    {
+                                        bb_max_z = z;
+                                    }
+                                    if (z < bb_min_z)
+                                    {
+                                        bb_min_z = z;
+                                    }
+                                }
+                            }
+                            dim_x = bb_max_x - bb_min_x;
+                            dim_y = bb_max_y - bb_min_y;
+                            dim_z = bb_max_z - bb_min_z;
+                        }
+
+                        double s_dynamic = repeat->distance_;
+                        unsigned int no_of_outlilne = obj->GetNumberOfOutlines();
+                        double start_s_corner = 0.0;
+                        double start_t_corner = 0.0;
+                        double start_z_corner =  0.0;
+                        double length_moved = 0.0;
+                        double distance = 0.0;
+                        double                      x, y, z;
+                        for (size_t j = 0; j < no_of_outlilne; j++)
+                        {
+                            while (length_moved < repeat->GetLength())
+                            {
+                                double x_change = 0.0;
+                                double y_change = 0.0;
+                                double z_change = 0.0;
+                                double x_pervious_corner = first_corner_x;
+                                double y_pervious_corner = first_corner_y;
+                                double z_pervious_corner = first_corner_z;
+                                double start_s = distance + repeat->GetS() - (dim_x / 2);
+                                double start_t = repeat->GetTStart() - (dim_y / 2);
+                                roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(j));
+                                corner_size = outlineOriginal->corner_.size();
+                                Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true);
+
+                                for (size_t i = 0; i < outlineOriginal->corner_.size(); i++)
+                                {
+                                    roadmanager::OutlineCorner* cornerOrginal = outlineOriginal->corner_[i];
+                                    cornerOrginal->GetPos(x, y, z);
+                                    printf("Corners original %.2f t %.2f z %.2f\n",
+                                    x, y, z);
+                                    x_change = x - x_pervious_corner;
+                                    y_change = y - y_pervious_corner;
+                                    z_change = z - z_pervious_corner;
+                                    start_s_corner = start_s + x_change;
+                                    start_t_corner = start_t + y_change;
+                                    start_z_corner =  repeat->GetZOffsetStart() + z_change;
+                                    OutlineCorner* corner =
+                                        (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
+                                                                            start_s_corner,
+                                                                            start_t_corner,
+                                                                            start_z_corner,
+                                                                            repeat->GetHeightStart(),
+                                                                            s,
+                                                                            t,
+                                                                            heading,
+                                                                            i));
+                                    printf("Corners s %.2f t %.2f z %.2f h%.2f s_center %.2f t_center %.2f heading %.2f id %d\n",
+                                    start_s_corner, start_t_corner, start_z_corner, repeat->GetHeightStart(), s, t, heading, static_cast<int>(i));
+                                    outline->AddCorner(corner);
+                                    x_pervious_corner = x;
+                                    y_pervious_corner = y;
+                                    z_pervious_corner = z;
+                                    start_s = start_s_corner;
+                                    start_t = start_t_corner;
+                                    printf("new s %.2f \n", start_s);
+                                }
+                                s_dynamic = start_s_corner + repeat->distance_ - (dim_x / 2);
+                                printf("dynamic s %.2f \n", s_dynamic);
+                                length_moved += (repeat->distance_ + dim_x);
+                                printf("length moved %.2f \n", length_moved);
+                                obj->AddOutline(outline);
+                                distance += repeat->distance_;
+                            }
+                        }
+                    }
+                }
+
                 pugi::xml_node parking_space_node = object.child("parkingSpace");
                 if (!parking_space_node.empty())
                 {

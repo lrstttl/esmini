@@ -3256,7 +3256,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 osg::ref_ptr<osg::Group>     group;
                 if (tx == nullptr)  // No model loaded
                 {
-                    if (rep && rep->GetDistance() < SMALL_NUMBER)  //  non continuous objects
+                    if (rep && rep->GetDistance() < SMALL_NUMBER || true)  //  non continuous objects
                     {
                         // use outline, if exists
                         if (object->GetNumberOfOutlines() > 0)
