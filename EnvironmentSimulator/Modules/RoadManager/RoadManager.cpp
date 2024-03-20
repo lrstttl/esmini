@@ -4751,7 +4751,85 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         obj->AddOutline(outline);
                     }
                 }
+                if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() > 0) // create copies of outline for repeat
+                {
+                    unsigned int originalOutlinesSize = obj->GetNumberOfOutlines();
+                    for (size_t i = 0; i < originalOutlinesSize; i++)
+                    {
+                        // first find the center points
+                        struct points
+                        {
+                            double x;
+                            double y;
+                            double z;
+                        };
 
+                        std::vector<points> cornerPoints; // store all the corner points
+                        roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(i));
+                        for (size_t j = 0; j < outlineOriginal->corner_.size(); j++)
+                        {
+                            points points_;
+                            roadmanager::OutlineCorner* corner = outlineOriginal->corner_[j];
+                            corner->GetPos(points_.x, points_.y, points_.z);
+                            cornerPoints.push_back(points_);
+                        }
+
+                        // calculate center points
+                        double x_center = 0.0;
+                        double y_center = 0.0;
+                        double z_center = 0.0;
+                        for (size_t j = 0; j < cornerPoints.size(); j++)
+                        {
+                            x_center += cornerPoints[j].x;
+                            y_center += cornerPoints[j].y;
+                            z_center += cornerPoints[j].z;
+                        }
+                        x_center = x_center/cornerPoints.size();
+                        y_center = y_center/cornerPoints.size();
+                        z_center = z_center/cornerPoints.size();
+                        printf("Center points x %.2f y %.2f z %.2f\n", x_center, y_center, z_center);
+
+                        std::vector<points> localPoints; // store all the found local points
+                        for (size_t j = 0; j < cornerPoints.size(); j++)
+                        {
+                            points points_;
+                            points_.x = cornerPoints[j].x - x_center;
+                            points_.y = cornerPoints[j].y - y_center;
+                            points_.z = cornerPoints[j].z - z_center;
+                            localPoints.push_back(points_);
+                        }
+                        // create copies from repeat
+                        Repeat* repeat = obj->GetRepeat();
+                        double n_segments = repeat->GetLength() / repeat->distance_; // number of copies
+                        double distance_dynamic = repeat->GetS();
+                        for (unsigned int j = 0; j < n_segments; j++)
+                        {
+                            Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true); // new outline for each segment
+                            for (unsigned int k = 0; k < localPoints.size(); k++)
+                            {
+                                double start_s = distance_dynamic + localPoints[k].x;
+                                double start_t = repeat->GetTStart() + localPoints[k].y;
+                                double start_z = repeat->GetZOffsetStart() + localPoints[k].z;
+                                OutlineCorner* corner =
+                                    (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
+                                                                        start_s,
+                                                                        start_t,
+                                                                        start_z,
+                                                                        4.0,
+                                                                        s,
+                                                                        t,
+                                                                        heading,
+                                                                        i));
+                                outline->AddCorner(corner);
+                                printf("Corners s %.2f t %.2f z %.2f h%.2f s_center %.2f t_center %.2f heading %.2f id %d\n",
+                                start_s, start_t, start_z, 4.0, s, t, heading, static_cast<int>(k));
+                            }
+                            distance_dynamic += repeat->distance_;
+                            obj->AddOutline(outline);
+                        }
+                    }
+                }
+#if 0
                 if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() > 0) // create copies of outline for repeat
                 {
                     // find number of outlines required from the repeat
@@ -4911,7 +4989,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         }
                     }
                 }
-
+#endif
                 pugi::xml_node parking_space_node = object.child("parkingSpace");
                 if (!parking_space_node.empty())
                 {
