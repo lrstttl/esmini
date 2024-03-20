@@ -4800,15 +4800,18 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         }
                         // create copies from repeat
                         Repeat* repeat = obj->GetRepeat();
+                        double      rtStart       = repeat->GetTStart();
+                        double      rtEnd         = repeat->GetTEnd();
                         double n_segments = repeat->GetLength() / repeat->distance_; // number of copies
                         double distance_dynamic = repeat->GetS();
                         for (unsigned int j = 0; j < n_segments; j++)
                         {
+                            double       factor  = static_cast<double>(j) / n_segments;
                             Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true); // new outline for each segment
                             for (unsigned int k = 0; k < localPoints.size(); k++)
                             {
                                 double start_s = distance_dynamic + localPoints[k].x;
-                                double start_t = repeat->GetTStart() + localPoints[k].y;
+                                double start_t = rtStart + factor * (rtEnd - rtStart) + localPoints[k].y;
                                 double start_z = repeat->GetZOffsetStart() + localPoints[k].z;
                                 OutlineCorner* corner =
                                     (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
