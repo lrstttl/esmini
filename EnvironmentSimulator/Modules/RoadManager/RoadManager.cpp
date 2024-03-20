@@ -4762,23 +4762,25 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         double dim_y = 0.0;
                         double dim_z = 0.0;
 
-
                         double corner_size = 0.0;
                         roadmanager::Outline* outlineOriginal = 0;
                         double first_corner_x = 0.0;
                         double first_corner_y = 0.0;
                         double first_corner_z = 0.0;
+                        double height_first = 0.0;
                         // find the bounding box from the outline
                         if (obj->GetNumberOfOutlines() > 0)
                         {
                             roadmanager::OutlineCorner* corner = obj->GetOutline(0)->corner_[0]; // set first corner values as initial values
                             corner->GetPos(first_corner_x, first_corner_y, first_corner_z);
+
                             double bb_max_x = first_corner_x;
                             double bb_max_y = first_corner_y;
                             double bb_max_z = first_corner_z;
                             double bb_min_x = first_corner_x;
                             double bb_min_y = first_corner_y;
                             double bb_min_z = first_corner_z;
+                            height_first = corner->GetHeight();
 
                             for (size_t j = 0; j < static_cast<unsigned int>(obj->GetNumberOfOutlines()); j++)
                             {
@@ -4821,8 +4823,16 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             dim_y = bb_max_y - bb_min_y;
                             dim_z = bb_max_z - bb_min_z;
                         }
+                        double       w_start = repeat->GetWidthStart();
+                        double       w_end   = repeat->GetWidthEnd();
+                        double       h_start = repeat->GetHeightStart();
+                        double       h_end   = repeat->GetHeightEnd();
+                        double       l_start = repeat->GetLengthStart();
+                        double       l_end   = repeat->GetLengthStart();
+                        double       z_offsetStart = repeat->GetZOffsetStart();
+                        double       z_offsetEnd = repeat->GetZOffsetEnd();
 
-                        double s_dynamic = repeat->distance_;
+
                         unsigned int no_of_outlilne = obj->GetNumberOfOutlines();
                         double start_s_corner = 0.0;
                         double start_t_corner = 0.0;
@@ -4832,14 +4842,18 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         double                      x, y, z;
                         for (size_t j = 0; j < no_of_outlilne; j++)
                         {
-                            while (length_moved < repeat->GetLength())
+                            double n_segments = repeat->GetLength() / repeat->distance_;
+                            for (unsigned int k = 1; k < n_segments + 1; k++)
                             {
+                                double       factor  = static_cast<double>(n_segments - k) / n_segments;
                                 double x_change = 0.0;
                                 double y_change = 0.0;
                                 double z_change = 0.0;
+                                double h_change = 0.0;
                                 double x_pervious_corner = first_corner_x;
                                 double y_pervious_corner = first_corner_y;
                                 double z_pervious_corner = first_corner_z;
+                                double h_pervious_corner = height_first;
                                 double start_s = distance + repeat->GetS() - (dim_x / 2);
                                 double start_t = repeat->GetTStart() - (dim_y / 2);
                                 roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(j));
@@ -4850,20 +4864,32 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 {
                                     roadmanager::OutlineCorner* cornerOrginal = outlineOriginal->corner_[i];
                                     cornerOrginal->GetPos(x, y, z);
-                                    printf("Corners original %.2f t %.2f z %.2f\n",
-                                    x, y, z);
                                     x_change = x - x_pervious_corner;
                                     y_change = y - y_pervious_corner;
                                     z_change = z - z_pervious_corner;
-                                    start_s_corner = start_s + x_change;
-                                    start_t_corner = start_t + y_change;
-                                    start_z_corner =  repeat->GetZOffsetStart() + z_change;
+                                    h_change = cornerOrginal->GetHeight() - h_pervious_corner;
+                                    if (repeat->GetWidthStart() < SMALL_NUMBER && repeat->GetWidthEnd() < SMALL_NUMBER)
+                                    {
+                                        w_start = w_end = y_change;
+                                    }
+                                    if (repeat->GetHeightStart() < SMALL_NUMBER && repeat->GetHeightEnd() < SMALL_NUMBER)
+                                    {
+                                        h_start = h_end = h_change;
+                                    }
+                                    if (repeat->GetLengthStart() < SMALL_NUMBER && repeat->GetWidthEnd() < SMALL_NUMBER)
+                                    {
+                                        l_start = l_end = x_change;
+                                    }
+                                    printf("Height h %.2f \n", height);
+                                    start_s_corner = start_s + l_start + (factor * (l_end - l_start));
+                                    start_t_corner = start_t + w_start + (factor * (w_end - w_start));
+                                    start_z_corner = z_offsetStart + (factor * (z_offsetEnd - z_offsetStart));
                                     OutlineCorner* corner =
                                         (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
                                                                             start_s_corner,
                                                                             start_t_corner,
                                                                             start_z_corner,
-                                                                            repeat->GetHeightStart(),
+                                                                            height_first + (factor * (h_end - h_start)),
                                                                             s,
                                                                             t,
                                                                             heading,
@@ -4876,10 +4902,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     z_pervious_corner = z;
                                     start_s = start_s_corner;
                                     start_t = start_t_corner;
-                                    printf("new s %.2f \n", start_s);
                                 }
-                                s_dynamic = start_s_corner + repeat->distance_ - (dim_x / 2);
-                                printf("dynamic s %.2f \n", s_dynamic);
                                 length_moved += (repeat->distance_ + dim_x);
                                 printf("length moved %.2f \n", length_moved);
                                 obj->AddOutline(outline);

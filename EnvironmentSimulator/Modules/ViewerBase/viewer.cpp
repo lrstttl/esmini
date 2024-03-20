@@ -3256,7 +3256,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 osg::ref_ptr<osg::Group>     group;
                 if (tx == nullptr)  // No model loaded
                 {
-                    if (rep && rep->GetDistance() < SMALL_NUMBER || true)  //  non continuous objects
+                    if (rep && rep->GetDistance() < SMALL_NUMBER)  //  non continuous objects
                     {
                         // use outline, if exists
                         if (object->GetNumberOfOutlines() > 0)
@@ -3288,6 +3288,17 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             group               = new osg::Group();
                         }
                     }
+                    else if(object->GetNumberOfRepeats() > 0 && object->GetNumberOfOutlines() > 0) // outline with repeat
+                    {
+                        for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
+                        {
+                            roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
+                            roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(j));
+                            CreateOutlineObject(outline, color, markings);
+                        }
+                        continue;
+                    }
+
                     else
                     {
                         // create a bounding box to represent the object
