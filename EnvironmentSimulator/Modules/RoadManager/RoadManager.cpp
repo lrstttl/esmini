@@ -4762,6 +4762,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             double x;
                             double y;
                             double z;
+                            double h;
                         };
 
                         std::vector<points> cornerPoints; // store all the corner points
@@ -4771,6 +4772,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             points points_;
                             roadmanager::OutlineCorner* corner = outlineOriginal->corner_[j];
                             corner->GetPos(points_.x, points_.y, points_.z);
+                            points_.h = corner->GetHeight();
                             cornerPoints.push_back(points_);
                         }
 
@@ -4802,27 +4804,89 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         Repeat* repeat = obj->GetRepeat();
                         double      rtStart       = repeat->GetTStart();
                         double      rtEnd         = repeat->GetTEnd();
+                        double rlengthStart = repeat->GetLengthStart();
+                        double rlengthEnd   = repeat->GetLengthEnd();
+                        double rwidthStart  = repeat->GetWidthStart();
+                        double rwidthEnd    = repeat->GetWidthEnd();
+                        double      rheightStart  = repeat->GetHeightStart();
+                        double      rheightEnd    = repeat->GetHeightEnd();
+                        double      rzOffsetStart = repeat->GetZOffsetStart();
+                        double      rzOffsetEnd   = repeat->GetZOffsetEnd();
+
                         double n_segments = repeat->GetLength() / repeat->distance_; // number of copies
                         double distance_dynamic = repeat->GetS();
+                        // extra length, width, z and height
+                        double x_to_add = 0.0;
+                        double y_to_add = 0.0;
+                        double z_to_add = 0.0;
+                        double h_to_add = 0.0;
+
                         for (unsigned int j = 0; j < n_segments; j++)
                         {
                             double       factor  = static_cast<double>(j) / n_segments;
                             Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true); // new outline for each segment
                             for (unsigned int k = 0; k < localPoints.size(); k++)
                             {
-                                double start_s = distance_dynamic + localPoints[k].x;
-                                double start_t = rtStart + factor * (rtEnd - rtStart) + localPoints[k].y;
-                                double start_z = repeat->GetZOffsetStart() + localPoints[k].z;
+                                x_to_add = localPoints[k].x;
+                                if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
+                                {
+                                    if (localPoints[k].x > 0.0) // positive
+                                    {
+                                        x_to_add = rlengthStart + factor * (rlengthEnd - rlengthStart);
+                                    }
+                                    else if ( localPoints[k].x < 0.0) // negative
+                                    {
+                                        x_to_add = -(rlengthStart + factor * (rlengthEnd - rlengthStart));
+                                    }
+                                    else
+                                    {
+                                        x_to_add = 0.0;
+                                    }
+                                }
+                                y_to_add = localPoints[k].y;
+                                if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                {
+                                    if (localPoints[k].y > 0.0) // positive
+                                    {
+                                        y_to_add = rwidthStart + factor * (rwidthEnd - rwidthStart);
+                                    }
+                                    else if ( localPoints[k].y < 0.0) // negative
+                                    {
+                                        y_to_add = -(rwidthStart + factor * (rwidthEnd - rwidthStart));
+                                    }
+                                    else
+                                    {
+                                        y_to_add = 0.0;
+                                    }
+                                }
+                                z_to_add = localPoints[k].z;
+                                if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
+                                {
+                                    z_to_add = rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart);
+                                }
+                                h_to_add = localPoints[k].h;
+                                if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
+                                {
+                                    h_to_add = rheightStart + factor * (rheightEnd - rheightStart);
+                                }
+                                printf("z change local f %.2f\n", localPoints[k].z);
+                                printf("z to change f %.2f l %.2f\n",
+                                factor, rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart));
+                                printf("z to change f %.2f\n", z_to_add);
+
+                                double start_s = distance_dynamic + x_to_add;
+                                double start_t = rtStart + factor * (rtEnd - rtStart) + y_to_add;
+                                double start_z = z_to_add;
                                 OutlineCorner* corner =
                                     (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
                                                                         start_s,
                                                                         start_t,
                                                                         start_z,
-                                                                        4.0,
+                                                                        h_to_add,
                                                                         s,
                                                                         t,
                                                                         heading,
-                                                                        i));
+                                                                        j));
                                 outline->AddCorner(corner);
                                 printf("Corners s %.2f t %.2f z %.2f h%.2f s_center %.2f t_center %.2f heading %.2f id %d\n",
                                 start_s, start_t, start_z, 4.0, s, t, heading, static_cast<int>(k));
@@ -4832,167 +4896,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         }
                     }
                 }
-#if 0
-                if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() > 0) // create copies of outline for repeat
-                {
-                    // find number of outlines required from the repeat
-                    Repeat* repeat = obj->GetRepeat();
-                    if (repeat->GetDistance() > SMALL_NUMBER)
-                    {
-                        double dim_x = 0.0;
-                        double dim_y = 0.0;
-                        double dim_z = 0.0;
-
-                        double corner_size = 0.0;
-                        roadmanager::Outline* outlineOriginal = 0;
-                        double first_corner_x = 0.0;
-                        double first_corner_y = 0.0;
-                        double first_corner_z = 0.0;
-                        double height_first = 0.0;
-                        // find the bounding box from the outline
-                        if (obj->GetNumberOfOutlines() > 0)
-                        {
-                            roadmanager::OutlineCorner* corner = obj->GetOutline(0)->corner_[0]; // set first corner values as initial values
-                            corner->GetPos(first_corner_x, first_corner_y, first_corner_z);
-
-                            double bb_max_x = first_corner_x;
-                            double bb_max_y = first_corner_y;
-                            double bb_max_z = first_corner_z;
-                            double bb_min_x = first_corner_x;
-                            double bb_min_y = first_corner_y;
-                            double bb_min_z = first_corner_z;
-                            height_first = corner->GetHeight();
-
-                            for (size_t j = 0; j < static_cast<unsigned int>(obj->GetNumberOfOutlines()); j++)
-                            {
-                                roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(j));
-                                corner_size = outlineOriginal->corner_.size();
-                                double                      x, y, z;
-                                for (size_t i = 0; i < outlineOriginal->corner_.size(); i++)
-                                {
-                                    roadmanager::OutlineCorner* corner = outlineOriginal->corner_[i];
-                                    corner->GetPos(x, y, z);
-                                    if ( x > bb_max_x)
-                                    {
-                                        bb_max_x = x;
-                                    }
-                                    if (x < bb_min_x)
-                                    {
-                                        bb_min_x = x;
-                                    }
-
-                                    if (y > bb_max_y)
-                                    {
-                                        bb_max_y = y;
-                                    }
-                                    if (y < bb_min_y)
-                                    {
-                                        bb_min_y = y;
-                                    }
-
-                                    if (z > bb_max_z)
-                                    {
-                                        bb_max_z = z;
-                                    }
-                                    if (z < bb_min_z)
-                                    {
-                                        bb_min_z = z;
-                                    }
-                                }
-                            }
-                            dim_x = bb_max_x - bb_min_x;
-                            dim_y = bb_max_y - bb_min_y;
-                            dim_z = bb_max_z - bb_min_z;
-                        }
-                        double       w_start = repeat->GetWidthStart();
-                        double       w_end   = repeat->GetWidthEnd();
-                        double       h_start = repeat->GetHeightStart();
-                        double       h_end   = repeat->GetHeightEnd();
-                        double       l_start = repeat->GetLengthStart();
-                        double       l_end   = repeat->GetLengthStart();
-                        double       z_offsetStart = repeat->GetZOffsetStart();
-                        double       z_offsetEnd = repeat->GetZOffsetEnd();
-
-
-                        unsigned int no_of_outlilne = obj->GetNumberOfOutlines();
-                        double start_s_corner = 0.0;
-                        double start_t_corner = 0.0;
-                        double start_z_corner =  0.0;
-                        double length_moved = 0.0;
-                        double distance = 0.0;
-                        double                      x, y, z;
-                        for (size_t j = 0; j < no_of_outlilne; j++)
-                        {
-                            double n_segments = repeat->GetLength() / repeat->distance_;
-                            for (unsigned int k = 1; k < n_segments + 1; k++)
-                            {
-                                double       factor  = static_cast<double>(n_segments - k) / n_segments;
-                                double x_change = 0.0;
-                                double y_change = 0.0;
-                                double z_change = 0.0;
-                                double h_change = 0.0;
-                                double x_pervious_corner = first_corner_x;
-                                double y_pervious_corner = first_corner_y;
-                                double z_pervious_corner = first_corner_z;
-                                double h_pervious_corner = height_first;
-                                double start_s = distance + repeat->GetS() - (dim_x / 2);
-                                double start_t = repeat->GetTStart() - (dim_y / 2);
-                                roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(j));
-                                corner_size = outlineOriginal->corner_.size();
-                                Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true);
-
-                                for (size_t i = 0; i < outlineOriginal->corner_.size(); i++)
-                                {
-                                    roadmanager::OutlineCorner* cornerOrginal = outlineOriginal->corner_[i];
-                                    cornerOrginal->GetPos(x, y, z);
-                                    x_change = x - x_pervious_corner;
-                                    y_change = y - y_pervious_corner;
-                                    z_change = z - z_pervious_corner;
-                                    h_change = cornerOrginal->GetHeight() - h_pervious_corner;
-                                    if (repeat->GetWidthStart() < SMALL_NUMBER && repeat->GetWidthEnd() < SMALL_NUMBER)
-                                    {
-                                        w_start = w_end = y_change;
-                                    }
-                                    if (repeat->GetHeightStart() < SMALL_NUMBER && repeat->GetHeightEnd() < SMALL_NUMBER)
-                                    {
-                                        h_start = h_end = h_change;
-                                    }
-                                    if (repeat->GetLengthStart() < SMALL_NUMBER && repeat->GetWidthEnd() < SMALL_NUMBER)
-                                    {
-                                        l_start = l_end = x_change;
-                                    }
-                                    printf("Height h %.2f \n", height);
-                                    start_s_corner = start_s + l_start + (factor * (l_end - l_start));
-                                    start_t_corner = start_t + w_start + (factor * (w_end - w_start));
-                                    start_z_corner = z_offsetStart + (factor * (z_offsetEnd - z_offsetStart));
-                                    OutlineCorner* corner =
-                                        (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
-                                                                            start_s_corner,
-                                                                            start_t_corner,
-                                                                            start_z_corner,
-                                                                            height_first + (factor * (h_end - h_start)),
-                                                                            s,
-                                                                            t,
-                                                                            heading,
-                                                                            i));
-                                    printf("Corners s %.2f t %.2f z %.2f h%.2f s_center %.2f t_center %.2f heading %.2f id %d\n",
-                                    start_s_corner, start_t_corner, start_z_corner, repeat->GetHeightStart(), s, t, heading, static_cast<int>(i));
-                                    outline->AddCorner(corner);
-                                    x_pervious_corner = x;
-                                    y_pervious_corner = y;
-                                    z_pervious_corner = z;
-                                    start_s = start_s_corner;
-                                    start_t = start_t_corner;
-                                }
-                                length_moved += (repeat->distance_ + dim_x);
-                                printf("length moved %.2f \n", length_moved);
-                                obj->AddOutline(outline);
-                                distance += repeat->distance_;
-                            }
-                        }
-                    }
-                }
-#endif
                 pugi::xml_node parking_space_node = object.child("parkingSpace");
                 if (!parking_space_node.empty())
                 {
