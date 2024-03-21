@@ -1786,7 +1786,8 @@ namespace roadmanager
 
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
 
-        std::vector<OutlineCorner*> cornerReference;
+        // std::vector<OutlineCorner*> cornerReference;
+        std::vector<std::pair<int, std::vector<OutlineCorner*>>> cornerReference;
         OutlineCorner* GetCornerById(int id, RoadObject* obj);
 
         struct Point3D {

@@ -3209,7 +3209,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                 {
                     roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                    roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(j));
+                    roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(0));
                     CreateOutlineObject(outline, color, markings);
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
@@ -3264,7 +3264,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                             {
                                 roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                                roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(j));
+                                roadmanager::Markings* markings = object->GetMarkings(0);
                                 CreateOutlineObject(outline, color, markings);
                             }
                             //draw marking
@@ -3293,8 +3293,18 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfOutlines()); j++)
                         {
                             roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
-                            roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(j));
+                            roadmanager::Markings* markings = object->GetMarkings(0);
                             CreateOutlineObject(outline, color, markings);
+                        }
+                        //draw marking
+                        for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
+                        {
+                            roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+                            for (size_t j = 0; j < markings->marking_.size(); j++)
+                            {
+                                roadmanager::Marking* marking = markings->marking_[j];
+                                DrawMarking(marking, object);
+                            }
                         }
                         continue;
                     }
