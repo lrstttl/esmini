@@ -1691,6 +1691,10 @@ namespace roadmanager
         {
             return t_;
         }
+        double GetZ()
+        {
+            return dz_;
+        }
 
     private:
         int    roadId_, cornerId_;

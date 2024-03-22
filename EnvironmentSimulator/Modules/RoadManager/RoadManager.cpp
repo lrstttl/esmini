@@ -4611,7 +4611,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                            pos.GetHRoad());
                     }
 
-                    if (rdistance < SMALL_NUMBER)
+                    if (rdistance < SMALL_NUMBER && false) // todo, avoid this outline if outline and repeat provided
                     {
                         // inter-distance is zero, treat as outline
                         Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true, false);
@@ -4719,14 +4719,14 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     }
                     obj->SetRepeat(Repeats[0]);
                 }
-
+                bool     closed = true; // shall be used in outline with repeat
                 pugi::xml_node outlines_node = object.child("outlines");
                 if (outlines_node != NULL)
                 {
                     for (pugi::xml_node outline_node = outlines_node.child("outline"); outline_node; outline_node = outline_node.next_sibling())
                     {
                         int      id      = atoi(outline_node.attribute("id").value());
-                        bool     closed  = !strcmp(outline_node.attribute("closed").value(), "true") ? true : false;
+                        closed  = !strcmp(outline_node.attribute("closed").value(), "true") ? true : false;
                         Outline* outline = new Outline(id, Outline::FillType::FILL_TYPE_UNDEFINED, closed, true);
 
                         for (pugi::xml_node corner_node = outline_node.first_child(); corner_node; corner_node = corner_node.next_sibling())
@@ -4785,7 +4785,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         {
                             points points_;
                             roadmanager::OutlineCorner* corner = outlineOriginal->corner_[j];
-                            corner->GetPos(points_.x, points_.y, points_.z);
+                            // corner->GetPos(points_.x, points_.y, points_.z);
+                            points_.x = static_cast<OutlineCornerRoad*>(corner)->GetS();
+                            points_.y = static_cast<OutlineCornerRoad*>(corner)->GetT();
+                            points_.z = static_cast<OutlineCornerRoad*>(corner)->GetZ();
                             points_.h = corner->GetHeight();
                             cornerPoints.push_back(points_);
                         }
@@ -4865,7 +4868,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             for (unsigned int j = 0; j < n_segments; j++)
                             {
                                 double       factor  = static_cast<double>(j) / n_segments;
-                                Outline*     outline            = new Outline(j, Outline::FillType::FILL_TYPE_UNDEFINED, true, false); // new outline for each segment
+                                Outline*     outline            = new Outline(j, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
                                 for (unsigned int k = 0; k < localPoints.size(); k++)
                                 {
                                     x_to_add = localPoints[k].x;
@@ -4910,10 +4913,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     {
                                         h_to_add = rheightStart + factor * (rheightEnd - rheightStart);
                                     }
-                                    printf("length change local f %.2f\n", localPoints[k].x);
-                                    printf("length from scenario f %.2f l %.2f\n",
-                                    factor, rlengthStart + factor * (rlengthEnd - rlengthStart));
-                                    printf("length to change f %.2f\n", x_to_add);
+                                    // printf("length change local f %.2f\n", localPoints[k].x);
+                                    // printf("length from scenario f %.2f l %.2f\n",
+                                    // factor, rlengthStart + factor * (rlengthEnd - rlengthStart));
+                                    // printf("length to change f %.2f\n", x_to_add);
 
                                     double start_s = distance_dynamic + x_to_add;
                                     double start_t = rtStart + factor * (rtEnd - rtStart) + y_to_add;
@@ -4933,19 +4936,21 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     start_s, start_t, start_z, 4.0, s, t, heading, static_cast<int>(k));
                                 }
                                 distance_dynamic += repeat->distance_;
+                                printf("new dist s %.2f \n",
+                                    distance_dynamic);
                                 obj->AddOutline(outline);
 
                             }
                         }
                         else
                         {
-                            Outline*     outline            = new Outline(0, Outline::FillType::FILL_TYPE_UNDEFINED, true, false); // one outline
                             for (unsigned int j = 0; j < n_segments; j++)
                             {
+                                Outline*     outline            = new Outline(0, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // one outline
                                 double       factor  = static_cast<double>(j) / n_segments;
                                 for (unsigned int k = 0; k < localPoints.size(); k++)
                                 {
-                                    // if ( k == 0 && j != 0)
+                                    // if ((k == 0 || k == 1) && (j != 0))
                                     // {
                                     //     continue; // leave first corner from secound segment
                                     // }
@@ -4974,7 +4979,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         }
                                         else if ( localPoints[k].y < 0.0) // negative
                                         {
-                                            y_to_add = -((rwidthStart/(total_y/localPoints[k].y)) + factor * (rwidthEnd - rwidthStart));
+                                            y_to_add = ((rwidthStart/(total_y/localPoints[k].y)) + factor * (rwidthEnd - rwidthStart));
                                         }
                                         else
                                         {
@@ -4994,7 +4999,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     // printf("z change local f %.2f\n", localPoints[k].z);
                                     // printf("z to change f %.2f l %.2f\n",
                                     // factor, rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart));
-                                    // printf("z to change f %.2f\n", z_to_add);
+                                    // printf("h to change f %.2f\n", h_to_add);
 
                                     double start_s = distance_dynamic + x_to_add;
                                     double start_t = rtStart + factor * (rtEnd - rtStart) + y_to_add;
@@ -5014,8 +5019,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     start_s, start_t, start_z, 4.0, s, t, heading, static_cast<int>(k));
                                 }
                                 distance_dynamic += total_x;
+                                printf("new dist s %.2f \n",
+                                    distance_dynamic);
+                                obj->AddOutline(outline);
                             }
-                            obj->AddOutline(outline);
                         }
                     }
                 }
