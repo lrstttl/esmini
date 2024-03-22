@@ -1736,8 +1736,9 @@ namespace roadmanager
         FillType                     fillType_;
         bool                         closed_;
         std::vector<OutlineCorner *> corner_;
+        bool                         isOriginal_;
 
-        Outline(int id, FillType fillType, bool closed) : id_(id), fillType_(fillType), closed_(closed)
+        Outline(int id, FillType fillType, bool closed, bool isOriginal): id_(id), fillType_(fillType), closed_(closed), isOriginal_(isOriginal)
         {
         }
 
@@ -1752,6 +1753,13 @@ namespace roadmanager
         {
             corner_.push_back(outlineCorner);
         }
+
+        bool IsOriginal()
+        {
+            return isOriginal_;
+        }
+
+
 
     };
 
