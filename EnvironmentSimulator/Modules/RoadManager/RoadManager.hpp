@@ -1715,6 +1715,18 @@ namespace roadmanager
         {
             return cornerId_;
         }
+        double GetU()
+        {
+            return u_;
+        }
+        double GetV()
+        {
+            return v_;
+        }
+        double GetZ()
+        {
+            return zLocal_;
+        }
 
     private:
         int    roadId_, cornerId_;
@@ -1741,6 +1753,7 @@ namespace roadmanager
         bool                         closed_;
         std::vector<OutlineCorner *> corner_;
         bool                         isOriginal_;
+        int cornerType_ = 0; // 0 road and 1 local
 
         Outline(int id, FillType fillType, bool closed, bool isOriginal): id_(id), fillType_(fillType), closed_(closed), isOriginal_(isOriginal)
         {
@@ -1761,6 +1774,11 @@ namespace roadmanager
         bool IsOriginal()
         {
             return isOriginal_;
+        }
+
+        void UpdateCornerType(int type)
+        {
+            cornerType_ = type;
         }
 
 
