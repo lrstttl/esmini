@@ -1727,10 +1727,26 @@ namespace roadmanager
         {
             return zLocal_;
         }
+        struct LocalCornerScales {
+            double scale_x;
+            double scale_y;
+            double scale_z;
+            double s;
+            double t;
+        };
+        void AddLocalCornerScales(std::vector<LocalCornerScales> scales)
+        {
+            localCornerScales_ = scales;
+        }
+        std::vector<LocalCornerScales>  GetLocalCornerScales()
+        {
+            return localCornerScales_;
+        }
 
     private:
         int    roadId_, cornerId_;
         double s_, t_, u_, v_, zLocal_, height_, heading_;
+        std::vector<LocalCornerScales> localCornerScales_;
     };
 
     class Outline
@@ -1780,8 +1796,6 @@ namespace roadmanager
         {
             cornerType_ = type;
         }
-
-
 
     };
 

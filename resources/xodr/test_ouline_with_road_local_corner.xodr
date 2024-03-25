@@ -76,7 +76,7 @@
                         <cornerLocal u="5" v="-0" z="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
-                <repeat s="10" length="7.5" distance ="0.0" tStart="5." tEnd="5" />
+                <repeat s="10" length="20" distance ="4" tStart="5." tEnd="5" />
             </object>
             <object type="barrier" id="2" s="50" t="-9">
                 <outlines>
@@ -87,7 +87,7 @@
                         <cornerRoad s="55" t="-9" dz="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
-                <repeat s="10" length="50" distance ="0.0" tStart="-5." tEnd="-5" />
+                <repeat s="10" length="20" distance ="4" tStart="-5." tEnd="-5" />
             </object>
         </objects>
         <signals>
