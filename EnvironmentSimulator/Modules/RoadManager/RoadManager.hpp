@@ -1727,26 +1727,10 @@ namespace roadmanager
         {
             return zLocal_;
         }
-        struct LocalCornerScales {
-            double scale_x;
-            double scale_y;
-            double scale_z;
-            double s;
-            double t;
-        };
-        void AddLocalCornerScales(std::vector<LocalCornerScales> scales)
-        {
-            localCornerScales_ = scales;
-        }
-        std::vector<LocalCornerScales>  GetLocalCornerScales()
-        {
-            return localCornerScales_;
-        }
 
     private:
         int    roadId_, cornerId_;
         double s_, t_, u_, v_, zLocal_, height_, heading_;
-        std::vector<LocalCornerScales> localCornerScales_;
     };
 
     class Outline
@@ -1764,12 +1748,18 @@ namespace roadmanager
             FILL_TYPE_UNDEFINED
         } FillType;
 
+        typedef enum
+        {
+            ROAD_CORNER,
+            LOCAL_CORNER,
+        }CornerType;
+
         int                          id_;
         FillType                     fillType_;
         bool                         closed_;
         std::vector<OutlineCorner *> corner_;
         bool                         isOriginal_;
-        int cornerType_ = 0; // 0 road and 1 local
+        CornerType cornerType_ = CornerType::ROAD_CORNER; // default road
 
         Outline(int id, FillType fillType, bool closed, bool isOriginal): id_(id), fillType_(fillType), closed_(closed), isOriginal_(isOriginal)
         {
@@ -1792,7 +1782,7 @@ namespace roadmanager
             return isOriginal_;
         }
 
-        void UpdateCornerType(int type)
+        void UpdateCornerType(CornerType type)
         {
             cornerType_ = type;
         }
@@ -1831,8 +1821,7 @@ namespace roadmanager
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
 
         // std::vector<OutlineCorner*> cornerReference;
-        std::vector<std::pair<int, std::vector<OutlineCorner*>>> cornerReference;
-        OutlineCorner* GetCornerById(int id, RoadObject* obj);
+        std::vector<std::pair<Outline::CornerType, std::vector<OutlineCorner*>>> cornerReference;
 
         struct Point3D {
             double x;

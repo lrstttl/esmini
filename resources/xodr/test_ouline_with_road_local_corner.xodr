@@ -67,7 +67,13 @@
             </laneSection>
         </lanes>
         <objects>
-            <object type="barrier" id="1" s="50" t="-9">
+            <!-- <object type="barrier" name="../models/fence_plank_and_pole.osgb" id="4" s="10.0" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
+                <repeat s="10" length="80" distance="0.0" tStart="5.0" tEnd="5.0" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/>
+            </object>
+            <object type="barrier" name="../models/fence_plank_and_pole.osgb" id="4" s="10.0" t="-5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
+                <repeat s="10" length="80" distance="0.0" tStart="-5.0" tEnd="-5.0" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/>
+            </object> -->
+            <!-- <object type="barrier" id="0" s="50" t="-9">
                 <outlines>
                     <outline id="0" closed="true">
                         <cornerLocal u="2.5" v="0" z="0.0" height="4.0" id="0"/>
@@ -76,19 +82,41 @@
                         <cornerLocal u="5" v="-0" z="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
-                <repeat s="10" length="20" distance ="4" tStart="5." tEnd="5" />
-            </object>
-            <object type="barrier" id="2" s="50" t="-9">
+                <repeat s="10" length="80" distance ="0" tStart="15" tEnd="15" />
+            </object> -->
+            <object type="barrier" id="1" s="10" t="-1">
                 <outlines>
-                    <outline id="1" closed="true">
-                        <cornerRoad s="52.5" t="-9" dz="0.0" height="4.0" id="0"/>
-                        <cornerRoad s="52.5" t="-12" dz="0.0" height="4.0" id="1"/>
-                        <cornerRoad s="55" t="-12" dz="0.0" height="4.0" id="2"/>
-                        <cornerRoad s="55" t="-9" dz="0.0" height="4.0" id="3"/>
+                    <outline id="0" closed="true">
+                        <cornerLocal u="0" v="0" z="0.0" height="4.0" id="0"/>
+                        <cornerLocal u="0" v="5" z="0.0" height="4.0" id="1"/>
+                        <cornerLocal u="2" v="5" z="0.0" height="4.0" id="2"/>
+                        <cornerLocal u="2" v="0" z="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
-                <repeat s="10" length="20" distance ="4" tStart="-5." tEnd="-5" />
+                <repeat s="0" length="10" distance ="0" tStart="-15" tEnd="-15"/>
             </object>
+            <!-- <object type="barrier" id="2" s="50" t="-10">
+                <outlines>
+                    <outline id="1" closed="true">
+                        <cornerRoad s="0" t="0" dz="0.0" height="4.0" id="0"/>
+                        <cornerRoad s="0" t="5" dz="0.0" height="4.0" id="1"/>
+                        <cornerRoad s="2" t="5" dz="0.0" height="4.0" id="2"/>
+                        <cornerRoad s="2" t="0" dz="0.0" height="4.0" id="3"/>
+                    </outline>
+                </outlines>
+                <repeat s="50" length="4" distance ="0.0" tStart="-10.0" tEnd="-10.0"/>
+            </object> -->
+            <!-- <object type="barrier" id="2" s="50" t="-9">
+                <outlines>
+                    <outline id="2" closed="true">
+                        <cornerRoad s="52.5" t="9" dz="0.0" height="4.0" id="0"/>
+                        <cornerRoad s="52.5" t="12" dz="0.0" height="4.0" id="1"/>
+                        <cornerRoad s="55" t="12" dz="0.0" height="4.0" id="2"/>
+                        <cornerRoad s="55" t="9" dz="0.0" height="4.0" id="3"/>
+                    </outline>
+                </outlines>
+                <repeat s="10" length="80" distance ="0.0" tStart="15." tEnd="15" />
+            </object> -->
         </objects>
         <signals>
         </signals>
