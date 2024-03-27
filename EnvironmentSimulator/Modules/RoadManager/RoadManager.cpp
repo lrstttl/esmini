@@ -5239,7 +5239,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
                                 Outline*     outline            = 0;
                                 double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
-
+                                roadmanager::Position pos;
                                 double dynamic_length = length_from_corner;
                                 double dynamic_width = width_from_corner;
                                 while (total_length_from_repeat > SMALL_NUMBER)
@@ -5249,42 +5249,34 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     {
                                         break;
                                     }
+                                    pos.SetTrackPosMode(r->GetId(),
+                                                        repeat->GetS() + cur_s,
+                                                        rtStart,
+                                                        roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
                                     outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
                                     for (unsigned int k = 0; k < cornerPoints.size(); k++)
                                     {
-
                                         OutlineCorner* corner = 0;
-                                        if(outlineOriginal->cornerType_ == Outline::CornerType::LOCAL_CORNER)
-                                        {
-                                            corner =
-                                                (OutlineCorner*)(new OutlineCornerLocal(r->GetId(),
-                                                                                    repeat->GetS() + cur_s,
-                                                                                    rtStart,
-                                                                                    cornerPoints[k].x,
-                                                                                    cornerPoints[k].y,
-                                                                                    cornerPoints[k].z,
-                                                                                    cornerPoints[k].h,
-                                                                                    heading,
-                                                                                    k));
+                                        corner =
+                                            (OutlineCorner*)(new OutlineCornerLocal(r->GetId(),
+                                                                                repeat->GetS() + cur_s,
+                                                                                rtStart,
+                                                                                cornerPoints[k].x,
+                                                                                cornerPoints[k].y,
+                                                                                cornerPoints[k].z,
+                                                                                cornerPoints[k].h,
+                                                                                heading,
+                                                                                k));
                                         printf("corner local s-center %.2f t-center %.2f u %.2f v %.2f z %.2f h %.2f heading %.2f index %d\n",
                                         repeat->GetS() + cur_s, rtStart, cornerPoints[k].x , cornerPoints[k].y, cornerPoints[k].z, cornerPoints[k].h, heading, static_cast<int>(k));
-                                        }
                                         outline->AddCorner(corner);
                                     }
                                     printf("-----------------------------------------------------\n");
                                     outline->UpdateCornerType(outlineOriginal->cornerType_);
                                     obj->AddOutline(outline);
-
-                                    if(outlineOriginal->cornerType_ == Outline::CornerType::ROAD_CORNER)
-                                    {
-                                        cur_s += dynamic_length;
-                                    }
-                                    else
-                                    {
-                                        cur_s += pos.DistanceToDS(dynamic_length);
-                                    }
+                                    cur_s += pos.DistanceToDS(dynamic_length);
                                     printf("new dist s %.2f \n",cur_s);
-                                    nCopies++;
                                 }
                             }
                         }
@@ -5378,10 +5370,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         break;
                                     }
 
+
                                     outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
                                     for (unsigned int k = 0; k < cornerPoints.size(); k++)
                                     {
-
                                         double start_s = repeat->GetS() + cur_s + localPoints[k].x;
                                         double start_t = rtStart + localPoints[k].y;
                                         double start_z = rzOffsetStart + localPoints[k].z;
@@ -5409,7 +5401,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     obj->AddOutline(outline);
                                     cur_s += dynamic_length;
                                     printf("new dist s %.2f \n",cur_s);
-                                    nCopies++;
                                 }
                             }
                         }
