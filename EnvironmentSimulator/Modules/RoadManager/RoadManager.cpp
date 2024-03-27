@@ -4993,6 +4993,8 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         double maxX = cornerPoints[0].x;
                         double minY = cornerPoints[0].y;
                         double maxY = cornerPoints[0].y;
+                        double minZ = cornerPoints[0].z;
+                        double maxZ = cornerPoints[0].z;
 
                         for  (size_t j = 0; j < cornerPoints.size(); j++)
                         {
@@ -5000,18 +5002,49 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             maxX = max(maxX, cornerPoints[j].x);  // Update maxX with the larger value
                             minY = min(minY, cornerPoints[j].y);  // Update minX with the smaller value
                             maxY = max(maxY, cornerPoints[j].y);  // Update maxX with the larger value
+                            minZ = min(minZ, cornerPoints[j].z);  // Update minX with the smaller value
+                            maxZ = max(maxZ, cornerPoints[j].z);  // Update maxX with the larger value
+
                         }
                         double  length_from_corner = maxX - minX;
                         double  width_from_corner = maxY - minY;
-                        printf("from corner length %.2f width %.2f\n", length_from_corner, width_from_corner);
+                        double  z_from_corner = maxZ - minZ;
+                        printf("from corner length %.2f width %.2f z %.2f\n", length_from_corner, width_from_corner, z_from_corner);
+
+                        // calculate center points
+                        double x_center = 0.0;
+                        double y_center = 0.0;
+                        double z_center = 0.0;
+                        for (size_t j = 0; j < cornerPoints.size(); j++)
+                        {
+                            x_center += cornerPoints[j].x;
+                            y_center += cornerPoints[j].y;
+                            z_center += cornerPoints[j].z;
+                        }
+                        x_center = x_center/cornerPoints.size();
+                        y_center = y_center/cornerPoints.size();
+                        z_center = z_center/cornerPoints.size();
+                        printf("Center points x %.2f y %.2f z %.2f\n", x_center, y_center, z_center);
+
+                        std::vector<points> localPoints; // store all the found local points
+                        for (size_t j = 0; j < cornerPoints.size(); j++)
+                        {
+                            points points_;
+                            points_.x = cornerPoints[j].x - x_center;
+                            points_.y = cornerPoints[j].y - y_center;
+                            points_.z = cornerPoints[j].z - z_center;
+                            localPoints.push_back(points_);
+
+                            printf("local points x %.2f y %.2f z %.2f no %d\n", points_.x , points_.y , points_.z, static_cast<int>(i));
+                        }
 
                         Repeat* repeat = obj->GetRepeat();
                         double      rtStart       = repeat->GetTStart();
                         double      rtEnd         = repeat->GetTEnd();
-                        double rlengthStart = repeat->GetLengthStart();
-                        double rlengthEnd   = repeat->GetLengthEnd();
-                        double rwidthStart  = repeat->GetWidthStart();
-                        double rwidthEnd    = repeat->GetWidthEnd();
+                        double      rlengthStart = repeat->GetLengthStart();
+                        double      rlengthEnd   = repeat->GetLengthEnd();
+                        double      rwidthStart  = repeat->GetWidthStart();
+                        double      rwidthEnd    = repeat->GetWidthEnd();
                         double      rheightStart  = repeat->GetHeightStart();
                         double      rheightEnd    = repeat->GetHeightEnd();
                         double      rzOffsetStart = repeat->GetZOffsetStart();
@@ -5027,12 +5060,30 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
                             Outline*     outline            = 0;
                             roadmanager::Position pos;
+                            double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
+
+                            double dynamic_length = length_from_corner;
+                            double dynamic_width = width_from_corner;
                             while (total_length_from_repeat > SMALL_NUMBER)
                             {
+                                double       factor  = cur_s / total_length_from_repeat;
                                 if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
                                 {
                                     break;
                                 }
+
+                                // find the new length from repeat
+                                if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
+                                {
+                                    dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
+                                    printf("dynamic length s %.2f f %.2f\n",dynamic_length, factor);
+                                }
+                                if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                {
+                                    dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart))/ sin(h_offset));
+                                    printf("dynamic width w %.2f f %.2f\n",dynamic_width, factor);
+                                }
+
                                 // position mode relative for aligning to road heading
                                 pos.SetTrackPosMode(r->GetId(),
                                                     cur_s,
@@ -5042,10 +5093,16 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
                                 for (unsigned int k = 0; k < cornerPoints.size(); k++)
                                 {
-                                    double start_s = cur_s + cornerPoints[k].x;
-                                    double start_t = rtStart + cornerPoints[k].y;
-                                    double start_z = rzOffsetStart + cornerPoints[k].z;
-                                    double start_h = rheightStart + cornerPoints[k].h;
+                                    double con_length = (dynamic_length/(length_from_corner/localPoints[k].x));
+                                    printf("con length l %.2f\n",con_length);
+                                    double con_width = (dynamic_width/(width_from_corner/localPoints[k].y));
+                                    printf("con width l %.2f\n",con_width);
+
+                                    double start_s = repeat->GetS() + cur_s + con_length + (dynamic_length / 2);
+                                    double start_t = rtStart + con_width + (dynamic_width / 2);
+                                    double start_z = rzOffsetStart + localPoints[k].z;
+                                    double start_h = rheightStart + localPoints[k].h;
+
                                     OutlineCorner* corner = 0;
                                     if(outlineOriginal->cornerType_ == Outline::CornerType::ROAD_CORNER)
                                     {
@@ -5066,30 +5123,31 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     {
                                         corner =
                                             (OutlineCorner*)(new OutlineCornerLocal(r->GetId(),
-                                                                                cur_s,
+                                                                                repeat->GetS() + cur_s,
                                                                                 rtStart,
-                                                                                cornerPoints[k].x,
-                                                                                cornerPoints[k].y,
-                                                                                cornerPoints[k].z,
+                                                                                con_length,
+                                                                                con_width,
+                                                                                localPoints[k].z,
                                                                                 cornerPoints[k].h,
                                                                                 heading,
                                                                                 k));
                                     printf("corner local s-center %.2f t-center %.2f u %.2f v %.2f z %.2f h %.2f heading %.2f index %d\n",
-                                    cur_s, rtStart, cornerPoints[k].x, cornerPoints[k].y, cornerPoints[k].z, cornerPoints[k].h, heading, static_cast<int>(k));
+                                    repeat->GetS() + cur_s, rtStart, con_length , con_width, cornerPoints[k].z, cornerPoints[k].h, heading, static_cast<int>(k));
                                     }
                                     outline->AddCorner(corner);
                                 }
+                                printf("-----------------------------------------------------end\n");
                                 outline->UpdateCornerType(outlineOriginal->cornerType_);
                                 obj->AddOutline(outline);
 
                                 if(outlineOriginal->cornerType_ == Outline::CornerType::ROAD_CORNER)
                                 {
-                                    cur_s += length_from_corner;
+                                    cur_s += dynamic_length;
                                 }
                                 else
                                 {
-                                    cur_s += pos.DistanceToDS(length_from_corner < SMALL_NUMBER ? MIN(total_length_from_repeat, 10.0)
-                                                                                        : MIN(length_from_corner, 10.0));
+                                    cur_s += pos.DistanceToDS(dynamic_length < SMALL_NUMBER ? MIN(total_length_from_repeat, 10.0)
+                                                                                        : MIN(dynamic_length, 10.0));
                                 }
                                 printf("new dist s %.2f \n",cur_s);
                             }
