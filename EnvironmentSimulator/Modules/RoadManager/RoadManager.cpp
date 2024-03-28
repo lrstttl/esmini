@@ -5235,120 +5235,124 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             double      rzOffsetStart = repeat->GetZOffsetStart();
                             double      rzOffsetEnd   = repeat->GetZOffsetEnd();
 
-                            // no repeat distance
-                            if ( repeat->distance_ < SMALL_NUMBER)
+                            int                          nCopies = 0;
+                            double                       cur_s   = 0.0;
+                            double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
+                            printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
+                            Outline*     outline            = 0;
+                            double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
+                            roadmanager::Position pos;
+                            double dynamic_length = length_from_corner;
+                            double dynamic_width = width_from_corner;
+                            double dynamic_z = z_from_corner;
+                            double dynamic_height = height_from_corner;
+                            while (total_length_from_repeat > SMALL_NUMBER)
                             {
-                                int                          nCopies = 0;
-                                double                       cur_s   = 0.0;
-                                double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
-                                printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
-                                Outline*     outline            = 0;
-                                double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
-                                roadmanager::Position pos;
-                                double dynamic_length = length_from_corner;
-                                double dynamic_width = width_from_corner;
-                                double dynamic_z = z_from_corner;
-                                double dynamic_height = height_from_corner;
-                                while (total_length_from_repeat > SMALL_NUMBER)
+                                double       factor  = cur_s / total_length_from_repeat;
+                                if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
                                 {
-                                    double       factor  = cur_s / total_length_from_repeat;
-                                    if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
-                                    {
-                                        break;
-                                    }
-                                    // find the new length from repeat
+                                    break;
+                                }
+                                // find the new length from repeat
+                                if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
+                                {
+                                    dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
+                                    printf("dynamic length s %.2f f %.2f\n",dynamic_length, factor);
+                                }
+                                if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                {
+                                    dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
+                                    printf("dynamic width w %.2f f %.2f\n",dynamic_width, factor);
+                                }
+                                if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
+                                {
+                                    dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
+                                    printf("dynamic z z %.2f f %.2f\n",dynamic_z, factor);
+                                }
+                                if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
+                                {
+                                    dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
+                                    printf("dynamic height h %.2f f %.2f\n",dynamic_height, factor);
+                                }
+                                pos.SetTrackPosMode(r->GetId(),
+                                                    repeat->GetS() + cur_s,
+                                                    rtStart,
+                                                    roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                                        roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                                outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
+                                for (unsigned int k = 0; k < cornerPoints.size(); k++)
+                                {
+                                    OutlineCorner* corner = 0;
+                                    double u_to_add = cornerPoints[k].x;
+                                    // calculate how much to add based on local dimension
                                     if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
                                     {
-                                        dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
-                                        printf("dynamic length s %.2f f %.2f\n",dynamic_length, factor);
+                                        u_to_add = (dynamic_length/(length_from_corner/cornerPoints[k].x));
                                     }
+                                    printf("u to add l %.2f\n", u_to_add);
+                                    double v_to_add = cornerPoints[k].y;
                                     if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
                                     {
-                                        dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
-                                        printf("dynamic width w %.2f f %.2f\n",dynamic_width, factor);
+                                        v_to_add = (dynamic_width/(width_from_corner/cornerPoints[k].y));
                                     }
+                                    printf("v to add l %.2f\n", v_to_add);
+                                    double z_to_add = cornerPoints[k].z;
                                     if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
                                     {
-                                        dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
-                                        printf("dynamic z z %.2f f %.2f\n",dynamic_z, factor);
+                                        if (cornerPoints[k].z == 0.0 && z_from_corner == 0.0)
+                                        {
+                                            z_to_add = dynamic_z;
+                                        }
+                                        else
+                                        {
+                                            z_to_add = dynamic_z * (cornerPoints[k].z/z_from_corner); // avoid 0/0
+                                            printf("inside %.2f\n", (cornerPoints[k].z/z_from_corner));
+                                        }
+
                                     }
+                                    printf("z to add l %.2f\n", z_to_add);
+                                    double h_to_add = cornerPoints[k].h;
                                     if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
                                     {
-                                        dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
-                                        printf("dynamic height h %.2f f %.2f\n",dynamic_height, factor);
+                                        if (cornerPoints[k].h == 0.0 && height_from_corner == 0.0)
+                                        {
+                                            h_to_add = dynamic_height;
+                                        }
+                                        else
+                                        {
+                                            h_to_add = (dynamic_height/(height_from_corner/cornerPoints[k].h)); // avoid 0/0
+                                            printf("inside h  %.2f\n", (height_from_corner/cornerPoints[k].h));
+                                        }
                                     }
-                                    pos.SetTrackPosMode(r->GetId(),
-                                                        repeat->GetS() + cur_s,
-                                                        rtStart,
-                                                        roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                                    outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
-                                    for (unsigned int k = 0; k < cornerPoints.size(); k++)
-                                    {
-                                        OutlineCorner* corner = 0;
-                                        double u_to_add = cornerPoints[k].x;
-                                        // calculate how much to add based on local dimension
-                                        if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
-                                        {
-                                            u_to_add = (dynamic_length/(length_from_corner/cornerPoints[k].x));
-                                        }
-                                        printf("u to add l %.2f\n", u_to_add);
-                                        double v_to_add = cornerPoints[k].y;
-                                        if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
-                                        {
-                                            v_to_add = (dynamic_width/(width_from_corner/cornerPoints[k].y));
-                                        }
-                                        printf("v to add l %.2f\n", v_to_add);
-                                        double z_to_add = cornerPoints[k].z;
-                                        if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
-                                        {
-                                            if (cornerPoints[k].z == 0.0 && z_from_corner == 0.0)
-                                            {
-                                                z_to_add = dynamic_z;
-                                            }
-                                            else
-                                            {
-                                                z_to_add = dynamic_z * (cornerPoints[k].z/z_from_corner); // avoid 0/0
-                                                printf("inside %.2f\n", (cornerPoints[k].z/z_from_corner));
-                                            }
-
-                                        }
-                                        printf("z to add l %.2f\n", z_to_add);
-                                        double h_to_add = cornerPoints[k].h;
-                                        if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
-                                        {
-                                            if (cornerPoints[k].h == 0.0 && height_from_corner == 0.0)
-                                            {
-                                                h_to_add = dynamic_height;
-                                            }
-                                            else
-                                            {
-                                                h_to_add = (dynamic_height/(height_from_corner/cornerPoints[k].h)); // avoid 0/0
-                                                printf("inside h  %.2f\n", (height_from_corner/cornerPoints[k].h));
-                                            }
-                                        }
-                                        printf("h to add l %.2f\n", h_to_add);
-                                        corner =
-                                            (OutlineCorner*)(new OutlineCornerLocal(r->GetId(),
-                                                                                repeat->GetS() + cur_s,
-                                                                                rtStart,
-                                                                                u_to_add,
-                                                                                v_to_add,
-                                                                                z_to_add,
-                                                                                h_to_add,
-                                                                                heading,
-                                                                                k));
-                                        printf("corner local s-center %.2f t-center %.2f u %.2f v %.2f z %.2f h %.2f heading %.2f index %d\n",
-                                        repeat->GetS() + cur_s, rtStart, cornerPoints[k].x , cornerPoints[k].y, cornerPoints[k].z, cornerPoints[k].h, heading, static_cast<int>(k));
-                                        outline->AddCorner(corner);
-                                    }
-                                    printf("-----------------------------------------------------\n");
-                                    outline->UpdateCornerType(outlineOriginal->cornerType_);
-                                    obj->AddOutline(outline);
-                                    cur_s += pos.DistanceToDS(dynamic_length);
-                                    printf("new dist s %.2f \n",cur_s);
+                                    printf("h to add l %.2f\n", h_to_add);
+                                    corner =
+                                        (OutlineCorner*)(new OutlineCornerLocal(r->GetId(),
+                                                                            repeat->GetS() + cur_s,
+                                                                            rtStart,
+                                                                            u_to_add,
+                                                                            v_to_add,
+                                                                            z_to_add,
+                                                                            h_to_add,
+                                                                            heading,
+                                                                            k));
+                                    printf("corner local s-center %.2f t-center %.2f u %.2f v %.2f z %.2f h %.2f heading %.2f index %d\n",
+                                    repeat->GetS() + cur_s, rtStart, cornerPoints[k].x , cornerPoints[k].y, cornerPoints[k].z, cornerPoints[k].h, heading, static_cast<int>(k));
+                                    outline->AddCorner(corner);
                                 }
+                                printf("-----------------------------------------------------\n");
+                                outline->UpdateCornerType(outlineOriginal->cornerType_);
+                                obj->AddOutline(outline);
+                                if ( repeat->distance_ < SMALL_NUMBER)
+                                {
+                                    cur_s += pos.DistanceToDS(dynamic_length);
+                                }
+                                else
+                                {
+                                    cur_s += repeat->distance_;
+                                }
+                                printf("new dist s %.2f \n",cur_s);
                             }
+
                         }
                         else // road corner
                         {
@@ -5426,121 +5430,124 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             double      rzOffsetStart = repeat->GetZOffsetStart();
                             double      rzOffsetEnd   = repeat->GetZOffsetEnd();
 
-                            // no repeat distance
-                            if ( repeat->distance_ < SMALL_NUMBER)
-                            {
-                                int                          nCopies = 0;
-                                double                       cur_s   = 0.0;
-                                double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
-                                printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
-                                Outline*     outline            = 0;
-                                double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
-                                double dynamic_length = length_from_corner;
-                                double dynamic_width = width_from_corner;
-                                double dynamic_z = z_from_corner;
-                                double dynamic_height = height_from_corner;
+                            int                          nCopies = 0;
+                            double                       cur_s   = 0.0;
+                            double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
+                            printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
+                            Outline*     outline            = 0;
+                            double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
+                            double dynamic_length = length_from_corner;
+                            double dynamic_width = width_from_corner;
+                            double dynamic_z = z_from_corner;
+                            double dynamic_height = height_from_corner;
 
-                                while (total_length_from_repeat > SMALL_NUMBER)
+                            while (total_length_from_repeat > SMALL_NUMBER)
+                            {
+                                double       factor  = cur_s / total_length_from_repeat;
+                                if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
                                 {
-                                    double       factor  = cur_s / total_length_from_repeat;
-                                    if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
-                                    {
-                                        break;
-                                    }
-                                    // find the new length from repeat
+                                    break;
+                                }
+                                // find the new length from repeat
+                                if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
+                                {
+                                    dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
+                                    printf("dynamic length s %.2f f %.2f\n",dynamic_length, factor);
+                                }
+                                if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                {
+                                    dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
+                                    printf("dynamic width w %.2f f %.2f\n",dynamic_width, factor);
+                                }
+                                if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
+                                {
+                                    dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
+                                }
+                                if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
+                                {
+                                    dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
+                                }
+
+                                outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
+                                for (unsigned int k = 0; k < cornerPoints.size(); k++)
+                                {
+                                    double x_to_add = localPoints[k].x;
+                                    // calculate how much to add based on local dimension
                                     if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
                                     {
-                                        dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
-                                        printf("dynamic length s %.2f f %.2f\n",dynamic_length, factor);
+                                        x_to_add = (dynamic_length/(length_from_corner/localPoints[k].x));
                                     }
+                                    printf("x to add l %.2f\n", x_to_add);
+                                    double y_to_add = localPoints[k].y;
                                     if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
                                     {
-                                        dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
-                                        printf("dynamic width w %.2f f %.2f\n",dynamic_width, factor);
+                                        y_to_add = (dynamic_width/(width_from_corner/localPoints[k].y));
                                     }
+                                    printf("y to add l %.2f\n", y_to_add);
+                                    double z_to_add = localPoints[k].z;
                                     if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
                                     {
-                                        dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
+                                        if (localPoints[k].z == 0.0 && z_from_corner == 0.0)
+                                        {
+                                            z_to_add = dynamic_z;
+                                        }
+                                        else
+                                        {
+                                            z_to_add = dynamic_z * (localPoints[k].z/z_from_corner); // avoid 0/0
+                                            printf("inside %.2f\n", (cornerPoints[k].z/z_from_corner));
+                                        }
+
                                     }
+                                    printf("z to add l %.2f\n", z_to_add);
+                                    double h_to_add = localPoints[k].h;
                                     if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
                                     {
-                                        dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
+                                        if (localPoints[k].h == 0.0 && height_from_corner == 0.0)
+                                        {
+                                            h_to_add = dynamic_height;
+                                        }
+                                        else
+                                        {
+                                            h_to_add = (dynamic_height/(height_from_corner/localPoints[k].h)); // avoid 0/0
+                                            printf("inside h  %.2f\n", (height_from_corner/localPoints[k].h));
+                                        }
                                     }
+                                    printf("h to add l %.2f\n", h_to_add);
 
-                                    outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
-                                    for (unsigned int k = 0; k < cornerPoints.size(); k++)
+                                    double start_s = repeat->GetS() + cur_s + x_to_add;
+                                    double start_t = rtStart + y_to_add;
+                                    double start_z = rzOffsetStart + z_to_add;
+                                    double start_h = rheightStart + h_to_add;
+                                    OutlineCorner* corner = 0;
+                                    if(outlineOriginal->cornerType_ == Outline::CornerType::ROAD_CORNER)
                                     {
-                                        double x_to_add = localPoints[k].x;
-                                        // calculate how much to add based on local dimension
-                                        if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
-                                        {
-                                            x_to_add = (dynamic_length/(length_from_corner/localPoints[k].x));
-                                        }
-                                        printf("x to add l %.2f\n", x_to_add);
-                                        double y_to_add = localPoints[k].y;
-                                        if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
-                                        {
-                                            y_to_add = (dynamic_width/(width_from_corner/localPoints[k].y));
-                                        }
-                                        printf("y to add l %.2f\n", y_to_add);
-                                        double z_to_add = localPoints[k].z;
-                                        if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
-                                        {
-                                            if (localPoints[k].z == 0.0 && z_from_corner == 0.0)
-                                            {
-                                                z_to_add = dynamic_z;
-                                            }
-                                            else
-                                            {
-                                                z_to_add = dynamic_z * (localPoints[k].z/z_from_corner); // avoid 0/0
-                                                printf("inside %.2f\n", (cornerPoints[k].z/z_from_corner));
-                                            }
-
-                                        }
-                                        printf("z to add l %.2f\n", z_to_add);
-                                        double h_to_add = localPoints[k].h;
-                                        if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
-                                        {
-                                            if (localPoints[k].h == 0.0 && height_from_corner == 0.0)
-                                            {
-                                                h_to_add = dynamic_height;
-                                            }
-                                            else
-                                            {
-                                                h_to_add = (dynamic_height/(height_from_corner/localPoints[k].h)); // avoid 0/0
-                                                printf("inside h  %.2f\n", (height_from_corner/localPoints[k].h));
-                                            }
-                                        }
-                                        printf("h to add l %.2f\n", h_to_add);
-
-                                        double start_s = repeat->GetS() + cur_s + x_to_add;
-                                        double start_t = rtStart + y_to_add;
-                                        double start_z = rzOffsetStart + z_to_add;
-                                        double start_h = rheightStart + h_to_add;
-                                        OutlineCorner* corner = 0;
-                                        if(outlineOriginal->cornerType_ == Outline::CornerType::ROAD_CORNER)
-                                        {
-                                            corner =
-                                                (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
-                                                                                    start_s,
-                                                                                    start_t,
-                                                                                    start_z,
-                                                                                    start_h,
-                                                                                    cur_s,
-                                                                                    rtStart,
-                                                                                    heading,
-                                                                                    k));
-                                        printf("corner road s %.2f t %.2f z %.2f h %.2f s-center %.2f t-center %.2f heading %.2f index %d\n",
-                                        start_s, start_t, start_z, start_h, cur_s, rtStart, heading, static_cast<int>(k));
-                                        }
-                                        outline->AddCorner(corner);
+                                        corner =
+                                            (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
+                                                                                start_s,
+                                                                                start_t,
+                                                                                start_z,
+                                                                                start_h,
+                                                                                cur_s,
+                                                                                rtStart,
+                                                                                heading,
+                                                                                k));
+                                    printf("corner road s %.2f t %.2f z %.2f h %.2f s-center %.2f t-center %.2f heading %.2f index %d\n",
+                                    start_s, start_t, start_z, start_h, cur_s, rtStart, heading, static_cast<int>(k));
                                     }
-                                    printf("-----------------------------------------------------\n");
-                                    outline->UpdateCornerType(outlineOriginal->cornerType_);
-                                    obj->AddOutline(outline);
-                                    cur_s += dynamic_length;
-                                    printf("new dist s %.2f \n",cur_s);
+                                    outline->AddCorner(corner);
                                 }
+                                printf("-----------------------------------------------------\n");
+                                outline->UpdateCornerType(outlineOriginal->cornerType_);
+                                obj->AddOutline(outline);
+                                if ( repeat->distance_ < SMALL_NUMBER)
+                                {
+                                    cur_s += dynamic_length;
+                                }
+                                else
+                                {
+                                    cur_s += repeat->distance_;
+                                }
+                                printf("new dist s %.2f \n",cur_s);
                             }
                         }
                     }
