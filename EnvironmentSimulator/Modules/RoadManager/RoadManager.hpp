@@ -1659,14 +1659,21 @@ namespace roadmanager
     class OutlineCorner
     {
     public:
+        typedef enum
+        {
+            ROAD_CORNER,
+            LOCAL_CORNER,
+        }CornerType;
         virtual void   GetPos(double &x, double &y, double &z)      = 0;
         virtual void   GetPosLocal(double &x, double &y, double &z) = 0;
         virtual double GetHeight()                                  = 0;
         virtual int   GetCornerId() = 0;
+        virtual CornerType GetCornerType() =0;
 
         virtual ~OutlineCorner()
         {
         }
+
     };
 
     class OutlineCornerRoad : public OutlineCorner
@@ -1682,6 +1689,10 @@ namespace roadmanager
         int   GetCornerId()
         {
             return cornerId_;
+        }
+        CornerType GetCornerType()
+        {
+            return type_;
         }
         double GetS()
         {
@@ -1699,6 +1710,7 @@ namespace roadmanager
     private:
         int    roadId_, cornerId_;
         double s_, t_, dz_, height_, center_s_, center_t_, center_heading_;
+        OutlineCorner::CornerType type_  = OutlineCorner::CornerType::ROAD_CORNER;
     };
 
     class OutlineCornerLocal : public OutlineCorner
@@ -1714,6 +1726,10 @@ namespace roadmanager
         int   GetCornerId()
         {
             return cornerId_;
+        }
+        CornerType GetCornerType()
+        {
+            return type_;
         }
         double GetU()
         {
@@ -1731,6 +1747,7 @@ namespace roadmanager
     private:
         int    roadId_, cornerId_;
         double s_, t_, u_, v_, zLocal_, height_, heading_;
+        OutlineCorner::CornerType type_  = OutlineCorner::CornerType::LOCAL_CORNER;
     };
 
     class Outline
@@ -1748,18 +1765,11 @@ namespace roadmanager
             FILL_TYPE_UNDEFINED
         } FillType;
 
-        typedef enum
-        {
-            ROAD_CORNER,
-            LOCAL_CORNER,
-        }CornerType;
-
         int                          id_;
         FillType                     fillType_;
         bool                         closed_;
         std::vector<OutlineCorner *> corner_;
         bool                         isOriginal_;
-        CornerType cornerType_ = CornerType::ROAD_CORNER; // default road
 
         Outline(int id, FillType fillType, bool closed, bool isOriginal): id_(id), fillType_(fillType), closed_(closed), isOriginal_(isOriginal)
         {
@@ -1780,11 +1790,6 @@ namespace roadmanager
         bool IsOriginal()
         {
             return isOriginal_;
-        }
-
-        void UpdateCornerType(CornerType type)
-        {
-            cornerType_ = type;
         }
 
     };
@@ -1821,7 +1826,7 @@ namespace roadmanager
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
 
         // std::vector<OutlineCorner*> cornerReference;
-        std::vector<std::pair<Outline::CornerType, std::vector<OutlineCorner*>>> cornerReference;
+        std::vector<std::vector<OutlineCorner*>> cornerReference;
 
         struct Point3D {
             double x;
@@ -2245,6 +2250,12 @@ namespace roadmanager
         {
             return (0 <= i && i < outlines_.size()) ? outlines_[i] : 0;
         }
+
+        void DeleteOutline(int i)
+        {
+            outlines_.erase(outlines_.begin() + i);
+        }
+
         Repeat *GetRepeatByIdx(int i) const
         {
             return (0 <= i && i < repeats_.size()) ? repeats_[i] : 0;

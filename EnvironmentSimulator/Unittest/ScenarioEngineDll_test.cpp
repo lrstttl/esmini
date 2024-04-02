@@ -2801,6 +2801,30 @@ TEST(TestOsiReporter, StationaryObjectTest)
     EXPECT_EQ(osi_gt.stationary_object(12).base().position().z(), 0.0);
 
 }
+
+TEST(TestOsiReporter, ObjectAsOutlineRepeat)
+{
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
+
+    std::string scenario_file = "../../resources/xosc/repeat_with_outline_test.xosc";
+    const char* Scenario_file = scenario_file.c_str();
+    int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
+    ASSERT_EQ(i_init, 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 8);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().length(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().width(), 0);
+}
+
+
 TEST(ParameterTest, GetTypedParameterValues)
 {
     std::string scenario_file = "../../../resources/xosc/lane_change.xosc";
