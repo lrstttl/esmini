@@ -2819,9 +2819,37 @@ TEST(TestOsiReporter, ObjectAsOutlineRepeat)
     const char* gt = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 8);
-    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().length(), 0);
-    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().width(), 0);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 11);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 4.0); // local corner
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -10.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(3).x(), 10.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(3).y(), -2.5);
+
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon_size(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).x(), -1.5308084989341933e-16);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).x(), 2.3503376129179672);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).y(), -2.2046680062511257);
+
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon_size(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).x(), 1.1985638465105075);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).y(), -2.1939564047259332);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).x(), 3.1195894499922541);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).y(), -0.80796632106869171);
+
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon_size(), 4.0); // local corner
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(0).x(), -10.0);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(3).x(), 10.0);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(3).y(), -2.5);
+
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon_size(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(0).x(), -16.231447929850376);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(0).y(), -0.58209750921280001);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).x(), -15.502931203871906);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).y(), -2.8361097676528955);
+
 }
 
 

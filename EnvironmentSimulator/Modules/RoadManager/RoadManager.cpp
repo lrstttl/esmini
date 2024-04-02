@@ -5135,7 +5135,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     {
                         if(obj->GetOutline(i)->IsOriginal())
                         {
-                            obj->DeleteOutline(outlinesToDelete[i]);
+                            obj->DeleteOutline(i);
                             i = 0; // index order may be changed, restart
                         }
                         else
