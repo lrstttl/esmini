@@ -1791,7 +1791,26 @@ namespace roadmanager
         {
             return isOriginal_;
         }
+        struct points
+        {
+            double x;
+            double y;
+            double z;
+            double h;
+        };
 
+        std::vector<points> localCornerPoints;
+        struct ScalePoints
+        {
+            double scale_x;
+            double scale_y;
+            double scale_z;
+            double scale_h;
+            double s_;
+            double t_;
+            int id;
+        };
+        std::vector<ScalePoints> localCornerScales;
     };
 
     class Marking

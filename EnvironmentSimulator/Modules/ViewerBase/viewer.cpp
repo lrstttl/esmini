@@ -2998,7 +2998,8 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
     // nrPoints will be corners + 1 if the outline should be closed, reusing first corner as last
     int nrPoints = outline->closed_ ? static_cast<int>(outline->corner_.size()) + 1 : static_cast<int>(outline->corner_.size());
 
-    osg::ref_ptr<osg::Group> group = new osg::Group();
+    // osg::ref_ptr<osg::Group> group = new osg::Group();
+    osg::ref_ptr<osg::PositionAttitudeTransform> xform = new osg::PositionAttitudeTransform();
 
     osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);  // one set at bottom and one at top
     osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
@@ -3053,8 +3054,10 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
     material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
     geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
 
-    group->addChild(geode);
-    envTx_->addChild(group);
+    // group->addChild(geode);
+    // envTx_->addChild(group);
+    xform->addChild(geode);
+    envTx_->addChild(xform);
 
     if (markings != 0 ) // draw outlink marking
     {
@@ -3258,7 +3261,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 osg::ref_ptr<osg::Group>     group;
                 if (tx == nullptr)  // No model loaded
                 {
-                    if (rep && rep->GetDistance() < SMALL_NUMBER)  //  non continuous objects
+                    if (rep && rep->GetDistance() < SMALL_NUMBER && false)  //  non continuous objects
                     {
                         // use outline, if exists
                         if (object->GetNumberOfOutlines() > 0)
@@ -3296,7 +3299,105 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         {
                             roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
                             roadmanager::Markings* markings = object->GetMarkings(0);
-                            CreateOutlineObject(outline, color, markings);
+                            // CreateOutlineObject(outline, color, markings);
+                            bool roof = outline->closed_ ? true : false;
+
+                            // nrPoints will be corners + 1 if the outline should be closed, reusing first corner as last
+                            int nrPoints = outline->closed_ ? static_cast<int>(outline->corner_.size()) + 1 : static_cast<int>(outline->corner_.size());
+
+                            // osg::ref_ptr<osg::Group> group = new osg::Group();
+                            // osg::ref_ptr<osg::PositionAttitudeTransform> xform = new osg::PositionAttitudeTransform();
+
+                            osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);  // one set at bottom and one at top
+                            osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
+                            // Set vertices
+                            for (size_t i = 0; i < outline->corner_.size(); i++)
+                            {
+                                double                      x, y, z;
+                                roadmanager::OutlineCorner* corner = outline->corner_[i];
+                                corner->GetPos(x, y, z);
+                                (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
+                                (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+                                (*vertices_top)[i].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
+                                printf("Vertics x %.2f y %.2f z  %.2f i%d\n",
+                                x, y, z, static_cast<int>(i));
+                            }
+                            // Close geometry
+                            if (outline->closed_)
+                            {
+                                (*vertices_sides)[2 * static_cast<unsigned int>(nrPoints) - 2].set((*vertices_sides)[0]);
+                                (*vertices_sides)[2 * static_cast<unsigned int>(nrPoints) - 1].set((*vertices_sides)[1]);
+                                (*vertices_top)[static_cast<unsigned int>(nrPoints) - 1].set((*vertices_top)[0]);
+                            }
+
+                            // Finally create and add geometry
+                            osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
+                            osg::ref_ptr<osg::Geometry> geom[] = {new osg::Geometry, new osg::Geometry};
+
+                            geom[0]->setVertexArray(vertices_sides.get());
+                            geom[0]->addPrimitiveSet(new osg::DrawArrays(GL_QUAD_STRIP, 0, 2 * nrPoints));
+
+                            if (roof)
+                            {
+                                geom[1]->setVertexArray(vertices_top.get());
+                                geom[1]->addPrimitiveSet(new osg::DrawArrays(GL_POLYGON, 0, nrPoints));
+                                osgUtil::Tessellator tessellator;
+                                tessellator.retessellatePolygons(*geom[1]);
+                            }
+
+                            int nrGeoms = roof ? 2 : 1;
+                            for (int i = 0; i < nrGeoms; i++)
+                            {
+                                osgUtil::SmoothingVisitor::smooth(*geom[i], 0.5);
+                                geom[i]->setDataVariance(osg::Object::STATIC);
+                                geom[i]->setUseDisplayList(true);
+                                geode->addDrawable(geom[i]);
+                            }
+
+                            osg::ref_ptr<osg::Material> material_ = new osg::Material;
+                            material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+                            material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
+                            geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
+
+                            // group->addChild(geode);
+                            // envTx_->addChild(group);
+                            for (size_t k = 0; k < outline->localCornerScales.size(); k++)
+                            {
+                                // position mode relative for aligning to road heading
+                                pos.SetTrackPosMode(road->GetId(),
+                                                    outline->localCornerScales[k].s_,
+                                                    outline->localCornerScales[k].t_,
+                                                    roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                                        roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                                osg::ref_ptr<osg::PositionAttitudeTransform> xform = new osg::PositionAttitudeTransform();
+                                xform->addChild(geode);
+                                xform->setScale(osg::Vec3(static_cast<float>(outline->localCornerScales[k].scale_x), static_cast<float>(outline->localCornerScales[k].scale_y), static_cast<float>(outline->localCornerScales[k].scale_z)));
+                                printf("position s %.2f t %.2f\n",
+                                                                outline->localCornerScales[k].s_, outline->localCornerScales[k].t_);
+                                xform->setPosition(osg::Vec3(static_cast<float>(pos.GetX()),
+                                                            static_cast<float>(pos.GetY()),
+                                                            static_cast<float>(object->GetZOffset() + pos.GetZ())));
+                                printf("position x %.2f y %.2f z %.2f\n",
+                                                                pos.GetX(), pos.GetY(), object->GetZOffset() + pos.GetZ());
+
+                                // First align to road orientation
+                                osg::Quat quatRoad(osg::Quat(pos.GetR(), osg::X_AXIS, pos.GetP(), osg::Y_AXIS, pos.GetH(), osg::Z_AXIS));
+                                printf("angle r %.2f p %.2f h %.2f\n",
+                                                                pos.GetR(), pos.GetP(), pos.GetH());
+                                // Specified local rotation
+                                osg::Quat quatLocal(orientation + object->GetHOffset(), osg::Vec3(osg::Z_AXIS));  // Heading
+                                printf("rotation o %.2f h %.2f\n",
+                                                                orientation, object->GetHOffset());
+                                // Combine
+                                xform->setAttitude(quatLocal * quatRoad);
+                                envTx_->addChild(xform);
+                            }
+                            if (markings != 0 ) // draw outlink marking
+                            {
+                                osg::PolygonMode* polygonMode = new osg::PolygonMode;
+                                polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+                                geode->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+                            }
                         }
                         //draw marking
                         for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
@@ -3310,7 +3411,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         }
                         continue;
                     }
-
                     else
                     {
                         // create a bounding box to represent the object
