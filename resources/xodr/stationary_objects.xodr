@@ -6,19 +6,11 @@
         <link>
         </link>
         <planView>
-            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="100">
+            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="200">
                 <line/>
-            </geometry>
-           <geometry s="100.0" x="100.0" y="0.0" hdg="0.0" length="300">
-                <spiral curvStart="0.0" curvEnd="-0.02" />
             </geometry>
         </planView>
         <elevationProfile>
-			<!-- https://www.desmos.com/calculator/fvu7anqrqr -->
-            <elevation s="0.0" a="0.0" b="0.00" c="0.00" d="0.00"/>
-            <elevation s="200.0" a="0.0" b="0.00" c="0.00367346938776" d="-0.0000349854227405"/>
-            <elevation s="270.0" a="6.0" b="0.00" c="-0.00367346938776" d="0.0000349854227405"/>
-            <elevation s="340.0" a="0.0" b="0.00" c="0.00" d="0.00"/>
 		</elevationProfile>
         <lateralProfile/>
         <lanes>

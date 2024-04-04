@@ -1856,7 +1856,8 @@ namespace roadmanager
         };
         std::vector<Point3D> vertexPoints_;
 
-        void FillPoints(RoadObject* object);
+        // void FillPoints(RoadObject* object);
+        void FillPoints(Marking* marking, Outline* outline);
 
         void FillVertexPoints(double p00, double p01, double p10, double p11, int cornerType);
 
@@ -2069,7 +2070,7 @@ namespace roadmanager
             double width;
             double height;
         };
-        std::vector<RepeatVertexPoints> repeatVertexPoints_;
+    std::vector<RepeatVertexPoints> repeatVertexPoints_;
 
     };
 

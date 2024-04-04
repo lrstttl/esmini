@@ -2653,7 +2653,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
     }
 }
 
-
+#if 0
 void Marking::FillPoints(RoadObject* object)
 {
     RMObject* obj = static_cast<RMObject*>(object);
@@ -2683,8 +2683,8 @@ void Marking::FillPoints(RoadObject* object)
                                     v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i + 1])->GetS();
                                     v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i])->GetT();
                                     v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i + 1])->GetT();
-                                    // printf("outline_road_after %.2f %.2f %.2f %.2f\n",
-                                    // v0[0], v0[1], v1[0], v1[1]);
+                                    printf("outline_road_after %.2f %.2f %.2f %.2f\n",
+                                    v0[0], v0[1], v1[0], v1[1]);
                                     FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
                                 }
                                 else
@@ -2775,7 +2775,102 @@ void Marking::FillPoints(RoadObject* object)
         }
     }
 }
+#endif
+void Marking::FillPoints(Marking* marking, Outline* outline)
+{
 
+    double v0[3] = { 0.0, 0.0, 0.0}; //start points
+    double v1[3] = { 0.0, 0.0, 0.0}; // end points
+
+    if (marking->cornerReference.size() > 0)
+    {
+        for (size_t j = 0; j < marking->cornerReference.size(); j++)
+        {
+            if (marking->cornerReference[j].size() >= 2) // corner referrence found
+            {
+                roadmanager::OutlineCornerRoad* corner = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][0]);
+                for (size_t i = 0; i < marking->cornerReference[j].size() - 1; i++)
+                {
+                    if(marking->cornerReference[j][i]->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER) // road corner
+                    {
+                        v0[0] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i])->GetS();
+                        v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i + 1])->GetS();
+                        v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i])->GetT();
+                        v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(marking->cornerReference[j][i + 1])->GetT();
+                        printf("outline_road_after %.2f %.2f %.2f %.2f\n",
+                        v0[0], v0[1], v1[0], v1[1]);
+                        FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
+                    }
+                    else
+                    {
+                        // check for scale for repeat in case for repeat with ouline
+                        //no corner referrence in marking, check corner from repeat without distance
+                        if ( outline->localCornerScales.size() > 0)
+                        {
+                            for (size_t k = 0; k < outline->localCornerScales.size(); k++)
+                            {
+                                roadmanager::Position pref;
+                                pref.SetTrackPosMode(roadId_,
+                                                    outline->localCornerScales[k].s_,
+                                                    outline->localCornerScales[k].t_,
+                                                    roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
+                                                        roadmanager::Position::PosMode::R_REL);
+                                double total_heading = GetAngleSum(pref.GetH(), outline->localCornerScales[k].objH);
+                                double u2, v2;
+                                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(marking->cornerReference[j][i])->GetU() * outline->localCornerScales[k].scale_x, static_cast<roadmanager::OutlineCornerLocal*>(marking->cornerReference[j][i])->GetV() * outline->localCornerScales[k].scale_y, total_heading, u2, v2);
+
+                                v0[0] = pref.GetX() + u2;
+                                v0[1] = pref.GetY() + v2;
+                                v0[2] = pref.GetZ() + (outline->localCornerScales[k].objZOffset * outline->localCornerScales[k].scale_z);
+
+                                double u3, v3;
+                                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(marking->cornerReference[j][i + 1])->GetU() * outline->localCornerScales[k].scale_x, static_cast<roadmanager::OutlineCornerLocal*>(marking->cornerReference[j][i + 1])->GetV() * outline->localCornerScales[k].scale_y, total_heading, u3, v3);
+
+                                v1[0] = pref.GetX() + u3;
+                                v1[1] = pref.GetY() + v3;
+                                v1[2] = pref.GetZ() + (outline->localCornerScales[k].objZOffset * outline->localCornerScales[k].scale_z);
+                                printf("outline_local_phasring p1 %.2f %.2f p2 %.2f %.2f \n",
+                                v0[0], v0[1], v1[0], v1[1]);
+                                FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 1);
+                            }
+                        }
+                        else
+                        {
+                            (marking->cornerReference[j][i])->GetPos(v0[0], v0[1], v0[2]);
+                            (marking->cornerReference[j][i + 1])->GetPos(v1[0], v1[1], v1[2]);
+                            // printf("outline_local_phasring p1 %.2f %.2f p2 %.2f %.2f heading %.2f heading_offset %.2f\n",
+                            // v0[0], v0[1], v1[0], v1[1], obj->GetH(), obj->GetHOffset());
+                            FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        //no corner referrence in marking, check corner from repeat without distance
+        for (size_t k = 0; k < outline->corner_.size()/2; k++)
+        {
+            if (marking->GetSide() == 0)
+            {
+                v0[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
+                v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
+                v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
+                v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
+                FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
+            }
+            else
+            {
+                v0[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetS(); // second corner
+                v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetS(); //last before corner
+                v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k + 1])->GetT();
+                v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - (k + 1) - 1 ])->GetT();
+                FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
+            }
+        }
+    }
+}
 std::string RMObject::Type2Str(RMObject::ObjectType type)
 {
     int t = static_cast<int>(type);

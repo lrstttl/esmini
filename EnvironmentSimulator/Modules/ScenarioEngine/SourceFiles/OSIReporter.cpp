@@ -890,17 +890,19 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     }
 
 
-    if(object->GetNumberOfMarkings() > 0)
+    for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfOutlines()); i++)
     {
-        for (size_t k = 0; k < static_cast<unsigned int>(object->GetNumberOfMarkings()); k++)
+        roadmanager::Outline *outline = object->GetOutline(static_cast<int>(i));
+
+        for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfMarkings()); j++)
         {
-            roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(k));
+            roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(j));
             for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); l++)
             {
                 roadmanager::Marking *marking = markings->marking_[l];
                 if (marking->vertexPoints_.size() == 0) // no points from roadmanager
                 {
-                    marking->FillPoints(object);
+                    marking->FillPoints(marking, outline);
                     if( marking->vertexPoints_.size() == 0)
                     {
                         return -1; // nothing to draw

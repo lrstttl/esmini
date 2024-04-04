@@ -2937,7 +2937,7 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::DrawMarking(roadmanager::Marking* marking, roadmanager::RoadObject* obj)
+int Viewer::FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::Outline* outline)
 {
 
     if (marking == 0)
@@ -2946,11 +2946,55 @@ int Viewer::DrawMarking(roadmanager::Marking* marking, roadmanager::RoadObject* 
     }
     if (marking->vertexPoints_.size() == 0) // no points from roadmanager
     {
-        marking->FillPoints(obj);
+        marking->FillPoints(marking, outline);
         if( marking->vertexPoints_.size() == 0)
         {
             return -1; // nothing to draw
         }
+    }
+
+    std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
+
+    osg::ref_ptr<osg::Group> group = new osg::Group();
+    osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(points.size()));      // one set at bottom and one at top
+
+    for (int i = 0; i < points.size(); i+=4)
+    {
+        (*vertices_top)[i + 0].set(static_cast<float>(points[i + 0].x), static_cast<float>(points[i + 0].y), static_cast<float>(points[i + 0].z));
+        (*vertices_top)[i + 1].set(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y), static_cast<float>(points[i + 1].z));
+        (*vertices_top)[i + 2].set(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y), static_cast<float>(points[i + 2].z));
+        (*vertices_top)[i + 3].set(static_cast<float>(points[i + 3].x), static_cast<float>(points[i + 3].y), static_cast<float>(points[i + 3].z));
+    }
+
+    // Finally create and add geometry
+    osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
+    osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+
+    geom->setVertexArray(vertices_top.get());
+    geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, points.size()));
+
+    // osgUtil::SmoothingVisitor::smooth(*geom, 0.5);
+    geom->setDataVariance(osg::Object::STATIC);
+    geom->setUseDisplayList(true);
+    geode->addDrawable(geom);
+
+    osg::Vec4 color = ODR2OSGColor(marking->GetColor());
+    osg::ref_ptr<osg::Material> material_ = new osg::Material;
+    material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+    material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
+    geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
+
+    group->addChild(geode);
+    envTx_->addChild(group);
+    return 0;
+}
+
+int Viewer::DrawMarking(roadmanager::Marking* marking)
+{
+
+    if (marking == 0)
+    {
+        return -1;
     }
 
     std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
@@ -3303,6 +3347,15 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
                     roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(0));
                     CreateOutlineObject(outline, color, markings);
+                    for (size_t k = 0; k < static_cast<unsigned int>(object->GetNumberOfMarkings()); k++) //draw marking
+                    {
+                        roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(k));
+                        for (size_t l = 0; l < markings->marking_.size(); l++)
+                        {
+                            roadmanager::Marking* marking = markings->marking_[l];
+                            FillMarkingsFromOutline(marking, outline);
+                        }
+                    }
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
@@ -3358,17 +3411,17 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                 roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
                                 roadmanager::Markings* markings = object->GetMarkings(0);
                                 CreateOutlineObject(outline, color, markings);
-                            }
-                            //draw marking
-                            for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
-                            {
-                                roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
-                                for (size_t j = 0; j < markings->marking_.size(); j++)
+                                for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
                                 {
-                                    roadmanager::Marking* marking = markings->marking_[j];
-                                    DrawMarking(marking, object);
+                                    roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+                                    for (size_t j = 0; j < markings->marking_.size(); j++)
+                                    {
+                                        roadmanager::Marking* marking = markings->marking_[j];
+                                        FillMarkingsFromOutline(marking, outline);
+                                    }
                                 }
                             }
+
                             continue;
                         }
                         else
@@ -3387,16 +3440,14 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             roadmanager::Outline* outline = object->GetOutline(static_cast<int>(j));
                             roadmanager::Markings* markings = object->GetMarkings(0);
                             CreateOutlineObject(outline, color, markings);
-
-                        }
-                        //draw marking
-                        for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
-                        {
-                            roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
-                            for (size_t j = 0; j < markings->marking_.size(); j++)
+                            for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
                             {
-                                roadmanager::Marking* marking = markings->marking_[j];
-                                DrawMarking(marking, object);
+                                roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
+                                for (size_t j = 0; j < markings->marking_.size(); j++)
+                                {
+                                    roadmanager::Marking* marking = markings->marking_[j];
+                                    FillMarkingsFromOutline(marking, outline);
+                                }
                             }
                         }
                         continue;
@@ -3753,7 +3804,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 for (size_t j = 0; j < markings->marking_.size(); j++)
                 {
                     roadmanager::Marking* marking = markings->marking_[j];
-                    DrawMarking(marking, object);
+                    DrawMarking(marking);
                 }
             }
         }
