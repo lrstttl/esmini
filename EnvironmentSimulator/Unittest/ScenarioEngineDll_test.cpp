@@ -2620,7 +2620,7 @@ TEST(TestOsiReporter, MarkingTest)
     const char* gt = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 4);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 11);
 
     // crosswalk one
     osi3::RoadMarking_Classification_Type marking_type = osi_gt.road_marking(0).classification().type();
@@ -2684,6 +2684,40 @@ TEST(TestOsiReporter, MarkingTest)
 
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(27).x(), 258.46269243159668);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(27).y(), -63.017218877724588);
+
+    // local corner outline with repeat
+    EXPECT_EQ(osi_gt.road_marking(6).base().base_polygon_size(), 80);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(13).x(), 29.800000000000001);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(13).y(), -13.200000000000003);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(72).x(), 90);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(72).y(), -13.200000000000003);
+
+    EXPECT_EQ(osi_gt.road_marking(7).base().base_polygon_size(), 80);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(7).base().base_polygon(22).x(), 30.199999999999999);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(7).base().base_polygon(22).y(), -14.999999999999998);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(7).base().base_polygon(72).x(), 70);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(7).base().base_polygon(72).y(), -12.799999999999997);
+
+    // road corner outline with repeat
+    EXPECT_EQ(osi_gt.road_marking(8).base().base_polygon_size(), 60);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(8).base().base_polygon(2).x(), 241.00231811727818);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(8).base().base_polygon(2).y(), -20.971385405179376);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(8).base().base_polygon(47).x(), 253.10801701561891);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(8).base().base_polygon(47).y(), -30.43361786621357);
+
+    EXPECT_EQ(osi_gt.road_marking(9).base().base_polygon_size(), 60);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(29).x(), 252.60370510729916);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(29).y(), -27.405387492343024);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(54).x(), 257.10455353454563);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(54).y(), -34.094531949057028);
 
 }
 

@@ -2776,6 +2776,7 @@ void Marking::FillPoints(RoadObject* object)
     }
 }
 #endif
+
 void Marking::FillPoints(Marking* marking, Outline* outline)
 {
 
@@ -2871,6 +2872,7 @@ void Marking::FillPoints(Marking* marking, Outline* outline)
         }
     }
 }
+
 std::string RMObject::Type2Str(RMObject::ObjectType type)
 {
     int t = static_cast<int>(type);

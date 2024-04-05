@@ -1811,6 +1811,7 @@ namespace roadmanager
             double objZOffset;
             double objH;
             int roadId_;
+            int cornerId;
         };
         std::vector<ScalePoints> localCornerScales;
     };

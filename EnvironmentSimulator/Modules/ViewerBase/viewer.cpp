@@ -3475,7 +3475,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 
                 osg::BoundingBox boundingBox;
                 if (tx != nullptr)
-                {
+            {
                     osg::ComputeBoundsVisitor cbv;
                     tx->accept(cbv);
                     boundingBox = cbv.getBoundingBox();
