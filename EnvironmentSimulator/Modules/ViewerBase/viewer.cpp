@@ -2944,13 +2944,21 @@ int Viewer::FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::
     {
         return -1;
     }
-    if (marking->vertexPoints_.size() == 0) // no points from roadmanager
+
+    if ( outline->localCornerScales.size() > 0) // check scale from local corner
     {
-        marking->FillPoints(marking, outline);
-        if( marking->vertexPoints_.size() == 0)
+        for (int i = 0; i < outline->localCornerScales.size(); i++)
         {
-            return -1; // nothing to draw
+            marking->FillPointsFromLocalCorners(marking, outline, outline->localCornerScales[i]); // fill local corner
         }
+    }
+    else
+    {
+        marking->FillPoints(marking, outline); // fill from road corner
+    }
+    if( marking->vertexPoints_.size() == 0)
+    {
+        return -1; // nothing to draw
     }
 
     std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
