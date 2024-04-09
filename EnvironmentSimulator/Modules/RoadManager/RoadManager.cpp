@@ -5319,17 +5319,20 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 if (object_length_dynamic < SMALL_NUMBER) // no bb what if model provided?
                 {
                     object_length_dynamic = 0.05;
+                    LOG("Object %s missing length, Please provide object length, Set to bounding box length 0.05", obj->GetName().c_str());
                 }
                 if (object_width_dynamic < SMALL_NUMBER)
                 {
                     object_width_dynamic = 0.05;
+                    LOG("Object %s missing width, Please provide object width. Set to bounding box length 0.05", obj->GetName().c_str());
                 }
                 if (object_height_dynamic < SMALL_NUMBER)
                 {
                     object_height_dynamic = 0.05;
+                    LOG("Object %s missing height, Please provide object height. Set to bounding box height 0.05", obj->GetName().c_str());
                 }
-                if (createRepeatPoints)
-                // if (obj->GetNumberOfRepeats() > 0 && ((obj->GetNumberOfOutlines() == 0) || (obj->GetNumberOfOutlines() == 1 && !(obj->GetOutline(0))->IsOriginal())))
+                // if (obj->GetNumberOfRepeats() > 0 && (obj->GetNumberOfOutlines() == 0 || (obj->GetNumberOfOutlines() > 0 && createRepeatPoints)))
+                if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() == 0)
                 { // create repeat information also for outline created from object.
                     int                          nCopies = 0;
                     double cur_s = 0.0;
@@ -5369,7 +5372,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
                             }
 
-                            if ( isEqualDouble(cur_s + SMALL_NUMBER, rep->distance_ ) || cur_s > rep->distance_ )
+                            if ( isEqualDouble(cur_s + SMALL_NUMBER, rep->length_ ) || cur_s > rep->length_ )
                             {
                                 break;  // object would reach outside specified total length
                             }

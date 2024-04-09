@@ -6,7 +6,7 @@
         <link>
         </link>
         <planView>
-            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="200">
+            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="400">
                 <line/>
             </geometry>
         </planView>
@@ -64,53 +64,22 @@
         </lanes>
         <objects>
             <object type="obstacle" id="1" s="5" t="4">
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="1.0" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="1.0" startOffset="0.0" stopOffset="0.0" />
-                </markings>
             </object>
             <object type="obstacle" id="2" s="10" t="8" length="4" width="4" height="2">
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="1.0" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="1.0" startOffset="0.0" stopOffset="0.0" />
-                </markings>
             </object>
-            <object type="obstacle" name="../models/box_cc_by.osgb" id="3" s="20" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                </markings>
+            <object type="obstacle" id="3" name="../models/box_cc_by.osgb" s="20" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
             </object>
-            <object type="obstacle" name="../models/box_cc_b.osgb" id="4" s="25" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                </markings>
+            <object type="obstacle" id="4" name="../models/box_cc_b.osgb" s="25" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
             </object>
-            <object type="obstacle" name="../models/box_cc_b.osgb" id="5" s="25" t="5.0" length="2" width="2" height="3" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                </markings>
+            <object type="obstacle" id="5" name="../models/box_cc_b.osgb" s="25" t="5.0" length="2" width="2" height="3" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
             </object>
-            <object type="obstacle" name="../models/box_cc_by.osgb" id="6" s="30" t="5.0" length="4" width="2" height="6" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                </markings>
+            <object type="obstacle" id="6" name="../models/box_cc_by.osgb" s="30" t="5.0" length="4" width="2" height="6" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
             </object>
-            <object type="barrier" name="../models/fence_plank_and_pole.osgb" id="7" s="20.0" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
+            <object type="barrier"  id="7" name="../models/fence_plank_and_pole.osgb" s="20.0" t="5.0" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
                 <repeat s="35" length="30" distance="0.0" tStart="5.0" tEnd="5.0" widthStart="2.5" widthEnd="2.5" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/>
-                <markings>
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                </markings>
             </object>
             <object type="obstacle" id="8" s="30" t="5.0" length="4" width="2" height="6" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
                 <repeat s="75" length="30" distance="5.0" tStart="5.0" tEnd="5.0" widthStart="2.5" widthEnd="2.5" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/>
-                <markings>
-                    <marking side="right" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                    <marking side="left" width="0.1" color="white" zOffset="0.005" spaceLength="0.0" lineLength="0.1" startOffset="0.0" stopOffset="0.0" />
-                </markings>
             </object>
         </objects>
         <signals>
