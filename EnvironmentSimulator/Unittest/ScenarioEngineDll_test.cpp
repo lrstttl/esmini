@@ -2620,7 +2620,7 @@ TEST(TestOsiReporter, MarkingTest)
     const char* gt = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 11);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 15);
 
     // crosswalk one
     osi3::RoadMarking_Classification_Type marking_type = osi_gt.road_marking(0).classification().type();
@@ -2725,6 +2725,59 @@ TEST(TestOsiReporter, MarkingTest)
 
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(19).base().base_polygon(7).x(), 30);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(19).base().base_polygon(7).y(), -14.099999999999998);
+
+    // no marking for object id 7
+    // now object id 8
+
+    EXPECT_EQ(osi_gt.road_marking(20).base().base_polygon_size(), 16);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(0).x(), 12);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(0).y(), 6);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(13).x(), 12.1);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(13).y(), 9);
+
+    EXPECT_EQ(osi_gt.road_marking(21).base().base_polygon_size(), 16);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(7).x(), 8);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(7).y(), 8);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(15).x(), 8);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(15).y(), 10);
+
+    // now object id 9
+
+    EXPECT_EQ(osi_gt.road_marking(22).base().base_polygon_size(), 80);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(0).x(), 26);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(0).y(), 4);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(13).x(), 26.100000000000001);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(13).y(), 4.2999999999999989);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(79).x(), 26);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(79).y(), 5.9999999999999929);
+
+    EXPECT_EQ(osi_gt.road_marking(23).base().base_polygon_size(), 80);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(7).x(), 24);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(7).y(), 4.1999999999999993);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(15).x(), 24);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(15).y(), 4.3999999999999986);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(72).x(), 24);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(72).y(), 5.7999999999999936);
+
+    // now object id 10
+
+    EXPECT_EQ(osi_gt.road_marking(24).base().base_polygon_size(), 80);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(27).x(), 32);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(27).y(), 4.6999999999999975);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).x(), 32);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).y(), 5.5999999999999943);
+
+    EXPECT_EQ(osi_gt.road_marking(23).base().base_polygon_size(), 80);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).x(), 28);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).y(), 4.3999999999999986);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).x(), 28);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).y(), 5.2999999999999954);
 
 }
 
