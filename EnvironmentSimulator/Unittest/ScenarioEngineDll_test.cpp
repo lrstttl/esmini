@@ -2745,7 +2745,7 @@ TEST(TestOsiReporter, StationaryObjectTest)
     const char* gt = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 8);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 14);
     EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().length(), 0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().width(), 0);
 
@@ -2779,11 +2779,25 @@ TEST(TestOsiReporter, StationaryObjectTest)
     EXPECT_EQ(osi_gt.stationary_object(6).base().base_polygon(4).y(), 1.25);
 
     EXPECT_EQ(osi_gt.stationary_object(7).base().dimension().length(), 4.0); // same object from repeat
-    EXPECT_EQ(osi_gt.stationary_object(7).base().dimension().width(), 2.0);
-    EXPECT_EQ(osi_gt.stationary_object(7).base().dimension().height(), 6.0);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().dimension().height(), 2.0);
     EXPECT_EQ(osi_gt.stationary_object(7).base().position().x(), 75.0);
     EXPECT_EQ(osi_gt.stationary_object(7).base().position().y(), 5.0);
     EXPECT_EQ(osi_gt.stationary_object(7).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(9).base().dimension().length(), 4.0); // same object from repeat
+    EXPECT_EQ(osi_gt.stationary_object(9).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(9).base().dimension().height(), 2.0);
+    EXPECT_EQ(osi_gt.stationary_object(9).base().position().x(), 85.0);
+    EXPECT_EQ(osi_gt.stationary_object(9).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(9).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(12).base().dimension().length(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(12).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(12).base().dimension().height(), 2.0);
+    EXPECT_EQ(osi_gt.stationary_object(12).base().position().x(), 100.0);
+    EXPECT_EQ(osi_gt.stationary_object(12).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(12).base().position().z(), 0.0);
 
     const char* args[] = {"--osc", "../../resources/xosc/stationary_object_test.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
@@ -2843,6 +2857,83 @@ TEST(TestOsiReporter, StationaryObjectTest)
     EXPECT_EQ(osi_gt.stationary_object(12).base().position().z(), 0.0);
 
 }
+
+
+TEST(TestOsiReporter, StationarySimpleObjectTest)
+{
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
+
+    std::string scenario_file = "../../resources/xosc/stationary_object_test.xosc";
+    const char* Scenario_file = scenario_file.c_str();
+    int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
+    ASSERT_EQ(i_init, 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 7);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().length(), 4.0); // same object from repeat
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 6.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 75.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().length(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().height(), 2.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().x(), 85.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().length(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().height(), 2.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().x(), 100.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().z(), 0.0);
+
+    const char* args[] = {"--osc", "../../resources/xosc/stationary_object_test.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt1, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 7);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().length(), 4.0); // same object from repeat
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 6.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 75.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().length(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().height(), 2.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().x(), 85.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().length(), 4.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().width(), 2.5);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().height(), 2.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().x(), 100.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().y(), 5.0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().z(), 0.0);
+
+}
+
 
 TEST(TestOsiReporter, ObjectAsOutlineRepeat)
 {

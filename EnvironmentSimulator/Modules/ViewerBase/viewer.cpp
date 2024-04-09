@@ -3483,7 +3483,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 
                 osg::BoundingBox boundingBox;
                 if (tx != nullptr)
-            {
+                {
                     osg::ComputeBoundsVisitor cbv;
                     tx->accept(cbv);
                     boundingBox = cbv.getBoundingBox();
@@ -3702,6 +3702,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 
                         LODGroup->addChild(clone);
                     }
+#if 0
                     if (rep != nullptr && rep->GetDistance() > SMALL_NUMBER)
                     {
                         roadmanager::Repeat::RepeatVertexPoints points;
@@ -3748,6 +3749,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             }
                         }
                     }
+#endif
                 }
                 if (tx == nullptr)
                 {
