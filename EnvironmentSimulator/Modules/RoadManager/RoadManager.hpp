@@ -1799,7 +1799,6 @@ namespace roadmanager
             double h;
         };
 
-        std::vector<points> localCornerPoints;
         struct ScalePoints
         {
             double scale_x;
@@ -1847,8 +1846,6 @@ namespace roadmanager
 
         void GetPos(double s, double t, double dz, double& x, double& y, double& z);
 
-        // std::vector<OutlineCorner*> cornerReference;
-        // std::vector<std::vector<OutlineCorner*>> cornerReference;
         std::vector<int> cornerReferenceIds;
         void GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, std::vector<OutlineCorner*>& cornerReferences);
 
@@ -1858,12 +1855,10 @@ namespace roadmanager
             double z;
         };
         std::vector<Point3D> vertexPoints_;
-
-        // void FillPoints(RoadObject* object);
-        void FillPoints(Marking* marking, Outline* outline);
+        void FillPointsFromOutline(Marking* marking, Outline* outline);
         void FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales);
 
-        void FillVertexPoints(double p00, double p01, double p10, double p11, int cornerType);
+        void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
 
         ~Marking()
         {

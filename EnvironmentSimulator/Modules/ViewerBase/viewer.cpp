@@ -2954,7 +2954,7 @@ int Viewer::FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::
     }
     else
     {
-        marking->FillPoints(marking, outline); // fill from road corner
+        marking->FillPointsFromOutline(marking, outline); // fill from road corner
     }
     if( marking->vertexPoints_.size() == 0)
     {
@@ -3533,9 +3533,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 osg::ref_ptr<osg::Group>                     LODGroup = 0;
                 osg::ref_ptr<osg::PositionAttitudeTransform> clone    = 0;
 
-                double object_width_dynamic = object->GetWidth(); // for repeat copies
-                double object_length_dynamic = object->GetLength();
-                double object_height_dynamic = object->GetHeight();
                 for (; nCopies < 1 ||
                        (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < road->GetLength());
                      nCopies++)
@@ -3635,22 +3632,18 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
                             {
                                 scale_x = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset)) / dim_x;
-                                object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
                             }
                             else
                             {
                                 scale_x = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
-                                object_length_dynamic = object->GetLength();;
                             }
                             if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
                             {
                                 scale_y = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart())) / dim_y;
-                                object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
                             }
                             if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
                             {
                                 scale_z = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart())) / dim_z;
-                                object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
                             }
 
                             clone->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::ON);
@@ -3702,54 +3695,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 
                         LODGroup->addChild(clone);
                     }
-#if 0
-                    if (rep != nullptr && rep->GetDistance() > SMALL_NUMBER)
-                    {
-                        roadmanager::Repeat::RepeatVertexPoints points;
-                        points.x = pos.GetX();
-                        points.y = pos.GetY();
-                        points.z = pos.GetZ() + object->GetZOffset();
-                        points.height = object_height_dynamic;
-                        points.length = object_length_dynamic;
-                        points.width = object_width_dynamic;
-                        rep->repeatVertexPoints_.push_back(points);
-                    }
-
-                    for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfMarkings()); i++) //draw marking
-                    {
-                        roadmanager::Markings* markings = object->GetMarkings(static_cast<int>(i));
-                        for (size_t j = 0; j < markings->marking_.size(); j++)
-                        {
-                            double v0[3] = { 0.0, 0.0, 0.0};
-                            double v1[3] = { 0.0, 0.0, 0.0};
-                            roadmanager::Marking* marking = markings->marking_[j];
-                            if (marking->GetSide() == 0)
-                            {
-                                // find local lower left corner
-                                RotateVec2D(-object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
-                                // find local upper left corner
-                                RotateVec2D(-object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
-
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, orientation, pos.GetP(), pos.GetR());
-                                printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
-                                marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                            }
-                            else
-                            {
-                                // find local lower right corner
-                                RotateVec2D(object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
-                                // find local upper right corner
-                                RotateVec2D(object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
-
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, orientation, pos.GetP(), pos.GetR());
-                                printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
-                                marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                            }
-                        }
-                    }
-#endif
                 }
                 if (tx == nullptr)
                 {

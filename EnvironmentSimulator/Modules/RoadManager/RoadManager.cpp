@@ -2453,7 +2453,7 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
     z = pos.GetZ() + dz;
 }
 
-void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, int cornerType)
+void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType)
 {
     double total_length = sqrt(((p00- p10)*(p00 - p10)) + ((p01- p11)*(p01 - p11))) + SMALL_NUMBER; // add small number to round double value
     total_length = total_length - startOffset_ - stopOffset_;
@@ -2485,6 +2485,11 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
         double deltaP0Far = sin(beata) * width_;
 
         roadmanager::Position tmp_pos;
+        // tmp_pos.SetTrackPosMode(this->roadId_,
+        //                     p00,
+        //                     p01,
+        //                     roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+        //                         roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
         tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
         // add first block immediate after start offset for line length
         if ( nrOfPoints >= 4)
@@ -2503,12 +2508,14 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
                 z = 0.0;
             }
             tmp_pos.SetInertiaPos(x , y , 0.0);
+            printf("Points A x %.2f y %.2f z %.2f\n", x, y, z);
             z = tmp_pos.GetZ();
+            printf("new z  %.2f\n", z);
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point A
-            // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2527,7 +2534,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point B
 
-            // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
             p0 += deltaP0Line;
             p1 += deltaP1Line;
             // z_new += deltaZLine;
@@ -2547,7 +2554,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point C
-            // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2565,7 +2572,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point D
-            // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
 
         for (int i = 4; i < nrOfPoints; i+=4) // loop from second block
@@ -2591,7 +2598,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point A
-            // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2609,7 +2616,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point B
-            // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             p0 += deltaP0Line;
             p1 += deltaP1Line;
@@ -2629,7 +2636,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point C
-            // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2647,7 +2654,7 @@ void Marking::FillVertexPoints(double p00, double p01, double p10, double p11, i
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point D
-            // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
     }
 }
@@ -2705,13 +2712,13 @@ void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Out
                 v1[2] = pref.GetZ() + (localCornerScales.objZOffset * localCornerScales.scale_z);
                 printf("outline_local_phasring p1 %.2f %.2f p2 %.2f %.2f \n",
                 v0[0], v0[1], v1[0], v1[1]);
-                FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 1);
+                FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 1);
             }
         }
     }
 }
 
-void Marking::FillPoints(Marking* marking, Outline* outline)
+void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
 {
 
     double v0[3] = { 0.0, 0.0, 0.0}; //start points
@@ -2734,7 +2741,7 @@ void Marking::FillPoints(Marking* marking, Outline* outline)
                     v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetT();
                     printf("outline_road_after %.2f %.2f %.2f %.2f\n",
                     v0[0], v0[1], v1[0], v1[1]);
-                    FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
+                    FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 0);
                 }
                 else
                 {
@@ -2742,7 +2749,7 @@ void Marking::FillPoints(Marking* marking, Outline* outline)
                     (cornerReferences[i + 1])->GetPos(v1[0], v1[1], v1[2]);
                     // printf("outline_local_phasring p1 %.2f %.2f p2 %.2f %.2f heading %.2f heading_offset %.2f\n",
                     // v0[0], v0[1], v1[0], v1[1], obj->GetH(), obj->GetHOffset());
-                    FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 1);
+                    FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 1);
                 }
             }
         }
@@ -2758,11 +2765,11 @@ void Marking::FillPoints(Marking* marking, Outline* outline)
             v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
             if (marking->GetSide() == 0)
             {
-                FillVertexPoints(v0[0], v0[1], v1[0], v1[1], 0);
+                FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 0);
             }
             else
             {
-                FillVertexPoints(v1[0], v1[1], v0[0], v0[1], 0);
+                FillMarkingPoints(v1[0], v1[1], v0[0], v0[1], 0);
             }
         }
     }
@@ -4541,7 +4548,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
             {
                 RMObject* obj = nullptr;
                 Position  pos;
-                bool createRepeatPoints = true;
 
                 double      s    = atof(object.attribute("s").value());
                 double      t    = atof(object.attribute("t").value());
@@ -4789,42 +4795,41 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         {
                             continue;
                         }
-                        createRepeatPoints = false;
 
                         printf("number of repeats %d\n", obj->GetNumberOfRepeats());
-                        for (size_t n = 0; n < obj->GetNumberOfRepeats(); n++)
+                        for (size_t j = 0; j < obj->GetNumberOfRepeats(); j++)
                         {
-                            Repeat* repeat = obj->GetRepeatByIdx(static_cast<int>(n));
+                            Repeat* repeat = obj->GetRepeatByIdx(static_cast<int>(j));
+                            double      rtStart       = repeat->GetTStart();
+                            double      rtEnd         = repeat->GetTEnd();
+                            double      rlengthStart = repeat->GetLengthStart();
+                            double      rlengthEnd   = repeat->GetLengthEnd();
+                            double      rwidthStart  = repeat->GetWidthStart();
+                            double      rwidthEnd    = repeat->GetWidthEnd();
+                            double      rheightStart  = repeat->GetHeightStart();
+                            double      rheightEnd    = repeat->GetHeightEnd();
+                            double      rzOffsetStart = repeat->GetZOffsetStart();
+                            double      rzOffsetEnd   = repeat->GetZOffsetEnd();
 
                             printf("Corner type %d\n", static_cast<int>(outlineOriginal->corner_[0]->GetCornerType()));
 
                             if(outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER) // check first corner
                             {
-                                double      rtStart       = repeat->GetTStart();
-                                double      rtEnd         = repeat->GetTEnd();
-                                double      rlengthStart = repeat->GetLengthStart();
-                                double      rlengthEnd   = repeat->GetLengthEnd();
-                                double      rwidthStart  = repeat->GetWidthStart();
-                                double      rwidthEnd    = repeat->GetWidthEnd();
-                                double      rheightStart  = repeat->GetHeightStart();
-                                double      rheightEnd    = repeat->GetHeightEnd();
-                                double      rzOffsetStart = repeat->GetZOffsetStart();
-                                double      rzOffsetEnd   = repeat->GetZOffsetEnd();
 
-                                Outline* outline            = new Outline(n, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
+                                Outline* outline            = new Outline(j, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
                                 std::vector<Outline::points> cornerPoints;
-                                for (size_t j = 0; j < outlineOriginal->corner_.size(); j++)
+                                for (size_t k = 0; k < outlineOriginal->corner_.size(); k++)
                                 {
                                     Outline::points points_;
-                                    points_.x = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[j])->GetU();
-                                    points_.y = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[j])->GetV();
-                                    points_.z = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[j])->GetZ();
-                                    points_.h = (outlineOriginal->corner_[j])->GetHeight();
-                                    printf("Corner points x %.2f y %.2f z %.2f h %.2f no %d\n", points_.x , points_.y , points_.z, points_.h, static_cast<int>(j));
+                                    points_.x = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetU();
+                                    points_.y = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetV();
+                                    points_.z = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetZ();
+                                    points_.h = (outlineOriginal->corner_[k])->GetHeight();
+                                    printf("Corner points x %.2f y %.2f z %.2f h %.2f no %d\n", points_.x , points_.y , points_.z, points_.h, static_cast<int>(k));
                                     cornerPoints.push_back(points_);
                                     // recreate corner with repeat details
-                                    OutlineCorner* corner = (OutlineCorner*)(new OutlineCornerLocal(r->GetId(), repeat->GetS(), rtStart, points_.x, points_.y, points_.z, points_.h, heading, static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[j])->GetCornerId()));
-                                    printf("created corners x %.2f y %.2f z %.2f h %.2f, s %.2f, t %.2f, no %d\n", points_.x , points_.y , points_.z, points_.h, repeat->GetS(), rtStart, static_cast<int>(j));
+                                    OutlineCorner* corner = (OutlineCorner*)(new OutlineCornerLocal(r->GetId(), repeat->GetS(), rtStart, points_.x, points_.y, points_.z, points_.h, heading, static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetCornerId()));
+                                    printf("created corners x %.2f y %.2f z %.2f h %.2f, s %.2f, t %.2f, no %d\n", points_.x , points_.y , points_.z, points_.h, repeat->GetS(), rtStart, static_cast<int>(k));
                                     outline->AddCorner(corner);
                                 }
 
@@ -4839,22 +4844,24 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 double minHieght = cornerPoints[0].h;
                                 double maxHieght = cornerPoints[0].h;
 
-                                for  (size_t j = 0; j < cornerPoints.size(); j++)
+                                for  (size_t k = 0; k < cornerPoints.size(); k++)
                                 {
-                                    minX = min(minX, cornerPoints[j].x);  // Update minX with the smaller value
-                                    maxX = max(maxX, cornerPoints[j].x);  // Update maxX with the larger value
-                                    minY = min(minY, cornerPoints[j].y);  // Update minX with the smaller value
-                                    maxY = max(maxY, cornerPoints[j].y);  // Update maxX with the larger value
-                                    minZ = min(minZ, cornerPoints[j].z);  // Update minX with the smaller value
-                                    maxZ = max(maxZ, cornerPoints[j].z);  // Update maxX with the larger value
-                                    minHieght = min(minZ, cornerPoints[j].h);  // Update minX with the smaller value
-                                    maxHieght = max(maxZ, cornerPoints[j].h);  // Update maxX with the larger value
+                                    minX = min(minX, cornerPoints[k].x);  // Update minX with the smaller value
+                                    maxX = max(maxX, cornerPoints[k].x);  // Update maxX with the larger value
+                                    minY = min(minY, cornerPoints[k].y);
+                                    maxY = max(maxY, cornerPoints[k].y);
+                                    minZ = min(minZ, cornerPoints[k].z);
+                                    maxZ = max(maxZ, cornerPoints[k].z);
+                                    minHieght = min(minZ, cornerPoints[k].h);
+                                    maxHieght = max(maxZ, cornerPoints[k].h);
 
                                 }
+                                // find local bb from corner points
                                 double  length_from_corner = maxX - minX;
                                 double  width_from_corner = maxY - minY;
                                 double  z_from_corner = maxZ - minZ;
                                 double height_from_corner = maxHieght - minHieght;
+
                                 printf("from corner length %.2f width %.2f z %.2f h %.2f\n", length_from_corner, width_from_corner, z_from_corner, height_from_corner);
 
                                 int                          nCopies = 0;
@@ -4876,7 +4883,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     {
                                         break;
                                     }
-                                    // find the new length from repeat
+                                    // find the new length and details from repeat
                                     if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
                                     {
                                         dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
@@ -4941,7 +4948,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     scale_points.objZOffset = obj->GetZOffset();
                                     scale_points.objH = roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0 + obj->GetH();
                                     scale_points.roadId_ = r->GetId();
-                                    outline->localCornerScales.push_back(scale_points);
+                                    outline->localCornerScales.push_back(scale_points); // store points for shallow copy
 
                                     if ( repeat->distance_ < SMALL_NUMBER)
                                     {
@@ -4986,12 +4993,12 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 {
                                     minX = min(minX, cornerPoints[j].x);  // Update minX with the smaller value
                                     maxX = max(maxX, cornerPoints[j].x);  // Update maxX with the larger value
-                                    minY = min(minY, cornerPoints[j].y);  // Update minX with the smaller value
-                                    maxY = max(maxY, cornerPoints[j].y);  // Update maxX with the larger value
-                                    minZ = min(minZ, cornerPoints[j].z);  // Update minX with the smaller value
-                                    maxZ = max(maxZ, cornerPoints[j].z);  // Update maxX with the larger value
-                                    minHieght = min(minZ, cornerPoints[j].h);  // Update minX with the smaller value
-                                    maxHieght = max(maxZ, cornerPoints[j].h);  // Update maxX with the larger value
+                                    minY = min(minY, cornerPoints[j].y);
+                                    maxY = max(maxY, cornerPoints[j].y);
+                                    minZ = min(minZ, cornerPoints[j].z);
+                                    maxZ = max(maxZ, cornerPoints[j].z);
+                                    minHieght = min(minZ, cornerPoints[j].h);
+                                    maxHieght = max(maxZ, cornerPoints[j].h);
 
                                 }
                                 double  length_from_corner = maxX - minX;
@@ -5012,17 +5019,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                                     printf("local points x %.2f y %.2f z %.2f no %d\n", points_.x , points_.y , points_.z, static_cast<int>(i));
                                 }
-
-                                double      rtStart       = repeat->GetTStart();
-                                double      rtEnd         = repeat->GetTEnd();
-                                double      rlengthStart = repeat->GetLengthStart();
-                                double      rlengthEnd   = repeat->GetLengthEnd();
-                                double      rwidthStart  = repeat->GetWidthStart();
-                                double      rwidthEnd    = repeat->GetWidthEnd();
-                                double      rheightStart  = repeat->GetHeightStart();
-                                double      rheightEnd    = repeat->GetHeightEnd();
-                                double      rzOffsetStart = repeat->GetZOffsetStart();
-                                double      rzOffsetEnd   = repeat->GetZOffsetEnd();
 
                                 int                          nCopies = 0;
                                 double                       cur_s   = 0.0;
@@ -5127,7 +5123,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         start_s, start_t, start_z, start_h, cur_s, rtStart, heading, static_cast<int>(k));
                                         outline->AddCorner(corner);
                                     }
-                                    printf("-----------------------------------------------------\n");
                                     obj->AddOutline(outline);
                                     if ( repeat->distance_ < SMALL_NUMBER)
                                     {
@@ -5311,7 +5306,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     }
                     obj->AddMarkings(markings);
                 }
-#if 1
 
                 double object_width_dynamic = obj->GetWidth(); // for repeat copies
                 double object_length_dynamic = obj->GetLength();
@@ -5340,8 +5334,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     {
                         roadmanager::Position pos;
                         Repeat* rep = obj->GetRepeatByIdx(static_cast<int>(i));
-                        double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
-                        pos.SetHeadingRelative(h_offset);
                         for (; nCopies < 1 ||
                                 (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < r->GetLength());
                                 nCopies++)
@@ -5358,6 +5350,8 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                                 t,
                                                 roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
                                                     roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                            double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
+                            pos.SetHeadingRelative(h_offset);
 
                             if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
                             {
@@ -5388,7 +5382,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 cur_s +=
                                     pos.DistanceToDS(object_length_dynamic);
                             }
-                            printf("cur_s s %.2f \n",cur_s);
+                            // printf("cur_s s %.2f \n",cur_s);
 
                             roadmanager::Repeat::RepeatVertexPoints points;
                             points.x = pos.GetX();
@@ -5419,7 +5413,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                             printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
                                             printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                             pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                            marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+                                            marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
                                         }
                                         else
                                         {
@@ -5431,7 +5425,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                             printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
                                             printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                             pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                            marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+                                            marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
                                         }
                                     }
                                 }
@@ -5465,7 +5459,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
                                 printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+                                marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
                             }
                             else
                             {
@@ -5477,12 +5471,11 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
                                 printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
                                 pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                marking->FillVertexPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+                                marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
                             }
                         }
                     }
                 }
-#endif
                 for (pugi::xml_node validity_node = object.child("validity"); validity_node; validity_node = validity_node.next_sibling("validity"))
                 {
                     ValidityRecord validity;
@@ -9134,7 +9127,7 @@ Position::ReturnCode Position::SetLongitudinalTrackPos(int track_id, double s)
     return ReturnCode::OK;
 }
 
-Position::ReturnCode Position:: SetTrackPos(int track_id, double s, double t, bool UpdateXY)
+Position::ReturnCode Position::SetTrackPos(int track_id, double s, double t, bool UpdateXY)
 {
     return SetTrackPosMode(track_id, s, t, GetMode(PosModeType::UPDATE), UpdateXY);
 }

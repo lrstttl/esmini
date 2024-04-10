@@ -513,7 +513,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     {
         repeat_points = repeat->repeatVertexPoints_;
     }
-    if(repeat_points.size() > 0) // fill repeat information
+    if(repeat_points.size() > 0) // fill repeat information(no outline with repeat)
     {
         for (size_t j = 0; j < repeat_points.size(); j++)
         {
@@ -929,7 +929,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     roadmanager::Marking *marking = markings->marking_[l];
                     if (static_cast<int>(marking->vertexPoints_.size()) == 0) // no points from roadmanager
                     {
-                        marking->FillPoints(marking, outline);
+                        marking->FillPointsFromOutline(marking, outline);
                         if(static_cast<int>(marking->vertexPoints_.size()) ==  0)
                         {
                             return -1; // nothing to draw
