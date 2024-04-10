@@ -505,12 +505,15 @@ int OSIReporter::UpdateOSIHostVehicleData(ObjectState *objectState)
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
     (void)road_id;
-
     std::vector<roadmanager::Repeat::RepeatVertexPoints> repeat_points;
 
     roadmanager::Repeat* repeat = object->GetRepeat();
     if (repeat)
     {
+        if(!repeat->IsRepeatObjectsPointsCreated())
+        {
+            repeat->CreateRepeatObjectsPoints(repeat, object,road_id);
+        }
         repeat_points = repeat->repeatVertexPoints_;
     }
     if(repeat_points.size() > 0) // fill repeat information(no outline with repeat)
@@ -889,25 +892,85 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         }
     }
 
-
+    // individual objects with repeat
     if ( object->GetNumberOfOutlines() == 0) // individual objects
     {
-        for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfMarkings()); j++)
+        int verticesSizeMarkings[10] = {0}; // lets say max 10 markings
+        int perviousVerticesSizeMarkings[10] = {0};
+        for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfRepeats()); i++)
         {
-            roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(j));
-            for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); l++)
+            roadmanager::Repeat* rep = object->GetRepeatByIdx(static_cast<int>(i));
+
+            if(!repeat->IsRepeatObjectsPointsCreated())
             {
-                roadmanager::Marking *marking = markings->marking_[l];
-                if (static_cast<int>(marking->vertexPoints_.size()) > 0) //Vertex are already populated in roadmanager itself
+                rep->CreateRepeatObjectsPoints(repeat, object,road_id);
+            }
+            for(size_t j = 0; j < static_cast<unsigned int>(rep->repeatVertexPoints_.size()); j++)
+            {
+                for (size_t k = 0; k< static_cast<unsigned int>(object->GetNumberOfMarkings()); k++)
                 {
-                    std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
-                    obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-                    obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-                    for (size_t m = 0; m < points.size(); m++)
+                    roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(k));
+                    for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); l++)
                     {
-                        osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
-                        vec->set_x(points[m].x);
-                        vec->set_y(points[m].y);
+                        roadmanager::Marking *marking = markings->marking_[l];
+                        if (static_cast<int>(marking->vertexPoints_.size()) == verticesSizeMarkings[l]) // no points from viewer
+                        {
+                            marking->FillMarkingsFromObjectPoint(rep->repeatVertexPoints_[j], object->GetHOffset());
+                        }
+                        if(static_cast<int>(marking->vertexPoints_.size()) ==  verticesSizeMarkings[l])
+                        {
+                            return -1; // nothing to draw
+                        }
+                        perviousVerticesSizeMarkings[l] = verticesSizeMarkings[l];
+                        verticesSizeMarkings[l] = static_cast<int>(marking->vertexPoints_.size());
+                        std::vector<roadmanager::Marking::Point3D> points(marking->vertexPoints_.begin() + perviousVerticesSizeMarkings[l], marking->vertexPoints_.begin() + verticesSizeMarkings[l]); // slice only the new vertices
+                        obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
+                        obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
+                        for (size_t m = 0; m < points.size(); m++)
+                        {
+                            osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
+                            vec->set_x(points[m].x);
+                            vec->set_y(points[m].y);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if ( object->GetNumberOfOutlines() == 0) // individual objects with no repeat
+    {
+        if (object->GetNumberOfRepeats()== 0)
+        {
+            for (size_t j = 0; j < static_cast<unsigned int>(object->GetNumberOfMarkings()); j++)
+            {
+                roadmanager::Markings *markings = object->GetMarkings(static_cast<int>(j));
+                for( size_t l = 0; l < static_cast<unsigned int>(markings->marking_.size()); l++)
+                {
+                    roadmanager::Marking *marking = markings->marking_[l];
+                    if (static_cast<int>(marking->vertexPoints_.size()) == 0) // fill it
+                    {
+                        roadmanager::Repeat::RepeatVertexPoints Points;
+                        Points.x = object->GetX();
+                        Points.y = object->GetY();
+                        Points.z = object->GetZ() + object->GetZOffset();
+                        Points.height = object->GetHeight();
+                        Points.length = object->GetLength();
+                        Points.width = object->GetWidth();
+                        marking->FillMarkingsFromObjectPoint(Points, object->GetHOffset());
+
+                    }
+                    if (static_cast<int>(marking->vertexPoints_.size()) > 0) //Vertex are already populated in viewer itself
+                    {
+                        std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_;
+                        obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
+                        obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
+                        for (size_t m = 0; m < points.size(); m++)
+                        {
+                            osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
+                            vec->set_x(points[m].x);
+                            vec->set_y(points[m].y);
+                        }
                     }
                 }
             }
@@ -929,7 +992,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     roadmanager::Marking *marking = markings->marking_[l];
                     if (static_cast<int>(marking->vertexPoints_.size()) == 0) // no points from roadmanager
                     {
-                        marking->FillPointsFromOutline(marking, outline);
+                        marking->FillMarkingsFromOutline(marking, outline);
                         if(static_cast<int>(marking->vertexPoints_.size()) ==  0)
                         {
                             return -1; // nothing to draw
@@ -951,6 +1014,8 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     }
 
     // create road markings from outline local corner
+    int verticesSizeMarkings[10] = {0}; // lets say max 10 markings
+    int perviousVerticesSizeMarkings[10] = {0};
     for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfOutlines()); i++)
     {
         roadmanager::Outline *outline = object->GetOutline(static_cast<int>(i));
@@ -958,8 +1023,6 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         {
             for (size_t j = 0; j < static_cast<unsigned int>(outline->localCornerScales.size()); j++)
             {
-                int verticesSizeMarkings[10] = {0}; // lets say max 10 markings
-                int perviousVerticesSizeMarkings[10] = {0};
 
                 for (size_t k = 0; k < static_cast<unsigned int>(object->GetNumberOfMarkings()); k++)
                 {
@@ -969,7 +1032,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         roadmanager::Marking *marking = markings->marking_[l];
                         if (static_cast<int>(marking->vertexPoints_.size()) == verticesSizeMarkings[l]) // no points from roadmanager
                         {
-                            marking->FillPointsFromLocalCorners(marking, outline, outline->localCornerScales[l]); // fill from local corner
+                            marking->FillMarkingsFromLocalCorners(marking, outline, outline->localCornerScales[l]); // fill from local corner
                         }
                         if(static_cast<int>(marking->vertexPoints_.size())==  verticesSizeMarkings[l])
                         {
@@ -991,8 +1054,6 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
             }
         }
     }
-
-
 
     return 0;
 }

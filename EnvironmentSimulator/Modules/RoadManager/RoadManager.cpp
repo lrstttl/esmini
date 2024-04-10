@@ -2485,11 +2485,6 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
         double deltaP0Far = sin(beata) * width_;
 
         roadmanager::Position tmp_pos;
-        // tmp_pos.SetTrackPosMode(this->roadId_,
-        //                     p00,
-        //                     p01,
-        //                     roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-        //                         roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
         tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
         // add first block immediate after start offset for line length
         if ( nrOfPoints >= 4)
@@ -2508,14 +2503,14 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 z = 0.0;
             }
             tmp_pos.SetInertiaPos(x , y , 0.0);
-            printf("Points A x %.2f y %.2f z %.2f\n", x, y, z);
+            // printf("Points A x %.2f y %.2f z %.2f\n", x, y, z);
             z = tmp_pos.GetZ();
-            printf("new z  %.2f\n", z);
+            // printf("new z  %.2f\n", z);
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point A
-            printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2534,7 +2529,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point B
 
-            printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
             p0 += deltaP0Line;
             p1 += deltaP1Line;
             // z_new += deltaZLine;
@@ -2554,7 +2549,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point C
-            printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2572,7 +2567,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point D
-            printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
 
         for (int i = 4; i < nrOfPoints; i+=4) // loop from second block
@@ -2598,7 +2593,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point A
-            printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2616,7 +2611,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point B
-            printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             p0 += deltaP0Line;
             p1 += deltaP1Line;
@@ -2636,7 +2631,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point C
-            printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
             {
@@ -2654,7 +2649,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.y = y;
             point.z = z + z_offset_;
             vertexPoints_.push_back(point); // point D
-            printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
+            // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
     }
 }
@@ -2676,7 +2671,7 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
     }
 }
 
-void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales)
+void Marking::FillMarkingsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales)
 {
     double v0[3] = { 0.0, 0.0, 0.0}; //start points
     double v1[3] = { 0.0, 0.0, 0.0}; // end points
@@ -2718,7 +2713,42 @@ void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Out
     }
 }
 
-void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
+void Marking::FillMarkingsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset)
+{
+    double v0[3] = { 0.0, 0.0, 0.0};
+    double v1[3] = { 0.0, 0.0, 0.0};
+    roadmanager::Position pos;
+    pos.SetTrackPosMode(roadId_,
+                        repeatPoints.x,
+                        repeatPoints.y,
+                        roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+    if (GetSide() == 0)
+    {
+        // find local lower left corner
+        RotateVec2D(-repeatPoints.length / 2 , -repeatPoints.width / 2, pos.GetH() + objHOffset, v0[0], v0[1]);
+        // find local upper left corner
+        RotateVec2D(-repeatPoints.length / 2 , repeatPoints.width  / 2, pos.GetH() + objHOffset, v1[0], v1[1]);
+        printf("Object pos %.2f %.2f l %.2f w %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), repeatPoints.length, repeatPoints.width, pos.GetP(), pos.GetR());
+        printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
+        pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), objHOffset);
+        FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+    }
+    else
+    {
+        // find local lower right corner
+        RotateVec2D(repeatPoints.length / 2 , -repeatPoints.width  / 2, pos.GetH() + objHOffset, v0[0], v0[1]);
+        // find local upper right corner
+        RotateVec2D(repeatPoints.length / 2 , repeatPoints.width  / 2, pos.GetH() + objHOffset, v1[0], v1[1]);
+        printf("Object pos %.2f %.2f l %.2f w %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), repeatPoints.length, repeatPoints.width, pos.GetP(), pos.GetR());
+        printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
+        pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), objHOffset);
+        FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+    }
+
+}
+
+void Marking::FillMarkingsFromOutline(Marking* marking, Outline* outline)
 {
 
     double v0[3] = { 0.0, 0.0, 0.0}; //start points
@@ -2771,6 +2801,102 @@ void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
             {
                 FillMarkingPoints(v1[0], v1[1], v0[0], v0[1], 0);
             }
+        }
+    }
+}
+bool Repeat::IsRepeatObjectsPointsCreated()
+{
+    return repeatVertexPoints_.size() > 0;
+}
+
+void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id)
+{
+    RMObject* obj = static_cast<RMObject*>(object);
+    double object_width_dynamic = obj->GetWidth(); // for repeat copies
+    double object_length_dynamic = obj->GetLength();
+    double object_height_dynamic = obj->GetHeight();
+    if (object_length_dynamic < SMALL_NUMBER && object_width_dynamic < SMALL_NUMBER && object_height_dynamic < SMALL_NUMBER)
+    {
+        object_width_dynamic = 1; // for repeat copies
+        object_length_dynamic = 1;
+        object_height_dynamic = 1;
+    }
+    else if (object_length_dynamic < SMALL_NUMBER)
+    {
+        object_length_dynamic = 0.05;
+    }
+    else if (object_width_dynamic < SMALL_NUMBER)
+    {
+        object_width_dynamic = 0.05;
+    }
+    else if (object_height_dynamic < SMALL_NUMBER)
+    {
+        object_height_dynamic = 0.05;
+    }
+    if (obj->GetNumberOfOutlines() == 0)
+    { // create repeat information also for outline created from object.
+        int                          nCopies = 0;
+        double cur_s = 0.0;
+
+        roadmanager::Position pos;
+        for (; nCopies < 1 ||
+                (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_);
+                nCopies++)
+        {
+            double factor, t, s, zOffset;
+            factor  = cur_s / rep->GetLength();
+            t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
+            s       = rep->GetS() + cur_s;
+            zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
+
+            // position mode relative for aligning to road heading
+            pos.SetTrackPosMode(r_id,
+                                s,
+                                t,
+                                roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                    roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+            double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
+            pos.SetHeadingRelative(h_offset);
+
+            if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
+            {
+                object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
+            }
+            if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
+            {
+                object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
+            }
+            if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
+            {
+                object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
+            }
+
+            if ( isEqualDouble(cur_s + SMALL_NUMBER, rep->length_ ) || cur_s > rep->length_ )
+            {
+                break;  // object would reach outside specified total length
+            }
+
+            // increase current s according to distance
+            if (rep->distance_ > SMALL_NUMBER)
+            {
+                cur_s += rep->distance_;
+            }
+            else
+            {
+                // for continuous objects, move along s wrt to road curvature
+                cur_s +=
+                    pos.DistanceToDS(object_length_dynamic);
+            }
+            // printf("cur_s s %.2f \n",cur_s);
+
+            roadmanager::Repeat::RepeatVertexPoints points;
+            points.x = pos.GetX();
+            points.y = pos.GetY();
+            points.z = pos.GetZ() + obj->GetZOffset();
+            points.height = object_height_dynamic;
+            points.length = object_length_dynamic;
+            points.width = object_width_dynamic;
+            rep->repeatVertexPoints_.push_back(points);
         }
     }
 }
@@ -4690,7 +4816,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     }
 
                     // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
-                    Repeat* repeat = new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd);
+                    Repeat* repeat = new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
                     Repeats.push_back(repeat);
 
                     if (fabs(rwidthStart) > SMALL_NUMBER)
@@ -5307,175 +5433,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     obj->AddMarkings(markings);
                 }
 
-                double object_width_dynamic = obj->GetWidth(); // for repeat copies
-                double object_length_dynamic = obj->GetLength();
-                double object_height_dynamic = obj->GetHeight();
-                if (object_length_dynamic < SMALL_NUMBER) // no bb what if model provided?
-                {
-                    object_length_dynamic = 0.05;
-                    LOG("Object %s missing length, Please provide object length, Set to bounding box length 0.05", obj->GetName().c_str());
-                }
-                if (object_width_dynamic < SMALL_NUMBER)
-                {
-                    object_width_dynamic = 0.05;
-                    LOG("Object %s missing width, Please provide object width. Set to bounding box length 0.05", obj->GetName().c_str());
-                }
-                if (object_height_dynamic < SMALL_NUMBER)
-                {
-                    object_height_dynamic = 0.05;
-                    LOG("Object %s missing height, Please provide object height. Set to bounding box height 0.05", obj->GetName().c_str());
-                }
-                // if (obj->GetNumberOfRepeats() > 0 && (obj->GetNumberOfOutlines() == 0 || (obj->GetNumberOfOutlines() > 0 && createRepeatPoints)))
-                if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() == 0)
-                { // create repeat information also for outline created from object.
-                    int                          nCopies = 0;
-                    double cur_s = 0.0;
-                    for (size_t i = 0; i < obj->GetNumberOfRepeats(); i++)
-                    {
-                        roadmanager::Position pos;
-                        Repeat* rep = obj->GetRepeatByIdx(static_cast<int>(i));
-                        for (; nCopies < 1 ||
-                                (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < r->GetLength());
-                                nCopies++)
-                        {
-                            double factor, t, s, zOffset;
-                            factor  = cur_s / rep->GetLength();
-                            t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
-                            s       = rep->GetS() + cur_s;
-                            zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
-
-                            // position mode relative for aligning to road heading
-                            pos.SetTrackPosMode(r->GetId(),
-                                                s,
-                                                t,
-                                                roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                                    roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                            double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
-                            pos.SetHeadingRelative(h_offset);
-
-                            if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
-                            {
-                                object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
-                            }
-                            if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
-                            {
-                                object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
-                            }
-                            if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
-                            {
-                                object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
-                            }
-
-                            if ( isEqualDouble(cur_s + SMALL_NUMBER, rep->length_ ) || cur_s > rep->length_ )
-                            {
-                                break;  // object would reach outside specified total length
-                            }
-
-                            // increase current s according to distance
-                            if (rep->distance_ > SMALL_NUMBER)
-                            {
-                                cur_s += rep->distance_;
-                            }
-                            else
-                            {
-                                // for continuous objects, move along s wrt to road curvature
-                                cur_s +=
-                                    pos.DistanceToDS(object_length_dynamic);
-                            }
-                            // printf("cur_s s %.2f \n",cur_s);
-
-                            roadmanager::Repeat::RepeatVertexPoints points;
-                            points.x = pos.GetX();
-                            points.y = pos.GetY();
-                            points.z = pos.GetZ() + obj->GetZOffset();
-                            points.height = object_height_dynamic;
-                            points.length = object_length_dynamic;
-                            points.width = object_width_dynamic;
-                            rep->repeatVertexPoints_.push_back(points);
-
-                            if (obj->GetNumberOfOutlines() == 0) // marking for ouline handled above already
-                            {
-                                for (size_t j = 0; j < static_cast<unsigned int>(obj->GetNumberOfMarkings()); j++) //draw marking
-                                {
-                                    roadmanager::Markings* markings = obj->GetMarkings(static_cast<int>(j));
-                                    for (size_t k = 0; k < markings->marking_.size(); k++)
-                                    {
-                                        double v0[3] = { 0.0, 0.0, 0.0};
-                                        double v1[3] = { 0.0, 0.0, 0.0};
-                                        roadmanager::Marking* marking = markings->marking_[k];
-                                        if (marking->GetSide() == 0)
-                                        {
-                                            // find local lower left corner
-                                            RotateVec2D(-object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v0[0], v0[1]);
-                                            // find local upper left corner
-                                            RotateVec2D(-object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v1[0], v1[1]);
-
-                                            printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
-                                            printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                            pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                            marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                                        }
-                                        else
-                                        {
-                                            // find local lower right corner
-                                            RotateVec2D(object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v0[0], v0[1]);
-                                            // find local upper right corner
-                                            RotateVec2D(object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v1[0], v1[1]);
-
-                                            printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
-                                            printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                            pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                            marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-					}
-				}
-                else if (obj->GetNumberOfOutlines() == 0)
-                {
-                    roadmanager::Position pos;
-                            pos.SetTrackPosMode(r->GetId(),
-                                                obj->GetS(),
-                                                obj->GetT(),
-                                                roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                                    roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                    for (size_t j = 0; j < static_cast<unsigned int>(obj->GetNumberOfMarkings()); j++) //draw marking
-                    {
-                        roadmanager::Markings* markings = obj->GetMarkings(static_cast<int>(j));
-                        for (size_t k = 0; k < markings->marking_.size(); k++)
-                        {
-                            double v0[3] = { 0.0, 0.0, 0.0};
-                            double v1[3] = { 0.0, 0.0, 0.0};
-                            roadmanager::Marking* marking = markings->marking_[k];
-                            if (marking->GetSide() == 0)
-                            {
-                                // find local lower left corner
-                                RotateVec2D(-object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v0[0], v0[1]);
-                                // find local upper left corner
-                                RotateVec2D(-object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v1[0], v1[1]);
-
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
-                                printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                            }
-                            else
-                            {
-                                // find local lower right corner
-                                RotateVec2D(object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v0[0], v0[1]);
-                                // find local upper right corner
-                                RotateVec2D(object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + obj->GetHOffset(), v1[0], v1[1]);
-
-                                printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, 0.0, pos.GetP(), pos.GetR());
-                                printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), obj->GetHOffset());
-                                marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
-                            }
-                        }
-                    }
-                }
                 for (pugi::xml_node validity_node = object.child("validity"); validity_node; validity_node = validity_node.next_sibling("validity"))
                 {
                     ValidityRecord validity;

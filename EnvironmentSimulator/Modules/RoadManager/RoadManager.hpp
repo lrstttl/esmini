@@ -1815,73 +1815,6 @@ namespace roadmanager
         std::vector<ScalePoints> localCornerScales;
     };
 
-    class Marking
-    {
-    private:
-        RoadMarkColor color_;
-        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
-        int roadId_, side_; // 0 left , 1 right
-
-    public:
-        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
-            : roadId_(roadId),
-              color_(color_str),
-              width_(width),
-              z_offset_(z_offset),
-              spaceLength_(spaceLength),
-              lineLength_(lineLength),
-              startOffset_(startOffset),
-              stopOffset_(stopOffset),
-              side_(side)
-        {
-        }
-        int GetSide()
-        {
-            return side_;
-        }
-        RoadMarkColor GetColor()
-        {
-            return color_;
-        }
-
-        void GetPos(double s, double t, double dz, double& x, double& y, double& z);
-
-        std::vector<int> cornerReferenceIds;
-        void GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, std::vector<OutlineCorner*>& cornerReferences);
-
-        struct Point3D {
-            double x;
-            double y;
-            double z;
-        };
-        std::vector<Point3D> vertexPoints_;
-        void FillPointsFromOutline(Marking* marking, Outline* outline);
-        void FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales);
-
-        void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
-
-        ~Marking()
-        {
-        }
-    };
-
-    class Markings
-    {
-    public:
-        std::vector<Marking *> marking_;
-        ~Markings()
-        {
-            for (size_t i = 0; i < marking_.size(); i++)
-                delete (marking_[i]);
-            marking_.clear();
-        }
-
-        void AddMarking(Marking *Marking)
-        {
-            marking_.push_back(Marking);
-        }
-    };
-
     class ParkingSpace
     {
     public:
@@ -1948,6 +1881,7 @@ namespace roadmanager
         double lengthEnd_;
         double radiusStart_;
         double radiusEnd_;
+        double roadLength_;
 
         Repeat(double s,
                double length,
@@ -1957,7 +1891,8 @@ namespace roadmanager
                double heightStart,
                double heightEnd,
                double zOffsetStart,
-               double zOffsetEnd)
+               double zOffsetEnd,
+               double roadLength)
             : s_(s),
               length_(length),
               distance_(distance),
@@ -1972,7 +1907,8 @@ namespace roadmanager
               lengthStart_(0.0),
               lengthEnd_(0.0),
               radiusStart_(0.0),
-              radiusEnd_(0.0)
+              radiusEnd_(0.0),
+              roadLength_(roadLength)
         {
         }
 
@@ -2070,7 +2006,77 @@ namespace roadmanager
             double height;
         };
     std::vector<RepeatVertexPoints> repeatVertexPoints_;
+    void CreateRepeatObjectsPoints(Repeat* repeat, RoadObject* obj, int r_id);
+    bool IsRepeatObjectsPointsCreated();
 
+    };
+
+    class Marking
+    {
+    private:
+        RoadMarkColor color_;
+        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
+        int roadId_, side_; // 0 left , 1 right
+
+    public:
+        Marking(int roadId, RoadMarkColor color_str, double width, double z_offset, double spaceLength, double lineLength, double startOffset, double stopOffset, int side)
+            : roadId_(roadId),
+              color_(color_str),
+              width_(width),
+              z_offset_(z_offset),
+              spaceLength_(spaceLength),
+              lineLength_(lineLength),
+              startOffset_(startOffset),
+              stopOffset_(stopOffset),
+              side_(side)
+        {
+        }
+        int GetSide()
+        {
+            return side_;
+        }
+        RoadMarkColor GetColor()
+        {
+            return color_;
+        }
+
+        void GetPos(double s, double t, double dz, double& x, double& y, double& z);
+
+        std::vector<int> cornerReferenceIds;
+        void GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, std::vector<OutlineCorner*>& cornerReferences);
+
+        struct Point3D {
+            double x;
+            double y;
+            double z;
+        };
+        std::vector<Point3D> vertexPoints_;
+        void FillMarkingsFromOutline(Marking* marking, Outline* outline);
+        void FillMarkingsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales);
+        void FillMarkingsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints , double objHOffset);
+
+        void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
+
+        ~Marking()
+        {
+        }
+    };
+
+    class Markings
+    {
+    public:
+        std::vector<Marking *> marking_;
+        ~Markings()
+        {
+            for (size_t i = 0; i < marking_.size(); i++)
+                delete (marking_[i]);
+            marking_.clear();
+        }
+
+        void AddMarking(Marking *Marking)
+        {
+            marking_.push_back(Marking);
+        }
     };
 
     class RMObject : public RoadObject
