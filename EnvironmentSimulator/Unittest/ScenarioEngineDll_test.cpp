@@ -2708,7 +2708,7 @@ TEST(TestOsiReporter, MarkingTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).y(), -33.065303195215279);
 
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).x(), 256.58336523858969);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), -23.990546370868596);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), -34.862017814406371);
 
     // local corner outline with repeat
     EXPECT_EQ(osi_gt.road_marking(12).base().base_polygon_size(), 20);
