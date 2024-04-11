@@ -80,7 +80,7 @@
             </object>
             <object type="obstacle" id="8" s="30" t="5.0" length="4" width="2" height="6" orientation="none" hdg="0.0" pitch="0.0" roll="0.0">
                 <repeat s="75" length="30" distance="5.0" tStart="5.0" tEnd="5.0" widthStart="2.5" widthEnd="2.5" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/>
-                <!-- <repeat s="200" length="20" distance="5.0" tStart="5.0" tEnd="5.0" widthStart="2.5" widthEnd="2.5" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/> -->
+                <repeat s="200" length="20" distance="5.0" tStart="5.0" tEnd="5.0" widthStart="2.5" widthEnd="2.5" heightStart="2.0" heightEnd="2.0" zOffsetStart="0.0" zOffsetEnd="0.0"/>
             </object>
         </objects>
         <signals>
