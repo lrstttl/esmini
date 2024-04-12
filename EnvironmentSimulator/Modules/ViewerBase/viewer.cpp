@@ -3193,11 +3193,8 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
 
             // First align to road orientation
             osg::Quat quatRoad(osg::Quat(pos.GetR(), osg::X_AXIS, pos.GetP(), osg::Y_AXIS, pos.GetH(), osg::Z_AXIS));
-            printf("angle r %.2f p %.2f h %.2f\n",
-                                            pos.GetR(), pos.GetP(), pos.GetH());
             // Specified local rotation
             osg::Quat quatLocal(outline->localCornerScales[k].objH, osg::Vec3(osg::Z_AXIS));  // Heading
-            printf("heading r %.2f\n", outline->localCornerScales[k].objH);
 
             // Combine
             xform->setAttitude(quatLocal * quatRoad);
@@ -3742,9 +3739,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                     RotateVec2D(-object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
                                     // find local upper left corner
                                     RotateVec2D(-object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
-                                    printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, orientation, pos.GetP(), pos.GetR());
-                                    printf("Corners_left %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                    pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
                                     marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
                                 }
                                 else
@@ -3753,9 +3747,6 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                     RotateVec2D(object_length_dynamic / 2 , -object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v0[0], v0[1]);
                                     // find local upper right corner
                                     RotateVec2D(object_length_dynamic / 2 , object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
-                                    printf("Object pos %.2f %.2f l %.2f w %.2f, o %.2f, P %.2f, R %.2f\n", pos.GetX(), pos.GetY(), object_length_dynamic, object_width_dynamic, orientation, pos.GetP(), pos.GetR());
-                                    printf("Corners_right %.2f %.2f %.2f %.2f heading %.2f heading_offset %.2f\n",
-                                    pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], pos.GetH(), object->GetHOffset());
                                     marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
                                 }
                             }

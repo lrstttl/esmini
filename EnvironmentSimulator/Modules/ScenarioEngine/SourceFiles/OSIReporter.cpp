@@ -502,6 +502,20 @@ int OSIReporter::UpdateOSIHostVehicleData(ObjectState *objectState)
     return 0;
 }
 
+
+int UpdateOSIStationaryObjectODRMarking( osi3::RoadMarking *rm, osi3::GroundTruth  *gt, std::vector<roadmanager::Marking::Point3D> points)
+{
+    rm = gt->add_road_marking();
+    rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
+    for (size_t i = 0; i < points.size(); i++)
+    {
+        osi3::Vector2d *vec = rm->mutable_base()->add_base_polygon();
+        vec->set_x(points[i].x);
+        vec->set_y(points[i].y);
+    }
+    return 0;
+}
+
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
     (void)road_id;
@@ -923,14 +937,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     for (size_t i = 0; i < marking->vertexPoints_.size(); i++)  //Vertex are already populated in viewer itself
                     {
                         std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[i];
-                        obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-                        obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-                        for (size_t m = 0; m < points.size(); m++)
-                        {
-                            osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
-                            vec->set_x(points[m].x);
-                            vec->set_y(points[m].y);
-                        }
+                        UpdateOSIStationaryObjectODRMarking( obj_osi_internal.rm, obj_osi_internal.gt, points);
                     }
                 }
             }
@@ -958,14 +965,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                                 marking->FillPointsFromObjectPoint(rep->repeatVertexPoints_[j], object->GetHOffset());
                             }
                             std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[j]; // for each repeatVertexPoints_, marking points vector shall be created
-                            obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-                            obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-                            for (size_t m = 0; m < points.size(); m++)
-                            {
-                                osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
-                                vec->set_x(points[m].x);
-                                vec->set_y(points[m].y);
-                            }
+                            UpdateOSIStationaryObjectODRMarking( obj_osi_internal.rm, obj_osi_internal.gt, points);
                         }
                     }
                 }
@@ -991,14 +991,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                                 marking->FillPointsFromOutline(marking, outline.get());
                             }
                             std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[i]; // for each outline, marking points vector shall be created
-                            obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-                            obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-                            for (size_t m = 0; m < points.size(); m++)
-                            {
-                                osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
-                                vec->set_x(points[m].x);
-                                vec->set_y(points[m].y);
-                            }
+                            UpdateOSIStationaryObjectODRMarking( obj_osi_internal.rm, obj_osi_internal.gt, points);
                         }
                     }
                 }
@@ -1024,14 +1017,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                                     marking->FillPointsFromLocalCorners(marking, outline.get(), outline->localCornerScales[l]); // fill from local corner
                                 }
                                 std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[j]; // for each localCornerScales, marking points vector shall be created
-                                obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-                                obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-                                for (size_t m = 0; m < points.size(); m++)
-                                {
-                                    osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
-                                    vec->set_x(points[m].x);
-                                    vec->set_y(points[m].y);
-                                }
+                                UpdateOSIStationaryObjectODRMarking( obj_osi_internal.rm, obj_osi_internal.gt, points);
                             }
                         }
                     }
@@ -1049,14 +1035,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                                 marking->FillPointsFromOutline(marking, outline.get());
                             }
                             std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[i]; // for each outline copies, marking points vector shall be created
-                            obj_osi_internal.rm = obj_osi_internal.gt->add_road_marking();
-                            obj_osi_internal.rm->mutable_classification()->set_type(osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
-                            for (size_t m = 0; m < points.size(); m++)
-                            {
-                                osi3::Vector2d *vec = obj_osi_internal.rm->mutable_base()->add_base_polygon();
-                                vec->set_x(points[m].x);
-                                vec->set_y(points[m].y);
-                            }
+                            UpdateOSIStationaryObjectODRMarking( obj_osi_internal.rm, obj_osi_internal.gt, points);
                         }
                     }
                 }
