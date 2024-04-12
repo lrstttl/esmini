@@ -2484,6 +2484,8 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
         double deltaP1Far = cos(beata) * width_;
         double deltaP0Far = sin(beata) * width_;
 
+       std::vector<Point3D> points_;
+
         roadmanager::Position tmp_pos;
         tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
         // add first block immediate after start offset for line length
@@ -2509,7 +2511,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point A
+            points_.push_back(point); // point A
             // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
@@ -2527,7 +2529,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point B
+            points_.push_back(point); // point B
 
             // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
             p0 += deltaP0Line;
@@ -2548,7 +2550,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point C
+            points_.push_back(point); // point C
             // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
@@ -2566,7 +2568,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point D
+            points_.push_back(point); // point D
             // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
 
@@ -2592,7 +2594,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point A
+            points_.push_back(point); // point A
             // printf("Points A %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
@@ -2610,7 +2612,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point B
+            points_.push_back(point); // point B
             // printf("Points B %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             p0 += deltaP0Line;
@@ -2630,7 +2632,7 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point C
+            points_.push_back(point); // point C
             // printf("Points C %.2f %.2f %.2f\n", point.x, point.y, point.z);
 
             if (cornerType == 0) // raod
@@ -2648,9 +2650,10 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            vertexPoints_.push_back(point); // point D
+            points_.push_back(point); // point D
             // printf("Points D %.2f %.2f %.2f\n", point.x, point.y, point.z);
         }
+        vertexPoints_.push_back(points_);
     }
 }
 
@@ -2671,7 +2674,7 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
     }
 }
 
-void Marking::FillMarkingsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales)
+void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales)
 {
     double v0[3] = { 0.0, 0.0, 0.0}; //start points
     double v1[3] = { 0.0, 0.0, 0.0}; // end points
@@ -2713,7 +2716,7 @@ void Marking::FillMarkingsFromLocalCorners(Marking* marking, Outline* outline, O
     }
 }
 
-void Marking::FillMarkingsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset)
+void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset)
 {
     double v0[3] = { 0.0, 0.0, 0.0};
     double v1[3] = { 0.0, 0.0, 0.0};
@@ -2748,7 +2751,7 @@ void Marking::FillMarkingsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoint
 
 }
 
-void Marking::FillMarkingsFromOutline(Marking* marking, Outline* outline)
+void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
 {
 
     double v0[3] = { 0.0, 0.0, 0.0}; //start points
@@ -2834,7 +2837,7 @@ void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id
         object_height_dynamic = 0.05;
     }
     if (obj->GetNumberOfOutlines() == 0)
-    { // create repeat information also for outline created from object.
+    { // create repeat information also for non outline object.
         int                          nCopies = 0;
         double cur_s = 0.0;
 
@@ -2871,7 +2874,7 @@ void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id
                 object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
             }
 
-            if ( isEqualDouble(cur_s + SMALL_NUMBER, rep->length_ ) || cur_s > rep->length_ )
+            if ( IsEqualDouble(cur_s + SMALL_NUMBER, rep->length_ ) || cur_s > rep->length_ )
             {
                 break;  // object would reach outside specified total length
             }
@@ -4757,10 +4760,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                            pos.GetHRoad());
                     }
                     pugi::xml_node outlines_node_ = object.child("outlines");
-                    if (rdistance < SMALL_NUMBER && outlines_node_ == nullptr) // create outline when no outline in the object with repeat. Outline with repeat handed separately/
+                    if (rdistance < SMALL_NUMBER && outlines_node_ == NULL) // create outline when no outline in the object with repeat. Outline with repeat handed separately/
                     {
                         // inter-distance is zero, treat as outline
-                        Outline*     outline            = new Outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, true, false);
+                        std::shared_ptr<Outline> outline            = std::make_shared<Outline>(ids, Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
                         const double max_segment_length = 10.0;
 
                         // find smallest value of length and rlength, but between SMALL_NUMBER and max_segment_length
@@ -4812,7 +4815,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 outline->AddCorner(corner);
                             }
                         }
-                        obj->AddOutline(outline);
+                        obj->AddOutlineCopies(outline);
                     }
 
                     // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
@@ -4866,15 +4869,14 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     obj->SetRepeat(Repeats[0]);
                 }
 
-                bool     closed = true; // shall be used in outline with repeat
                 pugi::xml_node outlines_node = object.child("outlines");
                 if (outlines_node != NULL)
                 {
                     for (pugi::xml_node outline_node = outlines_node.child("outline"); outline_node; outline_node = outline_node.next_sibling())
                     {
                         int      id      = atoi(outline_node.attribute("id").value());
-                        closed  = !strcmp(outline_node.attribute("closed").value(), "true") ? true : false;
-                        Outline* outline = new Outline(id, Outline::FillType::FILL_TYPE_UNDEFINED, closed, true);
+                        Outline::AreaType areaTrpe  = !strcmp(outline_node.attribute("closed").value(), "true") ? Outline::AreaType::CLOSED : Outline::AreaType::OPEN;
+                       std::shared_ptr<Outline> outline = std::make_shared<Outline>(id, Outline::FillType::FILL_TYPE_UNDEFINED, areaTrpe);
 
                         for (pugi::xml_node corner_node = outline_node.first_child(); corner_node; corner_node = corner_node.next_sibling())
                         {
@@ -4912,15 +4914,9 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 }
                 if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() > 0) // create copies of outline for repeat
                 {
-                    unsigned int originalOutlinesSize = obj->GetNumberOfOutlines();
-                    printf("originalOutlinesSize %d\n", originalOutlinesSize);
-                    for (size_t i = 0; i < originalOutlinesSize; i++)
+                    for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
                     {
-                        roadmanager::Outline* outlineOriginal = obj->GetOutline(static_cast<int>(i));
-                        if(!outlineOriginal->IsOriginal()) // coonsider only orginal outline
-                        {
-                            continue;
-                        }
+                        auto outlineOriginal = obj->GetOutline(static_cast<int>(i));
 
                         printf("number of repeats %d\n", obj->GetNumberOfRepeats());
                         for (size_t j = 0; j < obj->GetNumberOfRepeats(); j++)
@@ -4942,7 +4938,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             if(outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER) // check first corner
                             {
 
-                                Outline* outline            = new Outline(j, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
+                                std::shared_ptr<Outline> outline            = std::make_shared<Outline>(j, Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal->GetAreaType()); // new outline for each segment
                                 std::vector<Outline::points> cornerPoints;
                                 for (size_t k = 0; k < outlineOriginal->corner_.size(); k++)
                                 {
@@ -5005,7 +5001,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 while (total_length_from_repeat > SMALL_NUMBER)
                                 {
                                     double       factor  = cur_s / total_length_from_repeat;
-                                    if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
+                                    if ( IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
                                     {
                                         break;
                                     }
@@ -5086,7 +5082,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     }
                                     printf("new dist s %.2f \n",cur_s);
                                 }
-                                obj->AddOutline(outline);
+                                obj->AddOutlineCopies(outline);
                             }
                             else // road corner
                             {
@@ -5150,7 +5146,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 double                       cur_s   = 0.0;
                                 double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
                                 printf("new total_length_from_repeat s %.2f \n",total_length_from_repeat);
-                                Outline*     outline            = 0;
+                                std::shared_ptr<Outline> outline            = nullptr;
                                 double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
                                 double dynamic_length = length_from_corner;
                                 double dynamic_width = width_from_corner;
@@ -5160,7 +5156,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 while (total_length_from_repeat > SMALL_NUMBER)
                                 {
                                     double       factor  = cur_s / total_length_from_repeat;
-                                    if ( isEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
+                                    if ( IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
                                     {
                                         break;
                                     }
@@ -5184,7 +5180,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
                                     }
 
-                                    outline            = new Outline(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, closed, false); // new outline for each segment
+                                    outline            = std::make_shared<Outline>(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal->GetAreaType()); // new outline for each segment
                                     for (unsigned int k = 0; k < cornerPoints.size(); k++)
                                     {
                                         double x_to_add = localPoints[k].x;
@@ -5249,7 +5245,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         start_s, start_t, start_z, start_h, cur_s, rtStart, heading, static_cast<int>(k));
                                         outline->AddCorner(corner);
                                     }
-                                    obj->AddOutline(outline);
+                                    obj->AddOutlineCopies(outline);
                                     if ( repeat->distance_ < SMALL_NUMBER)
                                     {
                                         cur_s += dynamic_length;
@@ -5261,18 +5257,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     printf("new dist s %.2f \n",cur_s);
                                 }
                             }
-                        }
-                    }
-                    for ( int i = 0 ; i < obj->GetNumberOfOutlines();) // delete the original outline after tranformed into repeat
-                    {
-                        if(obj->GetOutline(i)->IsOriginal())
-                        {
-                            obj->DeleteOutline(i);
-                            i = 0; // index order may be changed, restart
-                        }
-                        else
-                        {
-                            i++;
                         }
                     }
                 }
@@ -5417,11 +5401,11 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                         if( obj->GetNumberOfOutlines() > 0)
                         {
-                            for (int i = 0; i < obj->GetNumberOfOutlines(); i++)
+                            for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
                             {
-                                roadmanager::Outline* outlineOriginal = obj->GetOutline(i);
+                                auto outlineOriginal = obj->GetOutline(i);
 
-                                if (outlineOriginal->IsOriginal() && marking->cornerReferenceIds.size() != 2)
+                                if (marking->cornerReferenceIds.size() != 2)
                                 {
                                     LOG("If an outline is used at least two <cornerReference> elements are mandatory, Skipping");
                                 }

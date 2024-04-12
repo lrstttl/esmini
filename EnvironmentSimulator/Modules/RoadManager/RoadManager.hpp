@@ -1764,14 +1764,18 @@ namespace roadmanager
             FILL_TYPE_SOIL,
             FILL_TYPE_UNDEFINED
         } FillType;
+        typedef enum
+        {
+            CLOSED,
+            OPEN
+        } AreaType;
 
         int                          id_;
         FillType                     fillType_;
-        bool                         closed_;
+        AreaType                         areaType_;
         std::vector<OutlineCorner *> corner_;
-        bool                         isOriginal_;
 
-        Outline(int id, FillType fillType, bool closed, bool isOriginal): id_(id), fillType_(fillType), closed_(closed), isOriginal_(isOriginal)
+        Outline(int id, FillType fillType, AreaType areaType): id_(id), fillType_(fillType), areaType_(areaType)
         {
         }
 
@@ -1787,9 +1791,9 @@ namespace roadmanager
             corner_.push_back(outlineCorner);
         }
 
-        bool IsOriginal()
+        AreaType GetAreaType()
         {
-            return isOriginal_;
+            return areaType_;
         }
         struct points
         {
@@ -2050,10 +2054,10 @@ namespace roadmanager
             double y;
             double z;
         };
-        std::vector<Point3D> vertexPoints_;
-        void FillMarkingsFromOutline(Marking* marking, Outline* outline);
-        void FillMarkingsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales);
-        void FillMarkingsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints , double objHOffset);
+        std::vector<std::vector<Point3D>> vertexPoints_;
+        void FillPointsFromOutline(Marking* marking, Outline* outline);
+        void FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales);
+        void FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints , double objHOffset);
 
         void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
 
@@ -2149,9 +2153,9 @@ namespace roadmanager
 
         ~RMObject()
         {
-            for (size_t i = 0; i < outlines_.size(); i++)
-                delete (outlines_[i]);
-            outlines_.clear();
+            // for (size_t i = 0; i < outlines_.size(); i++)
+            //     delete (outlines_[i]);
+            // outlines_.clear();
 
             for (size_t i = 0; i < repeats_.size(); i++)
                 delete (repeats_[i]);
@@ -2237,9 +2241,13 @@ namespace roadmanager
         {
             return orientation_;
         }
-        void AddOutline(Outline *outline)
+        void AddOutline(std::shared_ptr<Outline> outline)
         {
             outlines_.push_back(outline);
+        }
+        void AddOutlineCopies(std::shared_ptr<Outline> outline)
+        {
+            outlinesCopies_.push_back(outline);
         }
         void AddMarkings(Markings *markings)
         {
@@ -2259,6 +2267,10 @@ namespace roadmanager
         {
             return (int)outlines_.size();
         }
+        int GetNumberOfOutlinesCopies() const
+        {
+            return (int)outlinesCopies_.size();
+        }
         int GetNumberOfRepeats() const
         {
             return (int)repeats_.size();
@@ -2273,9 +2285,14 @@ namespace roadmanager
             return (int)markings_.size();
         }
 
-        Outline *GetOutline(int i) const
+        std::shared_ptr<Outline> GetOutline(size_t i) const
         {
-            return (0 <= i && i < outlines_.size()) ? outlines_[i] : 0;
+            return (i < outlines_.size()) ? outlines_[i] : nullptr;
+        }
+
+        std::shared_ptr<Outline> GetOutlineCopies(size_t i) const
+        {
+            return (i < outlinesCopies_.size()) ? outlinesCopies_[i] : nullptr;
         }
 
         void DeleteOutline(int i)
@@ -2306,7 +2323,9 @@ namespace roadmanager
         double                 heading_;
         double                 pitch_;
         double                 roll_;
-        std::vector<Outline *> outlines_;
+        // std::vector<Outline *> outlines_;
+        std::vector<std::shared_ptr<Outline>> outlines_;
+        std::vector<std::shared_ptr<Outline>> outlinesCopies_;
         Repeat                *repeat_;
         std::vector<Repeat *>  repeats_;
         ParkingSpace           parking_space_;
