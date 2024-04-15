@@ -1359,7 +1359,7 @@ namespace roadmanager
             TYPE_OVER_WEIGHT_VEHICLES_PROHIBITED                                  = 165,
             TYPE_VEHICLES_AXLE_OVER_WEIGHT_PROHIBITED                             = 166,
             TYPE_VEHICLES_EXCESS_WIDTH_PROHIBITED                                 = 167,
-            TYPE_VEHICLES_EXCESS_HEIGHT_PROHIBITED                                = 168,Fmarki
+            TYPE_VEHICLES_EXCESS_HEIGHT_PROHIBITED                                = 168,
             TYPE_VEHICLES_EXCESS_LENGTH_PROHIBITED                                = 169,
             TYPE_DO_NOT_ENTER                                                     = 44,
             TYPE_SNOW_CHAINS_REQUIRED                                             = 170,
