@@ -631,11 +631,11 @@ namespace viewer
         void Frame();
 
     private:
-        bool                                         CreateRoadLines(roadmanager::OpenDrive* od);
-        bool                                         CreateRoadMarkLines(roadmanager::OpenDrive* od);
-        int                                          CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, roadmanager::Markings* markings);
-        int                                          FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::Outline* outline);
-        int                                          DrawMarking(roadmanager::Marking* marking);
+        bool CreateRoadLines(roadmanager::OpenDrive* od);
+        bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
+        int  CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, roadmanager::Markings* markings);
+        int  FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::Outline* outline);
+        int  DrawMarking(roadmanager::Marking* marking);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(roadmanager::Road* road, std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
         int                                          InitTraits(osg::ref_ptr<osg::GraphicsContext::Traits> traits,

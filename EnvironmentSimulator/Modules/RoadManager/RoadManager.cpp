@@ -2372,7 +2372,7 @@ OutlineCornerRoad::OutlineCornerRoad(int    roadId,
                                      double center_s,
                                      double center_t,
                                      double center_heading,
-                                     int cornerId)
+                                     int    cornerId)
     : roadId_(roadId),
       s_(s),
       t_(t),
@@ -2443,6 +2443,10 @@ void OutlineCornerLocal::GetPosLocal(double& x, double& y, double& z)
     y = v_;
     z = zLocal_;
 }
+// OutlineCornerLocal OutlineCornerLocal::operator=(const OutlineCornerLocal& rhs)
+// {
+//     *this = rhs;
+// }
 
 void Marking::GetPos(double s, double t, double dz, double& x, double& y, double& z)
 {
@@ -2455,10 +2459,10 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
 
 void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType)
 {
-    double total_length = sqrt(((p00- p10)*(p00 - p10)) + ((p01- p11)*(p01 - p11))) + SMALL_NUMBER; // add small number to round double value
-    total_length = total_length - startOffset_ - stopOffset_;
-    int tota_blocks = static_cast<int>(total_length/(lineLength_ + spaceLength_));
-    if (tota_blocks == 0 && total_length >= lineLength_) // add atleast one block in case one linelength can be added
+    double total_length = sqrt(((p00 - p10) * (p00 - p10)) + ((p01 - p11) * (p01 - p11))) + SMALL_NUMBER;  // add small number to round double value
+    total_length        = total_length - startOffset_ - stopOffset_;
+    int tota_blocks     = static_cast<int>(total_length / (lineLength_ + spaceLength_));
+    if (tota_blocks == 0 && total_length >= lineLength_)  // add atleast one block in case one linelength can be added
     {
         tota_blocks = 1;
     }
@@ -2467,53 +2471,54 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
 
     if (nrOfPoints != 0)
     {
-        double alpha = atan2(p10 - p00, p11 - p01);
-        double deltaP1Gap = cos(alpha) * spaceLength_;
-        double deltaP0Gap = sin(alpha) * spaceLength_;
-        double deltaP1Line = cos(alpha) * lineLength_;
-        double deltaP0Line = sin(alpha) * lineLength_;
+        double alpha              = atan2(p10 - p00, p11 - p01);
+        double deltaP1Gap         = cos(alpha) * spaceLength_;
+        double deltaP0Gap         = sin(alpha) * spaceLength_;
+        double deltaP1Line        = cos(alpha) * lineLength_;
+        double deltaP0Line        = sin(alpha) * lineLength_;
         double deltaP1StartOffset = cos(alpha) * startOffset_;
         double deltaP0StartOffset = sin(alpha) * startOffset_;
 
-        double                      x, y, z;
+        double x, y, z;
         double p0 = p00;
         double p1 = p01;
 
-        double beata = side_ == 1? M_PI_2 + alpha : -M_PI_2 + alpha; // side 1 -right, 0 - left
+        double beata = side_ == 1 ? M_PI_2 + alpha : -M_PI_2 + alpha;  // side 1 -right, 0 - left
 
         double deltaP1Far = cos(beata) * width_;
         double deltaP0Far = sin(beata) * width_;
 
-       std::vector<Point3D> points_;
+        std::vector<Point3D> points_;
 
         roadmanager::Position tmp_pos;
-        tmp_pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
+        tmp_pos.SetMode(Position::PosModeType::UPDATE,
+                        Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
         // add first block immediate after start offset for line length
-        if ( nrOfPoints >= 4)
+        if (nrOfPoints >= 4)
         {
             p0 += deltaP0StartOffset;
             p1 += deltaP1StartOffset;
             roadmanager::Marking::Point3D point;
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
-                GetPos(p0, p1, 0.0, x, y, z); // convert to world cordinate
+                GetPos(p0, p1, 0.0, x, y, z);  // convert to world cordinate
             }
             else
-            { // already in world cordinate
+            {  // already in world cordinate
                 x = p0;
                 y = p1;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
+            tmp_pos.SetInertiaPos(x, y, 0.0);
             // printf("Points A x %.2f y %.2f z %.2f\n", x, y, z);
             z = tmp_pos.GetZ();
             // printf("new z  %.2f\n", z);
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point A
+            points_.push_back(point);  // point A
 
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
                 GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
             }
@@ -2523,17 +2528,17 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 y = p1 + deltaP1Far;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point B
+            points_.push_back(point);  // point B
 
             p0 += deltaP0Line;
             p1 += deltaP1Line;
             // z_new += deltaZLine;
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
                 GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
             }
@@ -2543,14 +2548,14 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 y = p1 + deltaP1Far;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point C
+            points_.push_back(point);  // point C
 
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
                 GetPos(p0, p1, 0.0, x, y, z);
             }
@@ -2560,39 +2565,39 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 y = p1;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point D
+            points_.push_back(point);  // point D
         }
 
-        for (int i = 4; i < nrOfPoints; i+=4) // loop from second block
+        for (int i = 4; i < nrOfPoints; i += 4)  // loop from second block
         {
             roadmanager::Marking::Point3D point;
             p0 += deltaP0Gap;
             p1 += deltaP1Gap;
             // z_new += deltaZGap;
 
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
-                GetPos(p0, p1, 0.0, x, y, z); // convert to world cordinate
+                GetPos(p0, p1, 0.0, x, y, z);  // convert to world cordinate
             }
             else
-            { // already in world cordinate
+            {  // already in world cordinate
                 x = p0;
                 y = p1;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point A
+            points_.push_back(point);  // point A
 
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
                 GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
             }
@@ -2602,16 +2607,16 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 y = p1 + deltaP1Far;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point B
+            points_.push_back(point);  // point B
 
             p0 += deltaP0Line;
             p1 += deltaP1Line;
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
                 GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
             }
@@ -2621,14 +2626,14 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 y = p1 + deltaP1Far;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point C
+            points_.push_back(point);  // point C
 
-            if (cornerType == 0) // raod
+            if (cornerType == 0)  // raod
             {
                 GetPos(p0, p1, 0.0, x, y, z);
             }
@@ -2638,12 +2643,12 @@ void Marking::FillMarkingPoints(double p00, double p01, double p10, double p11, 
                 y = p1;
                 z = 0.0;
             }
-            tmp_pos.SetInertiaPos(x , y , 0.0);
-            z = tmp_pos.GetZ();
+            tmp_pos.SetInertiaPos(x, y, 0.0);
+            z       = tmp_pos.GetZ();
             point.x = x;
             point.y = y;
             point.z = z + z_offset_;
-            points_.push_back(point); // point D
+            points_.push_back(point);  // point D
         }
         vertexPoints_.push_back(points_);
     }
@@ -2655,8 +2660,8 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
     {
         for (size_t k = 0; k < outline->corner_.size(); k++)
         {
-            roadmanager::OutlineCorner* corner = outline->corner_[k];
-            int cornerId = corner->GetCornerId();
+            roadmanager::OutlineCorner* corner   = outline->corner_[k];
+            int                         cornerId = corner->GetCornerId();
             if (cornerId == cornerReferenceIds[j])
             {
                 cornerReferences.push_back(corner);
@@ -2668,34 +2673,42 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
 
 void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales)
 {
-    double v0[3] = { 0.0, 0.0, 0.0}; //start points
-    double v1[3] = { 0.0, 0.0, 0.0}; // end points
+    double                v0[3] = {0.0, 0.0, 0.0};  // start points
+    double                v1[3] = {0.0, 0.0, 0.0};  // end points
     roadmanager::Position pref;
 
-    if (marking->cornerReferenceIds.size() > 0) // no corner ids
+    if (marking->cornerReferenceIds.size() > 0)  // no corner ids
     {
         std::vector<OutlineCorner*> cornerReferences;
         marking->GetCorners(marking->cornerReferenceIds, outline, cornerReferences);
-        if (cornerReferences.size() >= 2) // corner referrence found
+        if (cornerReferences.size() >= 2)  // corner referrence found
         {
             roadmanager::OutlineCornerRoad* corner = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[0]);
             for (size_t i = 0; i < cornerReferences.size() - 1; i++)
             {
                 pref.SetTrackPosMode(roadId_,
-                                    localCornerScales.s_,
-                                    localCornerScales.t_,
-                                    roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
-                                        roadmanager::Position::PosMode::R_REL);
+                                     localCornerScales.s_,
+                                     localCornerScales.t_,
+                                     roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL |
+                                         roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
                 double total_heading = GetAngleSum(pref.GetH(), localCornerScales.objH);
                 double u2, v2;
-                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i])->GetU() * localCornerScales.scale_x, static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i])->GetV() * localCornerScales.scale_y, total_heading, u2, v2);
+                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i])->GetU() * localCornerScales.scale_x,
+                            static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i])->GetV() * localCornerScales.scale_y,
+                            total_heading,
+                            u2,
+                            v2);
 
                 v0[0] = pref.GetX() + u2;
                 v0[1] = pref.GetY() + v2;
                 v0[2] = pref.GetZ() + (localCornerScales.objZOffset * localCornerScales.scale_z);
 
                 double u3, v3;
-                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i + 1])->GetU() * localCornerScales.scale_x, static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i + 1])->GetV() * localCornerScales.scale_y, total_heading, u3, v3);
+                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i + 1])->GetU() * localCornerScales.scale_x,
+                            static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i + 1])->GetV() * localCornerScales.scale_y,
+                            total_heading,
+                            u3,
+                            v3);
 
                 v1[0] = pref.GetX() + u3;
                 v1[1] = pref.GetY() + v3;
@@ -2708,56 +2721,52 @@ void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Out
 
 void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset)
 {
-    double v0[3] = { 0.0, 0.0, 0.0};
-    double v1[3] = { 0.0, 0.0, 0.0};
+    double                v0[3] = {0.0, 0.0, 0.0};
+    double                v1[3] = {0.0, 0.0, 0.0};
     roadmanager::Position pos;
     pos.SetTrackPosMode(roadId_,
                         repeatPoints.x,
                         repeatPoints.y,
-                        roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                        roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::P_REL |
+                            roadmanager::Position::PosMode::R_REL);
     if (GetSide() == 0)
     {
         // find local lower left corner
-        RotateVec2D(-repeatPoints.length / 2 , -repeatPoints.width / 2, pos.GetH() + objHOffset, v0[0], v0[1]);
+        RotateVec2D(-repeatPoints.length / 2, -repeatPoints.width / 2, pos.GetH() + objHOffset, v0[0], v0[1]);
         // find local upper left corner
-        RotateVec2D(-repeatPoints.length / 2 , repeatPoints.width  / 2, pos.GetH() + objHOffset, v1[0], v1[1]);
+        RotateVec2D(-repeatPoints.length / 2, repeatPoints.width / 2, pos.GetH() + objHOffset, v1[0], v1[1]);
         FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
     }
     else
     {
         // find local lower right corner
-        RotateVec2D(repeatPoints.length / 2 , -repeatPoints.width  / 2, pos.GetH() + objHOffset, v0[0], v0[1]);
+        RotateVec2D(repeatPoints.length / 2, -repeatPoints.width / 2, pos.GetH() + objHOffset, v0[0], v0[1]);
         // find local upper right corner
-        RotateVec2D(repeatPoints.length / 2 , repeatPoints.width  / 2, pos.GetH() + objHOffset, v1[0], v1[1]);
+        RotateVec2D(repeatPoints.length / 2, repeatPoints.width / 2, pos.GetH() + objHOffset, v1[0], v1[1]);
         FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
     }
-
 }
 
 void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
 {
+    double v0[3] = {0.0, 0.0, 0.0};  // start points
+    double v1[3] = {0.0, 0.0, 0.0};  // end points
 
-    double v0[3] = { 0.0, 0.0, 0.0}; //start points
-    double v1[3] = { 0.0, 0.0, 0.0}; // end points
-
-    if (marking->cornerReferenceIds.size() > 0) // no corner ids
+    if (marking->cornerReferenceIds.size() > 0)  // no corner ids
     {
         std::vector<OutlineCorner*> cornerReferences;
         marking->GetCorners(marking->cornerReferenceIds, outline, cornerReferences);
-        if (cornerReferences.size() >= 2) // corner referrence found
+        if (cornerReferences.size() >= 2)  // corner referrence found
         {
             roadmanager::OutlineCornerRoad* corner = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[0]);
-            for (size_t i = 0; i < cornerReferences.size() - 1; i++)
+            for (size_t i = 0; i < cornerReferences.size() - 1; i++) // dont loop last corner, eg marking between 1 and 2 corner
             {
-                if(cornerReferences[i]->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER) // road corner
+                if (cornerReferences[i]->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)  // road corner
                 {
                     v0[0] = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i])->GetS();
                     v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetS();
                     v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i])->GetT();
                     v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetT();
-                    printf("outline_road_after %.2f %.2f %.2f %.2f\n",
-                    v0[0], v0[1], v1[0], v1[1]);
                     FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 0);
                 }
                 else
@@ -2771,13 +2780,13 @@ void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
     }
     else
     {
-        //no corner referrence in marking, check corner from repeat without distance
-        for (size_t k = 0; k < outline->corner_.size()/2; k++)
+        // no corner referrence in marking, check corner from repeat without distance
+        for (size_t k = 0; k < outline->corner_.size() / 2; k++)
         {
-            v0[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS(); //1st corner
-            v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetS(); //last corner
+            v0[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS();                                // 1st corner
+            v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetS();  // last corner
             v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
-            v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1 ])->GetT();
+            v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetT();
             if (marking->GetSide() == 0)
             {
                 FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 0);
@@ -2796,13 +2805,13 @@ bool Repeat::IsRepeatObjectsPointsCreated()
 
 void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id)
 {
-    RMObject* obj = static_cast<RMObject*>(object);
-    double object_width_dynamic = obj->GetWidth(); // for repeat copies
-    double object_length_dynamic = obj->GetLength();
-    double object_height_dynamic = obj->GetHeight();
+    RMObject* obj                   = static_cast<RMObject*>(object);
+    double    object_width_dynamic  = obj->GetWidth();  // for repeat copies
+    double    object_length_dynamic = obj->GetLength();
+    double    object_height_dynamic = obj->GetHeight();
     if (object_length_dynamic < SMALL_NUMBER && object_width_dynamic < SMALL_NUMBER && object_height_dynamic < SMALL_NUMBER)
     {
-        object_width_dynamic = 1; // for repeat copies
+        object_width_dynamic  = 1;  // for repeat copies
         object_length_dynamic = 1;
         object_height_dynamic = 1;
     }
@@ -2819,14 +2828,14 @@ void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id
         object_height_dynamic = 0.05;
     }
     if (obj->GetNumberOfOutlines() == 0)
-    { // create repeat information also for non outline object.
-        int                          nCopies = 0;
-        double cur_s = 0.0;
+    {  // create repeat information also for non outline object.
+        int    nCopies = 0;
+        double cur_s   = 0.0;
 
         roadmanager::Position pos;
-        for (; nCopies < 1 ||
-                (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_);
-                nCopies++)
+        for (;
+             nCopies < 1 || (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_);
+             nCopies++)
         {
             double factor, t, s, zOffset;
             factor  = cur_s / rep->GetLength();
@@ -2856,7 +2865,7 @@ void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id
                 object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
             }
 
-            if ( IsEqualDouble(cur_s + SMALL_NUMBER, rep->length_ ) || cur_s > rep->length_ )
+            if (IsEqualDouble(cur_s + SMALL_NUMBER, rep->length_) || cur_s > rep->length_)
             {
                 break;  // object would reach outside specified total length
             }
@@ -2869,23 +2878,52 @@ void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id
             else
             {
                 // for continuous objects, move along s wrt to road curvature
-                cur_s +=
-                    pos.DistanceToDS(object_length_dynamic);
+                cur_s += pos.DistanceToDS(object_length_dynamic);
             }
             // printf("cur_s s %.2f \n",cur_s);
 
             roadmanager::Repeat::RepeatVertexPoints points;
-            points.x = pos.GetX();
-            points.y = pos.GetY();
-            points.z = pos.GetZ() + obj->GetZOffset();
+            points.x      = pos.GetX();
+            points.y      = pos.GetY();
+            points.z      = pos.GetZ() + obj->GetZOffset();
             points.height = object_height_dynamic;
             points.length = object_length_dynamic;
-            points.width = object_width_dynamic;
+            points.width  = object_width_dynamic;
             rep->repeatVertexPoints_.push_back(points);
         }
     }
 }
 
+void CreateBoundingBoxFromCorners(std::vector<Outline::points> cornerPoints, double& length, double& width, double& height, double& z)
+{
+    // Find max, min x and y
+    // Initialize with first element's x value for clarity
+    double minX      = cornerPoints[0].x;
+    double maxX      = cornerPoints[0].x;
+    double minY      = cornerPoints[0].y;
+    double maxY      = cornerPoints[0].y;
+    double minZ      = cornerPoints[0].z;
+    double maxZ      = cornerPoints[0].z;
+    double minHieght = cornerPoints[0].h;
+    double maxHieght = cornerPoints[0].h;
+
+    for (const auto cornerPoint:cornerPoints)
+    {
+        minX      = min(minX, cornerPoint.x);  // Update minX with the smaller value
+        maxX      = max(maxX, cornerPoint.x);  // Update maxX with the larger value
+        minY      = min(minY, cornerPoint.y);
+        maxY      = max(maxY, cornerPoint.y);
+        minZ      = min(minZ, cornerPoint.z);
+        maxZ      = max(maxZ, cornerPoint.z);
+        minHieght = min(minZ, cornerPoint.h);
+        maxHieght = max(maxZ, cornerPoint.h);
+    }
+    // find local bb from corner points
+    length = maxX - minX;
+    width  = maxY - minY;
+    z      = maxZ - minZ;
+    height = maxHieght - minHieght;
+}
 std::string RMObject::Type2Str(RMObject::ObjectType type)
 {
     int t = static_cast<int>(type);
@@ -4742,10 +4780,12 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                            pos.GetHRoad());
                     }
                     pugi::xml_node outlines_node_ = object.child("outlines");
-                    if (rdistance < SMALL_NUMBER && outlines_node_ == NULL) // create outline when no outline in the object with repeat. Outline with repeat handed separately/
+                    if (rdistance < SMALL_NUMBER &&
+                        outlines_node_ == NULL)  // create outline when no outline in the object with repeat. Outline with repeat handed separately/
                     {
                         // inter-distance is zero, treat as outline
-                        std::shared_ptr<Outline> outline            = std::make_shared<Outline>(ids, Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
+                        std::shared_ptr<Outline> outline =
+                            std::make_shared<Outline>(ids, Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
                         const double max_segment_length = 10.0;
 
                         // find smallest value of length and rlength, but between SMALL_NUMBER and max_segment_length
@@ -4783,25 +4823,26 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 }
 
                                 double         w_local = w_start + factor * (w_end - w_start);
-                                OutlineCorner* corner =
-                                    (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
-                                                                           rs + factor * rlength,
-                                                                           rtStart + factor * (rtEnd - rtStart) + (i == 0 ? -w_local / 2.0 : w_local / 2.0),
-                                                                           rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart),
-                                                                           h_start + factor * (h_end - h_start),
-                                                                           s,
-                                                                           t,
-                                                                           heading,
-                                                                           j + (i * n_segments)));
+                                OutlineCorner* corner  = (OutlineCorner*)(new OutlineCornerRoad(
+                                    r->GetId(),
+                                    rs + factor * rlength,
+                                    rtStart + factor * (rtEnd - rtStart) + (i == 0 ? -w_local / 2.0 : w_local / 2.0),
+                                    rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart),
+                                    h_start + factor * (h_end - h_start),
+                                    s,
+                                    t,
+                                    heading,
+                                    j + (i * n_segments)));
 
                                 outline->AddCorner(corner);
                             }
                         }
-                        obj->AddOutlineCopies(outline);
+                        obj->AddOutlineCopy(outline);
                     }
 
                     // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
-                    Repeat* repeat = new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
+                    Repeat* repeat =
+                        new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
                     Repeats.push_back(repeat);
 
                     if (fabs(rwidthStart) > SMALL_NUMBER)
@@ -4856,9 +4897,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 {
                     for (pugi::xml_node outline_node = outlines_node.child("outline"); outline_node; outline_node = outline_node.next_sibling())
                     {
-                        int      id      = atoi(outline_node.attribute("id").value());
-                        Outline::AreaType areaTrpe  = !strcmp(outline_node.attribute("closed").value(), "true") ? Outline::AreaType::CLOSED : Outline::AreaType::OPEN;
-                       std::shared_ptr<Outline> outline = std::make_shared<Outline>(id, Outline::FillType::FILL_TYPE_UNDEFINED, areaTrpe);
+                        int               id = atoi(outline_node.attribute("id").value());
+                        Outline::AreaType areaType =
+                            !strcmp(outline_node.attribute("closed").value(), "true") ? Outline::AreaType::CLOSED : Outline::AreaType::OPEN;
+                        std::shared_ptr<Outline> outline = std::make_shared<Outline>(id, Outline::FillType::FILL_TYPE_UNDEFINED, areaType);
 
                         for (pugi::xml_node corner_node = outline_node.first_child(); corner_node; corner_node = corner_node.next_sibling())
                         {
@@ -4866,129 +4908,119 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                             if (!strcmp(corner_node.name(), "cornerRoad"))
                             {
-                                double sc      = atof(corner_node.attribute("s").value());
-                                double tc      = atof(corner_node.attribute("t").value());
-                                double dz      = atof(corner_node.attribute("dz").value());
-                                double heightc = atof(corner_node.attribute("height").value());
-                                int cornerId   = atoi(corner_node.attribute("id").value());
+                                double sc       = atof(corner_node.attribute("s").value());
+                                double tc       = atof(corner_node.attribute("t").value());
+                                double dz       = atof(corner_node.attribute("dz").value());
+                                double heightc  = atof(corner_node.attribute("height").value());
+                                int    cornerId = atoi(corner_node.attribute("id").value());
 
                                 corner = (OutlineCorner*)(new OutlineCornerRoad(r->GetId(), sc, tc, dz, heightc, s, t, heading, cornerId));
                             }
                             else if (!strcmp(corner_node.name(), "cornerLocal"))
                             {
-                                double u       = atof(corner_node.attribute("u").value());
-                                double v       = atof(corner_node.attribute("v").value());
-                                double zLocal  = atof(corner_node.attribute("z").value());
-                                double heightc = atof(corner_node.attribute("height").value());
-                                int cornerId   = atoi(corner_node.attribute("id").value());
+                                double u        = atof(corner_node.attribute("u").value());
+                                double v        = atof(corner_node.attribute("v").value());
+                                double zLocal   = atof(corner_node.attribute("z").value());
+                                double heightc  = atof(corner_node.attribute("height").value());
+                                int    cornerId = atoi(corner_node.attribute("id").value());
 
-                                corner =
-                                    (OutlineCorner*)(new OutlineCornerLocal(r->GetId(), obj->GetS(), obj->GetT(), u, v, zLocal, heightc, heading, cornerId));
+                                corner = (OutlineCorner*)(new OutlineCornerLocal(r->GetId(),
+                                                                                 obj->GetS(),
+                                                                                 obj->GetT(),
+                                                                                 u,
+                                                                                 v,
+                                                                                 zLocal,
+                                                                                 heightc,
+                                                                                 heading,
+                                                                                 cornerId));
                             }
                             outline->AddCorner(corner);
                         }
                         obj->AddOutline(outline);
                     }
                 }
-                if (obj->GetNumberOfRepeats() > 0 && obj->GetNumberOfOutlines() > 0) // create copies of outline for repeat
+
+                for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
                 {
-                    for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
+                    auto outlineOriginal = obj->GetOutline(static_cast<int>(i));
+                    for (size_t j = 0; j < obj->GetNumberOfRepeats(); j++)
                     {
-                        auto outlineOriginal = obj->GetOutline(static_cast<int>(i));
-                        for (size_t j = 0; j < obj->GetNumberOfRepeats(); j++)
+                        Repeat* repeat        = obj->GetRepeatByIdx(static_cast<int>(j));
+                        double  rtStart       = repeat->GetTStart();
+                        double  rtEnd         = repeat->GetTEnd();
+                        double  rlengthStart  = repeat->GetLengthStart();
+                        double  rlengthEnd    = repeat->GetLengthEnd();
+                        double  rwidthStart   = repeat->GetWidthStart();
+                        double  rwidthEnd     = repeat->GetWidthEnd();
+                        double  rheightStart  = repeat->GetHeightStart();
+                        double  rheightEnd    = repeat->GetHeightEnd();
+                        double  rzOffsetStart = repeat->GetZOffsetStart();
+                        double  rzOffsetEnd   = repeat->GetZOffsetEnd();
+
+                        if (outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
                         {
-                            Repeat* repeat = obj->GetRepeatByIdx(static_cast<int>(j));
-                            double      rtStart       = repeat->GetTStart();
-                            double      rtEnd         = repeat->GetTEnd();
-                            double      rlengthStart = repeat->GetLengthStart();
-                            double      rlengthEnd   = repeat->GetLengthEnd();
-                            double      rwidthStart  = repeat->GetWidthStart();
-                            double      rwidthEnd    = repeat->GetWidthEnd();
-                            double      rheightStart  = repeat->GetHeightStart();
-                            double      rheightEnd    = repeat->GetHeightEnd();
-                            double      rzOffsetStart = repeat->GetZOffsetStart();
-                            double      rzOffsetEnd   = repeat->GetZOffsetEnd();
-
-                            if(outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER) // check first corner
+                            std::shared_ptr<Outline>     outline = std::make_shared<Outline>(*outlineOriginal.get());
+                            std::vector<Outline::points> cornerPoints;
+                            for (auto corner : outline->corner_)
                             {
-                                std::shared_ptr<Outline> outline            = std::make_shared<Outline>(j, Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal->GetAreaType()); // new outline for each segment
-                                std::vector<Outline::points> cornerPoints;
-                                for (size_t k = 0; k < outlineOriginal->corner_.size(); k++)
+                                Outline::points points_;
+                                points_.x = static_cast<OutlineCornerLocal*>(corner)->GetU();
+                                points_.y = static_cast<OutlineCornerLocal*>(corner)->GetV();
+                                points_.z = static_cast<OutlineCornerLocal*>(corner)->GetZ();
+                                points_.h = corner->GetHeight();
+                                cornerPoints.push_back(points_);
+                            }
+
+                            // find the bb from the corner
+                            double length_from_corner;
+                            double width_from_corner;
+                            double z_from_corner;
+                            double height_from_corner;
+                            CreateBoundingBoxFromCorners(cornerPoints, length_from_corner, width_from_corner, height_from_corner, z_from_corner);
+
+                            int    nCopies = 0;
+                            double cur_s   = 0.0;
+                            double total_length_from_repeat =
+                                GetLengthOfVector2D(repeat->GetLength(), (rtEnd - rtStart)) + SMALL_NUMBER;  // add small number to round double value
+                            double                h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
+                            roadmanager::Position pos;
+
+                            // initailize
+                            double               dynamic_length = length_from_corner;
+                            double               dynamic_width  = width_from_corner;
+                            double               dynamic_z      = z_from_corner;
+                            double               dynamic_height = height_from_corner;
+                            Outline::ScalePoints scale_points;  // for shollow copy
+
+                            if (total_length_from_repeat > SMALL_NUMBER)
+                            {
+                                while(!(IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat))
                                 {
-                                    Outline::points points_;
-                                    points_.x = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetU();
-                                    points_.y = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetV();
-                                    points_.z = static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetZ();
-                                    points_.h = (outlineOriginal->corner_[k])->GetHeight();
-                                    cornerPoints.push_back(points_);
-                                    // recreate corner with repeat details
-                                    OutlineCorner* corner = (OutlineCorner*)(new OutlineCornerLocal(r->GetId(), repeat->GetS(), rtStart, points_.x, points_.y, points_.z, points_.h, heading, static_cast<OutlineCornerLocal*>(outlineOriginal->corner_[k])->GetCornerId()));
-                                    outline->AddCorner(corner);
-                                }
-
-                                // Find max, min x and y
-                                // Initialize with first element's x value for clarity
-                                double minX = cornerPoints[0].x;
-                                double maxX = cornerPoints[0].x;
-                                double minY = cornerPoints[0].y;
-                                double maxY = cornerPoints[0].y;
-                                double minZ = cornerPoints[0].z;
-                                double maxZ = cornerPoints[0].z;
-                                double minHieght = cornerPoints[0].h;
-                                double maxHieght = cornerPoints[0].h;
-
-                                for  (size_t k = 0; k < cornerPoints.size(); k++)
-                                {
-                                    minX = min(minX, cornerPoints[k].x);  // Update minX with the smaller value
-                                    maxX = max(maxX, cornerPoints[k].x);  // Update maxX with the larger value
-                                    minY = min(minY, cornerPoints[k].y);
-                                    maxY = max(maxY, cornerPoints[k].y);
-                                    minZ = min(minZ, cornerPoints[k].z);
-                                    maxZ = max(maxZ, cornerPoints[k].z);
-                                    minHieght = min(minZ, cornerPoints[k].h);
-                                    maxHieght = max(maxZ, cornerPoints[k].h);
-
-                                }
-                                // find local bb from corner points
-                                double  length_from_corner = maxX - minX;
-                                double  width_from_corner = maxY - minY;
-                                double  z_from_corner = maxZ - minZ;
-                                double height_from_corner = maxHieght - minHieght;
-
-                                int                          nCopies = 0;
-                                double                       cur_s   = 0.0;
-                                double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
-                                double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
-                                roadmanager::Position pos;
-                                double dynamic_length = length_from_corner;
-                                double dynamic_width = width_from_corner;
-                                double dynamic_z = z_from_corner;
-                                double dynamic_height = height_from_corner;
-                                Outline::ScalePoints scale_points; // for shollow copy
-
-                                while (total_length_from_repeat > SMALL_NUMBER)
-                                {
-                                    double       factor  = cur_s / total_length_from_repeat;
-                                    if ( IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
+                                    double factor = cur_s / total_length_from_repeat;
+                                    // find the new length and details from repeat, calculate how much to add based on local dimension
+                                    double scale_u = 1.0;
+                                    if (rlengthStart > SMALL_NUMBER || rlengthEnd > SMALL_NUMBER)
                                     {
-                                        break;
+                                        dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart)) / cos(h_offset));
+                                        scale_u        = abs(dynamic_length / length_from_corner);
                                     }
-                                    // find the new length and details from repeat
-                                    if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
-                                    {
-                                        dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
-                                    }
-                                    if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                    double scale_v = 1.0;
+                                    if (rwidthEnd > SMALL_NUMBER || rwidthStart > SMALL_NUMBER)
                                     {
                                         dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
+                                        scale_v       = abs(dynamic_width / width_from_corner);
                                     }
-                                    if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
+                                    double scale_z = 1.0;
+                                    if (rzOffsetEnd > SMALL_NUMBER || rzOffsetStart > SMALL_NUMBER)
                                     {
                                         dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
+                                        scale_z   = abs(dynamic_z / z_from_corner);
                                     }
-                                    if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
+                                    double scale_h = 1.0;
+                                    if (rheightStart > SMALL_NUMBER || rheightEnd > SMALL_NUMBER)
                                     {
                                         dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
+                                        scale_h        = dynamic_height / height_from_corner;
                                     }
                                     pos.SetTrackPosMode(r->GetId(),
                                                         repeat->GetS() + cur_s,
@@ -4996,43 +5028,18 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                                         roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
                                                             roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
 
-                                    double scale_u = 1.0;
-                                    // calculate how much to add based on local dimension
-                                    if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
-                                    {
-                                        scale_u = abs(dynamic_length /length_from_corner);
-                                    }
-
-                                    double scale_v = 1.0;
-                                    if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
-                                    {
-                                        scale_v = abs(dynamic_width / width_from_corner);
-                                    }
-
-                                    double scale_z = 1.0;
-                                    if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
-                                    {
-                                        scale_z = abs(dynamic_z / z_from_corner);
-                                    }
-
-                                    double scale_h = 1.0;
-                                    if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
-                                    {
-                                        scale_h = dynamic_height / height_from_corner;
-                                    }
-
-                                    scale_points.scale_x = scale_u;
-                                    scale_points.scale_y = scale_v;
-                                    scale_points.scale_z = scale_z;
-                                    scale_points.scale_h = scale_h;
-                                    scale_points.s_ = repeat->GetS() + cur_s;
-                                    scale_points.t_ = rtStart + factor * (rtEnd - rtStart);
+                                    scale_points.scale_x    = scale_u;
+                                    scale_points.scale_y    = scale_v;
+                                    scale_points.scale_z    = scale_z;
+                                    scale_points.scale_h    = scale_h;
+                                    scale_points.s_         = repeat->GetS() + cur_s;
+                                    scale_points.t_         = rtStart + factor * (rtEnd - rtStart);
                                     scale_points.objZOffset = obj->GetZOffset();
-                                    scale_points.objH = roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0 + obj->GetH();
-                                    scale_points.roadId_ = r->GetId();
-                                    outline->localCornerScales.push_back(scale_points); // store points for shallow copy
+                                    scale_points.objH       = roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0 + obj->GetH();
+                                    scale_points.roadId_    = r->GetId();
+                                    outline->localCornerScales.push_back(scale_points);  // store points for shallow copy
 
-                                    if ( repeat->distance_ < SMALL_NUMBER)
+                                    if (repeat->distance_ < SMALL_NUMBER)
                                     {
                                         cur_s += pos.DistanceToDS(dynamic_length);
                                     }
@@ -5041,136 +5048,125 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         cur_s += repeat->distance_;
                                     }
                                 }
-                                obj->AddOutlineCopies(outline);
+                                obj->AddOutlineCopy(outline);
                             }
-                            else // road corner
+                        }
+                        else  // road corner
+                        {
+                            // store all the corner points
+                            std::vector<Outline::points> cornerPoints;
+                            for (const auto& corner:outlineOriginal->corner_)
                             {
-                                // store all the corner points
-                                std::vector<Outline::points> cornerPoints;
-                                for (size_t j = 0; j < outlineOriginal->corner_.size(); j++)
+                                Outline::points points_;
+                                OutlineCornerRoad* roadCorner = static_cast<OutlineCornerRoad*>(corner);
+                                points_.x = roadCorner->GetS();
+                                points_.y = roadCorner->GetT();
+                                points_.z = roadCorner->GetZ();
+                                points_.h = roadCorner->GetHeight();
+                                cornerPoints.push_back(points_);
+                            }
+
+                            // find the bb from the corner
+                            double length_from_corner;
+                            double width_from_corner;
+                            double z_from_corner;
+                            double height_from_corner;
+                            CreateBoundingBoxFromCorners(cornerPoints, length_from_corner, width_from_corner, height_from_corner, z_from_corner);
+
+                            double minX = cornerPoints[0].x;
+                            double maxX = cornerPoints[0].x;
+                            for (const auto cornerPoint:cornerPoints)
+                            {
+                                minX = min(minX, cornerPoint.x);  // Update minX with the smaller value
+                                maxX = max(maxX, cornerPoint.x);  // Update maxX with the larger value
+                            }
+                            // find the local points based on s direction
+                            std::vector<Outline::points> localPoints;
+                            for (const auto cornerPoint_:cornerPoints)
+                            {
+                                Outline::points points_;
+                                points_.x = cornerPoint_.x - minX;
+                                points_.y = cornerPoint_.y;
+                                points_.z = cornerPoint_.z;
+                                localPoints.push_back(points_);
+                            }
+
+                            int    nCopies = 0;
+                            double cur_s   = 0.0;
+                            double total_length_from_repeat =
+                                sqrt((repeat->GetLength() * repeat->GetLength()) + ((rtStart - rtEnd) * (rtStart - rtEnd))) +
+                                SMALL_NUMBER;  // add small number to round double value
+                            std::shared_ptr<Outline> outline        = nullptr;
+                            double                   h_offset       = atan2(rtEnd - rtStart, total_length_from_repeat);
+                            double                   dynamic_length = length_from_corner;
+                            double                   dynamic_width  = width_from_corner;
+                            double                   dynamic_z      = z_from_corner;
+                            double                   dynamic_height = height_from_corner;
+
+                            if  (total_length_from_repeat > SMALL_NUMBER)
+                            {
+                                while (!(IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat))
                                 {
-                                    Outline::points points_;
-                                    points_.x = static_cast<OutlineCornerRoad*>(outlineOriginal->corner_[j])->GetS();
-                                    points_.y = static_cast<OutlineCornerRoad*>(outlineOriginal->corner_[j])->GetT();
-                                    points_.z = static_cast<OutlineCornerRoad*>(outlineOriginal->corner_[j])->GetZ();
-                                    points_.h = (outlineOriginal->corner_[j])->GetHeight();
-                                    cornerPoints.push_back(points_);
-                                }
+                                    double factor = cur_s / total_length_from_repeat;
 
-                                // Find max, min x and y
-                                // Initialize with first element's x value for clarity
-                                double minX = cornerPoints[0].x;
-                                double maxX = cornerPoints[0].x;
-                                double minY = cornerPoints[0].y;
-                                double maxY = cornerPoints[0].y;
-                                double minZ = cornerPoints[0].z;
-                                double maxZ = cornerPoints[0].z;
-                                double minHieght = cornerPoints[0].h;
-                                double maxHieght = cornerPoints[0].h;
-
-                                for  (size_t j = 0; j < cornerPoints.size(); j++)
-                                {
-                                    minX = min(minX, cornerPoints[j].x);  // Update minX with the smaller value
-                                    maxX = max(maxX, cornerPoints[j].x);  // Update maxX with the larger value
-                                    minY = min(minY, cornerPoints[j].y);
-                                    maxY = max(maxY, cornerPoints[j].y);
-                                    minZ = min(minZ, cornerPoints[j].z);
-                                    maxZ = max(maxZ, cornerPoints[j].z);
-                                    minHieght = min(minZ, cornerPoints[j].h);
-                                    maxHieght = max(maxZ, cornerPoints[j].h);
-
-                                }
-                                double  length_from_corner = maxX - minX;
-                                double  width_from_corner = maxY - minY;
-                                double  z_from_corner = maxZ - minZ;
-                                double height_from_corner = maxHieght - minHieght;
-
-                                // find the local points based on s direction
-                                std::vector<Outline::points> localPoints;
-                                for (size_t j = 0; j < cornerPoints.size(); j++)
-                                {
-                                    Outline::points points_;
-                                    points_.x = cornerPoints[j].x - minX;
-                                    points_.y = cornerPoints[j].y;
-                                    points_.z = cornerPoints[j].z;
-                                    localPoints.push_back(points_);
-
-                                }
-
-                                int                          nCopies = 0;
-                                double                       cur_s   = 0.0;
-                                double total_length_from_repeat = sqrt((repeat->GetLength()* repeat->GetLength()) + ((rtStart- rtEnd)*(rtStart- rtEnd))) + SMALL_NUMBER; // add small number to round double value
-                                std::shared_ptr<Outline> outline            = nullptr;
-                                double h_offset = atan2(rtEnd - rtStart, total_length_from_repeat);
-                                double dynamic_length = length_from_corner;
-                                double dynamic_width = width_from_corner;
-                                double dynamic_z = z_from_corner;
-                                double dynamic_height = height_from_corner;
-
-                                while (total_length_from_repeat > SMALL_NUMBER)
-                                {
-                                    double       factor  = cur_s / total_length_from_repeat;
-                                    if ( IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat)
-                                    {
-                                        break;
-                                    }
                                     // find the new length from repeat
-                                    if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
+                                    if (rlengthStart > SMALL_NUMBER || rlengthEnd > SMALL_NUMBER)
                                     {
-                                        dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart))/ cos(h_offset));
+                                        dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart)) / cos(h_offset));
                                     }
-                                    if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                    if (rwidthEnd > SMALL_NUMBER || rwidthStart > SMALL_NUMBER)
                                     {
                                         dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
                                     }
-                                    if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
+                                    if (rzOffsetEnd > SMALL_NUMBER || rzOffsetStart > SMALL_NUMBER)
                                     {
                                         dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
                                     }
-                                    if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
+                                    if (rheightStart > SMALL_NUMBER || rheightEnd > SMALL_NUMBER)
                                     {
                                         dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
                                     }
 
-                                    outline            = std::make_shared<Outline>(nCopies, Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal->GetAreaType()); // new outline for each segment
+                                    outline = std::make_shared<Outline>(nCopies,
+                                                                        Outline::FillType::FILL_TYPE_UNDEFINED,
+                                                                        outlineOriginal->GetAreaType());  // new outline for each segment
                                     for (unsigned int k = 0; k < cornerPoints.size(); k++)
                                     {
                                         double x_to_add = localPoints[k].x;
                                         // calculate how much to add based on local dimension
-                                        if ( rlengthStart > SMALL_NUMBER || rlengthEnd> SMALL_NUMBER)
+                                        if (rlengthStart > SMALL_NUMBER || rlengthEnd > SMALL_NUMBER)
                                         {
-                                            x_to_add = (dynamic_length/(length_from_corner/localPoints[k].x));
+                                            x_to_add = (dynamic_length / (length_from_corner / localPoints[k].x));
                                         }
 
                                         double y_to_add = localPoints[k].y;
-                                        if ( rwidthEnd > SMALL_NUMBER || rwidthStart> SMALL_NUMBER)
+                                        if (rwidthEnd > SMALL_NUMBER || rwidthStart > SMALL_NUMBER)
                                         {
-                                            y_to_add = (dynamic_width/(width_from_corner/localPoints[k].y));
+                                            y_to_add = (dynamic_width / (width_from_corner / localPoints[k].y));
                                         }
 
                                         double z_to_add = localPoints[k].z;
-                                        if ( rzOffsetEnd > SMALL_NUMBER || rzOffsetStart> SMALL_NUMBER)
+                                        if (rzOffsetEnd > SMALL_NUMBER || rzOffsetStart > SMALL_NUMBER)
                                         {
-                                            if (localPoints[k].z == 0.0 && z_from_corner == 0.0)
+                                            if (localPoints[k].z == 0.0 && z_from_corner == 0.0)  // void 0/0
                                             {
                                                 z_to_add = dynamic_z;
                                             }
                                             else
                                             {
-                                                z_to_add = dynamic_z * (localPoints[k].z/z_from_corner);
+                                                z_to_add = dynamic_z * (localPoints[k].z / z_from_corner);
                                             }
-
                                         }
                                         double h_to_add = localPoints[k].h;
-                                        if ( rheightStart > SMALL_NUMBER || rheightEnd> SMALL_NUMBER)
+                                        if (rheightStart > SMALL_NUMBER || rheightEnd > SMALL_NUMBER)
                                         {
-                                            if (localPoints[k].h == 0.0 && height_from_corner == 0.0)
+                                            if (localPoints[k].h == 0.0 && height_from_corner == 0.0)  // avoid 0/0
                                             {
                                                 h_to_add = dynamic_height;
                                             }
                                             else
                                             {
-                                                h_to_add = (dynamic_height/(height_from_corner/localPoints[k].h));
+                                                h_to_add = (dynamic_height / (height_from_corner / localPoints[k].h));
                                             }
                                         }
 
@@ -5179,20 +5175,19 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                         double start_z = z_to_add;
                                         double start_h = h_to_add;
 
-                                        OutlineCorner* corner =
-                                                (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
-                                                                                    start_s,
-                                                                                    start_t,
-                                                                                    start_z,
-                                                                                    start_h,
-                                                                                    cur_s,
-                                                                                    rtStart,
-                                                                                    heading,
-                                                                                    k));
+                                        OutlineCorner* corner = (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
+                                                                                                    start_s,
+                                                                                                    start_t,
+                                                                                                    start_z,
+                                                                                                    start_h,
+                                                                                                    cur_s,
+                                                                                                    rtStart,
+                                                                                                    heading,
+                                                                                                    k));
                                         outline->AddCorner(corner);
                                     }
-                                    obj->AddOutlineCopies(outline);
-                                    if ( repeat->distance_ < SMALL_NUMBER)
+                                    obj->AddOutlineCopy(outline);
+                                    if (repeat->distance_ < SMALL_NUMBER)
                                     {
                                         cur_s += dynamic_length;
                                     }
@@ -5261,14 +5256,14 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     for (pugi::xml_node marking_node = markings_node.child("marking"); marking_node; marking_node = marking_node.next_sibling())
                     {
                         // default values
-                        RoadMarkColor color = RoadMarkColor::WHITE;
-                        double        width = .1;
-                        double z_offset = 0.005;
-                        double spaceLength = 0.05;
-                        double lineLength = 0.2;
-                        double startOffset, stopOffset = 0.0;
-                        int side = 1; // 0 left , 1 right
-                        Marking* marking = new Marking(r->GetId(),RoadMarkColor::WHITE, 0.1, 0.005, 0.05, 0.2, 0.0, 0.0, 1);
+                        RoadMarkColor color       = RoadMarkColor::WHITE;
+                        double        width       = .1;
+                        double        z_offset    = 0.005;
+                        double        spaceLength = 0.05;
+                        double        lineLength  = 0.2;
+                        double        startOffset, stopOffset = 0.0;
+                        int           side    = 1;  // 0 left , 1 right
+                        Marking*      marking = new Marking(r->GetId(), RoadMarkColor::WHITE, 0.1, 0.005, 0.05, 0.2, 0.0, 0.0, 1);
                         if (!strcmp(marking_node.name(), "marking"))
                         {
                             std::string color_str_ = marking_node.attribute("color").value();
@@ -5304,47 +5299,47 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 LOG("Unexpected and unsupported roadmark color %s", color_str_);
                             }
 
-                            if( obj->GetNumberOfOutlines() == 0 && marking_node.attribute("side").empty())
+                            if (obj->GetNumberOfOutlines() == 0 && marking_node.attribute("side").empty())
                             {
                                 LOG("Side attribute is mandatory in marking  with no outline, skip");
                             }
                             std::string side_string = marking_node.attribute("side").value();
-                            double side = side_string == "left"? 0 : 1; // 0-left, 1-right, deafult right side
-                            if(!marking_node.attribute("width").empty())
+                            double      side        = side_string == "left" ? 0 : 1;  // 0-left, 1-right, deafult right side
+                            if (!marking_node.attribute("width").empty())
                             {
-                                width       = atof(marking_node.attribute("width").value());
+                                width = atof(marking_node.attribute("width").value());
                             }
-                            if(!marking_node.attribute("zOffset").empty())
+                            if (!marking_node.attribute("zOffset").empty())
                             {
-                                z_offset       = atof(marking_node.attribute("zOffset").value());
+                                z_offset = atof(marking_node.attribute("zOffset").value());
                             }
-                            if(!marking_node.attribute("spaceLength").empty())
+                            if (!marking_node.attribute("spaceLength").empty())
                             {
-                                spaceLength       = atof(marking_node.attribute("spaceLength").value());
+                                spaceLength = atof(marking_node.attribute("spaceLength").value());
                             }
-                            if(!marking_node.attribute("lineLength").empty())
+                            if (!marking_node.attribute("lineLength").empty())
                             {
-                                lineLength       = atof(marking_node.attribute("lineLength").value());
+                                lineLength = atof(marking_node.attribute("lineLength").value());
                             }
-                            if(!marking_node.attribute("startOffset").empty())
+                            if (!marking_node.attribute("startOffset").empty())
                             {
-                                startOffset       = atof(marking_node.attribute("startOffset").value());
+                                startOffset = atof(marking_node.attribute("startOffset").value());
                             }
-                            if(!marking_node.attribute("stopOffset").empty())
+                            if (!marking_node.attribute("stopOffset").empty())
                             {
-                                stopOffset       = atof(marking_node.attribute("stopOffset").value());
+                                stopOffset = atof(marking_node.attribute("stopOffset").value());
                             }
 
-                            marking            = new Marking(r->GetId(),color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
+                            marking = new Marking(r->GetId(), color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())
                         {
-                            int           id = atoi(cornerReference_node.attribute("id").value());
+                            int id = atoi(cornerReference_node.attribute("id").value());
                             marking->cornerReferenceIds.push_back(id);
                         }
 
-                        if( obj->GetNumberOfOutlines() > 0)
+                        if (obj->GetNumberOfOutlines() > 0)
                         {
                             for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
                             {
