@@ -1659,11 +1659,12 @@ namespace roadmanager
     class OutlineCorner
     {
     public:
-        typedef enum
+        enum class CornerType
         {
-            ROAD_CORNER,
-            LOCAL_CORNER,
-        } CornerType;
+            ROAD_CORNER = 0,
+            LOCAL_CORNER = 1,
+        };
+
         virtual void       GetPos(double &x, double &y, double &z)      = 0;
         virtual void       GetPosLocal(double &x, double &y, double &z) = 0;
         virtual double     GetHeight()                                  = 0;
@@ -2065,25 +2066,26 @@ namespace roadmanager
         std::vector<int> cornerReferenceIds;
         void             GetCorners(std::vector<int> cornerReferenceIds, Outline *outline, std::vector<OutlineCorner *> &cornerReferences);
 
-        struct Point3D
-        {
-            double x;
-            double y;
-            double z;
-        };
 
         struct Point2D
         {
-            double x;
-            double y;
+            double x = 0.0;
+            double y = 0.0;
 
+        };
+
+        struct Point3D : public Point2D
+        {
+            double z = 0.0;
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
         void                              FillPointsFromOutline(Outline *outline);
         void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
         void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset);
 
-        void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
+        // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
+
+        void FillMarkingPoints(const Point2D& point1, const Point2D& point2, OutlineCorner::CornerType cornerType);
 
         ~Marking()
         {

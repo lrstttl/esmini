@@ -3739,21 +3739,27 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             {
                                 double                v0[3]   = {0.0, 0.0, 0.0};
                                 double                v1[3]   = {0.0, 0.0, 0.0};
+                                roadmanager::Marking::Point2D point1;
+                                roadmanager::Marking::Point2D point2;
                                 if (marking->GetSide() == 0)
                                 {
                                     // find local lower left corner
                                     RotateVec2D(-object_length_dynamic / 2,
                                                 -object_width_dynamic / 2,
                                                 pos.GetH() + object->GetHOffset(),
-                                                v0[0],
-                                                v0[1]);
+                                                point1.x,
+                                                point1.y);
                                     // find local upper left corner
                                     RotateVec2D(-object_length_dynamic / 2,
                                                 object_width_dynamic / 2,
                                                 pos.GetH() + object->GetHOffset(),
-                                                v1[0],
-                                                v1[1]);
-                                    marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+                                                point2.x,
+                                                point2.y);
+                                    point1.x = pos.GetX() + point1.x;
+                                    point1.x = pos.GetY() + point1.y;
+                                    point2.x = pos.GetX() + point2.x;
+                                    point2.x = pos.GetY() + point2.y;
+                                    marking->FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
                                 }
                                 else
                                 {
@@ -3761,11 +3767,15 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                     RotateVec2D(object_length_dynamic / 2,
                                                 -object_width_dynamic / 2,
                                                 pos.GetH() + object->GetHOffset(),
-                                                v0[0],
-                                                v0[1]);
+                                                point1.x,
+                                                point1.y);
                                     // find local upper right corner
-                                    RotateVec2D(object_length_dynamic / 2, object_width_dynamic / 2, pos.GetH() + object->GetHOffset(), v1[0], v1[1]);
-                                    marking->FillMarkingPoints(pos.GetX() + v0[0], pos.GetY() + v0[1], pos.GetX() + v1[0], pos.GetY() + v1[1], 1);
+                                    RotateVec2D(object_length_dynamic / 2, object_width_dynamic / 2, pos.GetH() + object->GetHOffset(),point2.x, point2.y);
+                                    point1.x = pos.GetX() + point1.x;
+                                    point1.x = pos.GetY() + point1.y;
+                                    point2.x = pos.GetX() + point2.x;
+                                    point2.x = pos.GetY() + point2.y;
+                                    marking->FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
                                 }
                             }
                         }
