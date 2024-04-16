@@ -2071,9 +2071,16 @@ namespace roadmanager
             double y;
             double z;
         };
+
+        struct Point2D
+        {
+            double x;
+            double y;
+
+        };
         std::vector<std::vector<Point3D>> vertexPoints_;
-        void                              FillPointsFromOutline(Marking *marking, Outline *outline);
-        void                              FillPointsFromLocalCorners(Marking *marking, Outline *outline, Outline::ScalePoints localCornerScales);
+        void                              FillPointsFromOutline(Outline *outline);
+        void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
         void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset);
 
         void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);

@@ -2671,16 +2671,16 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
     }
 }
 
-void Marking::FillPointsFromLocalCorners(Marking* marking, Outline* outline, Outline::ScalePoints localCornerScales)
+void Marking::FillPointsFromLocalCorners(Outline* outline, Outline::ScalePoints localCornerScales)
 {
     double                v0[3] = {0.0, 0.0, 0.0};  // start points
     double                v1[3] = {0.0, 0.0, 0.0};  // end points
     roadmanager::Position pref;
 
-    if (marking->cornerReferenceIds.size() > 0)  // no corner ids
+    if (cornerReferenceIds.size() > 0)  // no corner ids
     {
         std::vector<OutlineCorner*> cornerReferences;
-        marking->GetCorners(marking->cornerReferenceIds, outline, cornerReferences);
+        GetCorners(cornerReferenceIds, outline, cornerReferences);
         if (cornerReferences.size() >= 2)  // corner referrence found
         {
             roadmanager::OutlineCornerRoad* corner = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[0]);
@@ -2747,15 +2747,15 @@ void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints,
     }
 }
 
-void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
+void Marking::FillPointsFromOutline(Outline* outline)
 {
     double v0[3] = {0.0, 0.0, 0.0};  // start points
     double v1[3] = {0.0, 0.0, 0.0};  // end points
 
-    if (marking->cornerReferenceIds.size() > 0)  // no corner ids
+    if (cornerReferenceIds.size() > 0)  // no corner ids
     {
         std::vector<OutlineCorner*> cornerReferences;
-        marking->GetCorners(marking->cornerReferenceIds, outline, cornerReferences);
+        GetCorners(cornerReferenceIds, outline, cornerReferences);
         if (cornerReferences.size() >= 2)  // corner referrence found
         {
             roadmanager::OutlineCornerRoad* corner = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[0]);
@@ -2787,7 +2787,7 @@ void Marking::FillPointsFromOutline(Marking* marking, Outline* outline)
             v1[0] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetS();  // last corner
             v0[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
             v1[1] = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetT();
-            if (marking->GetSide() == 0)
+            if (GetSide() == 0)
             {
                 FillMarkingPoints(v0[0], v0[1], v1[0], v1[1], 0);
             }

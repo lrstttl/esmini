@@ -2948,12 +2948,12 @@ int Viewer::FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::
     {
         for (int i = 0; i < outline->localCornerScales.size(); i++)
         {
-            marking->FillPointsFromLocalCorners(marking, outline, outline->localCornerScales[i]);  // fill local corner
+            marking->FillPointsFromLocalCorners(outline, outline->localCornerScales[i]);  // fill local corner
         }
     }
     else
     {
-        marking->FillPointsFromOutline(marking, outline);  // fill from road corner
+        marking->FillPointsFromOutline(outline);  // fill from road corner
     }
     if (marking->vertexPoints_.size() == 0)
     {

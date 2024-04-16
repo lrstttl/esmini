@@ -811,7 +811,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         {
                             if (marking->vertexPoints_.size() == i)  // no points from roadmanager
                             {
-                                marking->FillPointsFromOutline(marking, outline.get());
+                                marking->FillPointsFromOutline(outline.get());
                             }
                             std::vector<roadmanager::Marking::Point3D> points =
                                 marking->vertexPoints_[i];  // for each outline, marking points vector shall be created
@@ -836,8 +836,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                             {
                                 if (marking->vertexPoints_.size() == j)  // no points from roadmanager
                                 {
-                                    marking->FillPointsFromLocalCorners(marking,
-                                                                        outline.get(),
+                                    marking->FillPointsFromLocalCorners(outline.get(),
                                                                         outline->localCornerScales[j]);  // fill from local corner
                                 }
                                 std::vector<roadmanager::Marking::Point3D> points =
@@ -855,7 +854,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         {
                             if (marking->vertexPoints_.size() == i)  // no points from roadmanager
                             {
-                                marking->FillPointsFromOutline(marking, outline.get());
+                                marking->FillPointsFromOutline(outline.get());
                             }
                             std::vector<roadmanager::Marking::Point3D> points =
                                 marking->vertexPoints_[i];  // for each outline copies, marking points vector shall be created
