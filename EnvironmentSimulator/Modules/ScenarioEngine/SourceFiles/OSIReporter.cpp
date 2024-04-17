@@ -814,38 +814,12 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         }
         else  // outline with repeat, here must have outlineCopies
         {
-            for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfOutlinesCopies()); i++)
+            for (auto& marking:object->GetMarkings())
             {
-                auto outline = object->GetOutlineCopysByIdx(i);
-                if (outline->localCornerScales.size() > 0)  // check scale from local corner
+                marking.CheckAndFillMarkingsFromOutline(object->GetOutlinesCopys());
+                for(const auto& points:marking.vertexPoints_)
                 {
-                    for (size_t j = 0; j < static_cast<unsigned int>(outline->localCornerScales.size()); j++)
-                    {
-                        for (auto& marking:object->GetMarkings())
-                        {
-                            if (marking.vertexPoints_.size() == j)  // no points from roadmanager
-                            {
-                                marking.FillPointsFromLocalCorners(outline.get(),
-                                                                    outline->localCornerScales[j]);  // fill from local corner
-                            }
-                            std::vector<roadmanager::Marking::Point3D> points =
-                                marking.vertexPoints_[j];  // for each localCornerScales, marking points vector shall be created
-                            UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
-                        }
-                    }
-                }
-                else  // road corner
-                {
-                    for (auto& marking:object->GetMarkings())
-                    {
-                        if (marking.vertexPoints_.size() == i)  // no points from roadmanager
-                        {
-                            marking.FillPointsFromOutline(outline.get());
-                        }
-                        std::vector<roadmanager::Marking::Point3D> points =
-                            marking.vertexPoints_[i];  // for each outline copies, marking points vector shall be created
-                        UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
-                    }
+                    UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
                 }
             }
         }

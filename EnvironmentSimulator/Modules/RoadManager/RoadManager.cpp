@@ -2828,18 +2828,24 @@ bool Repeat::IsRepeatObjectsPointsCreated()
     return repeatVertexPoints_.size() > 0;
 }
 
-void Marking::CheckAndFillMarkingsFromOutline(roadmanager::Outline* outline)
+void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outlines)
 {
-    if (outline->localCornerScales.size() > 0)  // check scale from local corner
+    if (vertexPoints_.empty()) // fill only empty
     {
-        for (int i = 0; i < outline->localCornerScales.size(); i++)
+        for (const auto& outline:outlines)
         {
-            FillPointsFromLocalCorners(outline, outline->localCornerScales[i]);  // fill local corner
+            if (outline->localCornerScales.size() > 0)  // check scale from local corner
+            {
+                for (int i = 0; i < outline->localCornerScales.size(); i++)
+                {
+                    FillPointsFromLocalCorners(outline.get(), outline->localCornerScales[i]);  // fill local corner
+                }
+            }
+            else
+            {
+                FillPointsFromOutline(outline.get());  // fill from road corner
+            }
         }
-    }
-    else
-    {
-        FillPointsFromOutline(outline);  // fill from road corner
     }
 }
 

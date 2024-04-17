@@ -3003,7 +3003,6 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
             (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
             (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
             (*vertices_top)[i].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
-            printf("Vertics x %.2f y %.2f z  %.2f i%d\n", x, y, z, static_cast<int>(i));
         }
 
         // Close geometry
@@ -3186,6 +3185,7 @@ osg::ref_ptr<osg::PositionAttitudeTransform> Viewer::LoadRoadFeature(roadmanager
 
 int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 {
+    printf("Inside Viewer\n");
     osg::ref_ptr<osg::Group>                     objGroup = new osg::Group;
     osg::ref_ptr<osg::PositionAttitudeTransform> tx       = nullptr;
 
@@ -3293,12 +3293,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             {
                 for (const auto outline:object->GetOutlines())
                 {
-                    bool isMarkingAvailable = object->GetMarkings().empty();
-                    CreateOutlineObject(outline.get(), color, isMarkingAvailable);
-                    for (auto marking:object->GetMarkings())  // draw marking
-                    {
-                        marking.CheckAndFillMarkingsFromOutline(outline.get());
-                    }
+                    CreateOutlineObject(outline.get(), color, !object->GetMarkings().empty());
+                }
+                for (auto& marking:object->GetMarkings())  // draw marking
+                {
+                    marking.CheckAndFillMarkingsFromOutline(object->GetOutlines());
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
@@ -3359,14 +3358,12 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             {
                                 for (auto& outline:object->GetOutlinesCopys())
                                 {
-                                    bool isMarkingAvailable = object->GetMarkings().empty();
-                                    CreateOutlineObject(outline.get(), color, isMarkingAvailable);
-                                    for (auto& marking:object->GetMarkings())  // draw marking
-                                    {
-                                        marking.CheckAndFillMarkingsFromOutline(outline.get());
-                                    }
+                                    CreateOutlineObject(outline.get(), color, !object->GetMarkings().empty());
                                 }
-
+                                for (auto& marking:object->GetMarkings())  // draw marking
+                                {
+                                    marking.CheckAndFillMarkingsFromOutline(object->GetOutlinesCopys());
+                                }
                                 continue;
                             }
                             else
@@ -3382,12 +3379,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         {
                             for (const auto outlinesCopy:object->GetOutlinesCopys())
                             {
-                                bool isMarkingAvailable = object->GetMarkings().empty();
-                                CreateOutlineObject(outlinesCopy.get(), color, isMarkingAvailable);
-                                for (auto& marking:object->GetMarkings())  // draw marking
-                                {
-                                    marking.CheckAndFillMarkingsFromOutline(outlinesCopy.get());
-                                }
+                                CreateOutlineObject(outlinesCopy.get(), color, !object->GetMarkings().empty());
+                            }
+                            for (auto& marking:object->GetMarkings())  // draw marking
+                            {
+                                marking.CheckAndFillMarkingsFromOutline(object->GetOutlinesCopys());
                             }
                             continue;
                         }
@@ -3672,9 +3668,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                             point2.x,
                                             point2.y);
                                 point1.x = pos.GetX() + point1.x;
-                                point1.x = pos.GetY() + point1.y;
+                                point1.y = pos.GetY() + point1.y;
                                 point2.x = pos.GetX() + point2.x;
-                                point2.x = pos.GetY() + point2.y;
+                                point2.y = pos.GetY() + point2.y;
                                 marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
                             }
                             else
@@ -3688,9 +3684,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                 // find local upper right corner
                                 RotateVec2D(object_length_dynamic / 2, object_width_dynamic / 2, pos.GetH() + object->GetHOffset(),point2.x, point2.y);
                                 point1.x = pos.GetX() + point1.x;
-                                point1.x = pos.GetY() + point1.y;
+                                point1.y = pos.GetY() + point1.y;
                                 point2.x = pos.GetX() + point2.x;
-                                point2.x = pos.GetY() + point2.y;
+                                point2.y = pos.GetY() + point2.y;
                                 marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
                             }
                         }

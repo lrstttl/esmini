@@ -2081,7 +2081,7 @@ namespace roadmanager
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
         void                              FillPointsFromOutline(Outline *outline);
-        void                              CheckAndFillMarkingsFromOutline(Outline* outline);
+        void                              CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outline);
         void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
         void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset);
 
