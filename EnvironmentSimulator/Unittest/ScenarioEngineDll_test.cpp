@@ -2777,6 +2777,176 @@ TEST(TestOsiReporter, MarkingTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).y(), 4.3999999999999986);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).x(), 28);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).y(), 5.2999999999999954);
+
+    // const char* args[] =
+    //     {"--osc", "../../../resources/xosc/markings_test.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+    // ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    // SE_StepDT(0.001f);
+
+    // SE_UpdateOSIGroundTruth();
+
+    // const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
+    // osi_gt.ParseFromArray(gt1, sv_size);
+
+    // EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 15);
+
+    // // crosswalk one
+    // marking_type = osi_gt.road_marking(0).classification().type();
+    // EXPECT_EQ(marking_type, osi3::RoadMarking_Classification_Type::RoadMarking_Classification_Type_TYPE_OTHER);
+    // EXPECT_EQ(osi_gt.road_marking(0).base().base_polygon_size(), 120);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).x(), 5);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).y(), 3.5);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(5).x(), 5.0065653216429862);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(5).y(), 3.230821812637569);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(75).x(), 6.8514207033220851);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(75).y(), -0.81998164108487204);
+
+    // EXPECT_EQ(osi_gt.road_marking(1).base().base_polygon_size(), 120);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(0).x(), 12);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(0).y(), -3.5);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(25).x(), 12.682793450870562);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(25).y(), -2.1606743848308301);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(100).x(), 14.461995616119816);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(1).base().base_polygon(100).y(), 2.2446564376128615);
+
+    // EXPECT_EQ(osi_gt.road_marking(2).base().base_polygon_size(), 136);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(0).x(), 205);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(0).y(), -10);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(64).x(), 206.40449376635343);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(64).y(), -13.745316710276171);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(122).x(), 207.61001758247343);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(2).base().base_polygon(122).y(), -17.244847011440477);
+
+    // EXPECT_EQ(osi_gt.road_marking(3).base().base_polygon_size(), 136);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(7).x(), 212.15800554871475);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(7).y(), -13.42134812990607);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(53).x(), 213.04751826740525);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(53).y(), -16.078182171258231);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(122).x(), 214.61001758247343);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(3).base().base_polygon(122).y(), -20.244847011440502);
+
+    // EXPECT_EQ(osi_gt.road_marking(4).base().base_polygon_size(), 28);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(8).x(), 52.5);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(8).y(), 1.2000000000000002);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(23).x(), 52.5);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(4).base().base_polygon(23).y(), -2);
+
+    // EXPECT_EQ(osi_gt.road_marking(5).base().base_polygon_size(), 28);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(4).x(), 263.002489354099);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(4).y(), -60.921927990415845);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(27).x(), 258.46269243159668);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(27).y(), -63.017218877724588);
+
+    // // road corner outline with repeat, markings also repeated
+    // EXPECT_EQ(osi_gt.road_marking(6).base().base_polygon_size(), 20);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).x(), 241.00231811727818);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).y(), -20.971385405179376);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).x(), 243.19586614995225);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).y(), -18.116854440493299);
+
+    // EXPECT_EQ(osi_gt.road_marking(9).base().base_polygon_size(), 20);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).x(), 253.39395436655212);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).y(), -26.917750297180227);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).x(), 252.41923103114559);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).y(), -27.92269528045739);
+
+    // EXPECT_EQ(osi_gt.road_marking(11).base().base_polygon_size(), 20);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).x(), 258.59876013219866);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).y(), -33.065303195215279);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).x(), 256.58336523858969);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), -34.862017814406371);
+
+    // // local corner outline with repeat
+    // EXPECT_EQ(osi_gt.road_marking(12).base().base_polygon_size(), 20);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(12).base().base_polygon(13).x(), 29.800000000000001);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(12).base().base_polygon(13).y(), -13.200000000000003);
+
+    // EXPECT_EQ(osi_gt.road_marking(16).base().base_polygon_size(), 20);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(16).base().base_polygon(7).x(), 70);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(16).base().base_polygon(7).y(), -11.900000000000002);
+
+    // EXPECT_EQ(osi_gt.road_marking(19).base().base_polygon_size(), 20);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(19).base().base_polygon(7).x(), 70);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(19).base().base_polygon(7).y(), -14.099999999999998);
+
+    // // no marking for object id 7
+    // // now object id 8
+
+    // EXPECT_EQ(osi_gt.road_marking(20).base().base_polygon_size(), 16);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(0).x(), 12);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(0).y(), 6);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(13).x(), 12.1);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(20).base().base_polygon(13).y(), 9);
+
+    // EXPECT_EQ(osi_gt.road_marking(21).base().base_polygon_size(), 16);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(7).x(), 8);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(7).y(), 8);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(15).x(), 8);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(21).base().base_polygon(15).y(), 10);
+
+    // // now object id 9
+
+    // EXPECT_EQ(osi_gt.road_marking(22).base().base_polygon_size(), 80);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(0).x(), 26);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(0).y(), 4);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(13).x(), 26.100000000000001);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(13).y(), 4.2999999999999989);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(79).x(), 26);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(22).base().base_polygon(79).y(), 5.9999999999999929);
+
+    // EXPECT_EQ(osi_gt.road_marking(23).base().base_polygon_size(), 80);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(7).x(), 24);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(7).y(), 4.1999999999999993);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(15).x(), 24);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(15).y(), 4.3999999999999986);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(72).x(), 24);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(23).base().base_polygon(72).y(), 5.7999999999999936);
+
+    // // now object id 10
+
+    // EXPECT_EQ(osi_gt.road_marking(24).base().base_polygon_size(), 80);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(27).x(), 32);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(27).y(), 4.6999999999999975);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).x(), 32);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).y(), 5.5999999999999943);
+
+    // EXPECT_EQ(osi_gt.road_marking(23).base().base_polygon_size(), 80);
+
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).x(), 28);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).y(), 4.3999999999999986);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).x(), 28);
+    // EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).y(), 5.2999999999999954);
 }
 
 TEST(TestOsiReporter, StationaryObjectTest)

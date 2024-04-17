@@ -2027,11 +2027,12 @@ namespace roadmanager
     class Marking
     {
     private:
-        RoadMarkColor color_;
-        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
-        int           roadId_, side_;  // 0 left , 1 right
+        RoadMarkColor color_  = RoadMarkColor::WHITE;
+        double        width_ = 0.1, z_offset_ = 0.005, spaceLength_= 0.05, lineLength_= 0.2, startOffset_= 0.0, stopOffset_= 0.0;
+        int           roadId_, side_ = 1;  // 0 left , 1 right
 
     public:
+        Marking(){};
         Marking(int           roadId,
                 RoadMarkColor color_str,
                 double        width,
@@ -2080,32 +2081,17 @@ namespace roadmanager
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
         void                              FillPointsFromOutline(Outline *outline);
+        void                              CheckAndFillMarkingsFromOutline(Outline* outline);
         void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
         void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset);
 
         // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
 
         void FillMarkingPoints(const Point2D& point1, const Point2D& point2, OutlineCorner::CornerType cornerType);
+        void FillPoints(const Point2D& point, OutlineCorner::CornerType cornerType, std::vector<Point3D>& points_);
 
         ~Marking()
         {
-        }
-    };
-
-    class Markings
-    {
-    public:
-        std::vector<Marking *> marking_;
-        ~Markings()
-        {
-            for (size_t i = 0; i < marking_.size(); i++)
-                delete (marking_[i]);
-            marking_.clear();
-        }
-
-        void AddMarking(Marking *Marking)
-        {
-            marking_.push_back(Marking);
         }
     };
 
@@ -2275,9 +2261,9 @@ namespace roadmanager
         {
             outlinesCopies_.push_back(outline);
         }
-        void AddMarkings(Markings *markings)
+        void AddMarking(Marking marking)
         {
-            markings_.push_back(markings);
+            markings_.emplace_back(std::move(marking));
         }
         void SetRepeat(Repeat *repeat);
         void AddRepeat(Repeat *repeat)
@@ -2310,18 +2296,6 @@ namespace roadmanager
             return (int)repeats_.size();
         }
 
-        Markings *GetMarkingsByIdx(int i) const
-        {
-            return (0 <= i && i < markings_.size()) ? markings_[i] : 0;
-        }
-        std::vector<Markings *> GetMarkings() const
-        {
-            return markings_;
-        }
-        int GetNumberOfMarkings() const
-        {
-            return (int)markings_.size();
-        }
         std::vector<std::shared_ptr<Outline>> GetOutlines() const
         {
             return outlines_;
@@ -2336,11 +2310,6 @@ namespace roadmanager
             return (i < outlinesCopies_.size()) ? outlinesCopies_[i] : nullptr;
         }
 
-        void DeleteOutline(int i)
-        {
-            outlines_.erase(outlines_.begin() + i);
-        }
-
         Repeat *GetRepeatByIdx(int i) const
         {
             return (0 <= i && i < repeats_.size()) ? repeats_[i] : 0;
@@ -2348,6 +2317,10 @@ namespace roadmanager
         ParkingSpace GetParkingSpace()
         {
             return parking_space_;
+        }
+        std::vector<Marking>& GetMarkings()
+        {
+            return markings_;
         }
 
     private:
@@ -2370,7 +2343,7 @@ namespace roadmanager
         Repeat                               *repeat_;
         std::vector<Repeat *>                 repeats_;
         ParkingSpace                          parking_space_;
-        std::vector<Markings *>               markings_;
+        std::vector<Marking>     markings_;
     };
 
     enum class SpeedUnit

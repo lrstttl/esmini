@@ -2937,33 +2937,10 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::Outline* outline)
+int Viewer::DrawMarking(roadmanager::Marking marking)
 {
-    if (marking == 0)
+    for (const auto& points:marking.vertexPoints_)
     {
-        return -1;
-    }
-
-    if (outline->localCornerScales.size() > 0)  // check scale from local corner
-    {
-        for (int i = 0; i < outline->localCornerScales.size(); i++)
-        {
-            marking->FillPointsFromLocalCorners(outline, outline->localCornerScales[i]);  // fill local corner
-        }
-    }
-    else
-    {
-        marking->FillPointsFromOutline(outline);  // fill from road corner
-    }
-    if (marking->vertexPoints_.size() == 0)
-    {
-        return -1;  // nothing to draw
-    }
-
-    for (size_t i = 0; i < marking->vertexPoints_.size(); i++)
-    {
-        std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[i];
-
         osg::ref_ptr<osg::Group>     group        = new osg::Group();
         osg::ref_ptr<osg::Vec3Array> vertices_top = new osg::Vec3Array(static_cast<unsigned int>(points.size()));  // one set at bottom and one at top
 
@@ -2987,54 +2964,7 @@ int Viewer::FillMarkingsFromOutline(roadmanager::Marking* marking, roadmanager::
         geom->setUseDisplayList(true);
         geode->addDrawable(geom);
 
-        osg::Vec4                   color     = ODR2OSGColor(marking->GetColor());
-        osg::ref_ptr<osg::Material> material_ = new osg::Material;
-        material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
-        material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
-        geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
-
-        group->addChild(geode);
-        envTx_->addChild(group);
-    }
-
-    return 0;
-}
-
-int Viewer::DrawMarking(roadmanager::Marking* marking)
-{
-    if (marking == 0)
-    {
-        return -1;
-    }
-
-    for (size_t i = 0; i < marking->vertexPoints_.size(); i++)
-    {
-        std::vector<roadmanager::Marking::Point3D> points = marking->vertexPoints_[i];
-
-        osg::ref_ptr<osg::Group>     group        = new osg::Group();
-        osg::ref_ptr<osg::Vec3Array> vertices_top = new osg::Vec3Array(static_cast<unsigned int>(points.size()));  // one set at bottom and one at top
-
-        for (int i = 0; i < points.size(); i += 4)
-        {
-            (*vertices_top)[i + 0].set(static_cast<float>(points[i + 0].x), static_cast<float>(points[i + 0].y), static_cast<float>(points[i + 0].z));
-            (*vertices_top)[i + 1].set(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y), static_cast<float>(points[i + 1].z));
-            (*vertices_top)[i + 2].set(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y), static_cast<float>(points[i + 2].z));
-            (*vertices_top)[i + 3].set(static_cast<float>(points[i + 3].x), static_cast<float>(points[i + 3].y), static_cast<float>(points[i + 3].z));
-        }
-
-        // Finally create and add geometry
-        osg::ref_ptr<osg::Geode>    geode = new osg::Geode;
-        osg::ref_ptr<osg::Geometry> geom  = new osg::Geometry;
-
-        geom->setVertexArray(vertices_top.get());
-        geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, points.size()));
-
-        // osgUtil::SmoothingVisitor::smooth(*geom, 0.5);
-        geom->setDataVariance(osg::Object::STATIC);
-        geom->setUseDisplayList(true);
-        geode->addDrawable(geom);
-
-        osg::Vec4                   color     = ODR2OSGColor(marking->GetColor());
+        osg::Vec4                   color     = ODR2OSGColor(marking.GetColor());
         osg::ref_ptr<osg::Material> material_ = new osg::Material;
         material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
         material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
@@ -3046,7 +2976,7 @@ int Viewer::DrawMarking(roadmanager::Marking* marking)
     return 0;
 }
 
-int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, roadmanager::Markings* markings)
+int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, bool isMarkingAvailable)
 {
     if (outline == 0)
         return -1;
@@ -3116,7 +3046,7 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
         group->addChild(geode);
         envTx_->addChild(group);
 
-        if (markings != 0)  // draw outlink marking
+        if (isMarkingAvailable)  // draw outlink wireframe
         {
             osg::PolygonMode* polygonMode = new osg::PolygonMode;
             polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
@@ -3208,7 +3138,7 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
             xform->setAttitude(quatLocal * quatRoad);
             envTx_->addChild(xform);
         }
-        if (markings != 0)  // draw outlink marking
+        if (isMarkingAvailable)  // draw outlink marking
         {
             osg::PolygonMode* polygonMode = new osg::PolygonMode;
             polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
@@ -3363,14 +3293,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             {
                 for (const auto outline:object->GetOutlines())
                 {
-                    roadmanager::Markings* markings = object->GetMarkingsByIdx(static_cast<int>(0));
-                    CreateOutlineObject(outline.get(), color, markings);
-                    for (const auto markings:object->GetMarkings())  // draw marking
+                    bool isMarkingAvailable = object->GetMarkings().empty();
+                    CreateOutlineObject(outline.get(), color, isMarkingAvailable);
+                    for (auto marking:object->GetMarkings())  // draw marking
                     {
-                        for (const auto marking:markings->marking_)
-                        {
-                            FillMarkingsFromOutline(marking, outline.get());
-                        }
+                        marking.CheckAndFillMarkingsFromOutline(outline.get());
                     }
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
@@ -3430,17 +3357,13 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             // use outline, if exists
                             if (object->GetNumberOfOutlinesCopies() > 0)
                             {
-                                for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfOutlinesCopies()); i++)
+                                for (auto& outline:object->GetOutlinesCopys())
                                 {
-                                    auto                   outline  = object->GetOutlineCopysByIdx(i);
-                                    roadmanager::Markings* markings = object->GetMarkingsByIdx(0);
-                                    CreateOutlineObject(outline.get(), color, markings);
-                                    for (const auto& markings:object->GetMarkings())  // draw marking
+                                    bool isMarkingAvailable = object->GetMarkings().empty();
+                                    CreateOutlineObject(outline.get(), color, isMarkingAvailable);
+                                    for (auto& marking:object->GetMarkings())  // draw marking
                                     {
-                                        for (const auto& marking:markings->marking_)
-                                        {
-                                            FillMarkingsFromOutline(marking, outline.get());
-                                        }
+                                        marking.CheckAndFillMarkingsFromOutline(outline.get());
                                     }
                                 }
 
@@ -3459,14 +3382,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         {
                             for (const auto outlinesCopy:object->GetOutlinesCopys())
                             {
-                                roadmanager::Markings* markings = object->GetMarkingsByIdx(0);
-                                CreateOutlineObject(outlinesCopy.get(), color, markings);
-                                for (const auto& markings:object->GetMarkings())  // draw marking
+                                bool isMarkingAvailable = object->GetMarkings().empty();
+                                CreateOutlineObject(outlinesCopy.get(), color, isMarkingAvailable);
+                                for (auto& marking:object->GetMarkings())  // draw marking
                                 {
-                                    for (const auto& marking:markings->marking_)
-                                    {
-                                        FillMarkingsFromOutline(marking, outlinesCopy.get());
-                                    }
+                                    marking.CheckAndFillMarkingsFromOutline(outlinesCopy.get());
                                 }
                             }
                             continue;
@@ -3733,50 +3653,45 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             points.width  = object_width_dynamic;
                             rep->repeatVertexPoints_.push_back(points);
                         }
-                        for (const auto& markings:object->GetMarkings())  // draw marking
+                        for (auto& marking:object->GetMarkings())  // draw marking
                         {
-                            for (const auto& marking:markings->marking_)
+                            roadmanager::Marking::Point2D point1;
+                            roadmanager::Marking::Point2D point2;
+                            if (marking.GetSide() == 0)
                             {
-                                double                v0[3]   = {0.0, 0.0, 0.0};
-                                double                v1[3]   = {0.0, 0.0, 0.0};
-                                roadmanager::Marking::Point2D point1;
-                                roadmanager::Marking::Point2D point2;
-                                if (marking->GetSide() == 0)
-                                {
-                                    // find local lower left corner
-                                    RotateVec2D(-object_length_dynamic / 2,
-                                                -object_width_dynamic / 2,
-                                                pos.GetH() + object->GetHOffset(),
-                                                point1.x,
-                                                point1.y);
-                                    // find local upper left corner
-                                    RotateVec2D(-object_length_dynamic / 2,
-                                                object_width_dynamic / 2,
-                                                pos.GetH() + object->GetHOffset(),
-                                                point2.x,
-                                                point2.y);
-                                    point1.x = pos.GetX() + point1.x;
-                                    point1.x = pos.GetY() + point1.y;
-                                    point2.x = pos.GetX() + point2.x;
-                                    point2.x = pos.GetY() + point2.y;
-                                    marking->FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
-                                }
-                                else
-                                {
-                                    // find local lower right corner
-                                    RotateVec2D(object_length_dynamic / 2,
-                                                -object_width_dynamic / 2,
-                                                pos.GetH() + object->GetHOffset(),
-                                                point1.x,
-                                                point1.y);
-                                    // find local upper right corner
-                                    RotateVec2D(object_length_dynamic / 2, object_width_dynamic / 2, pos.GetH() + object->GetHOffset(),point2.x, point2.y);
-                                    point1.x = pos.GetX() + point1.x;
-                                    point1.x = pos.GetY() + point1.y;
-                                    point2.x = pos.GetX() + point2.x;
-                                    point2.x = pos.GetY() + point2.y;
-                                    marking->FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
-                                }
+                                // find local lower left corner
+                                RotateVec2D(-object_length_dynamic / 2,
+                                            -object_width_dynamic / 2,
+                                            pos.GetH() + object->GetHOffset(),
+                                            point1.x,
+                                            point1.y);
+                                // find local upper left corner
+                                RotateVec2D(-object_length_dynamic / 2,
+                                            object_width_dynamic / 2,
+                                            pos.GetH() + object->GetHOffset(),
+                                            point2.x,
+                                            point2.y);
+                                point1.x = pos.GetX() + point1.x;
+                                point1.x = pos.GetY() + point1.y;
+                                point2.x = pos.GetX() + point2.x;
+                                point2.x = pos.GetY() + point2.y;
+                                marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
+                            }
+                            else
+                            {
+                                // find local lower right corner
+                                RotateVec2D(object_length_dynamic / 2,
+                                            -object_width_dynamic / 2,
+                                            pos.GetH() + object->GetHOffset(),
+                                            point1.x,
+                                            point1.y);
+                                // find local upper right corner
+                                RotateVec2D(object_length_dynamic / 2, object_width_dynamic / 2, pos.GetH() + object->GetHOffset(),point2.x, point2.y);
+                                point1.x = pos.GetX() + point1.x;
+                                point1.x = pos.GetY() + point1.y;
+                                point2.x = pos.GetX() + point2.x;
+                                point2.x = pos.GetY() + point2.y;
+                                marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
                             }
                         }
                     }
@@ -3828,7 +3743,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         objGroup->addChild(lod);
                     }
 
-                    if (object->GetNumberOfMarkings() > 0)
+                    if (!object->GetMarkings().empty()) // draw wireframe for marking
                     {
                         osg::PolygonMode* polygonMode = new osg::PolygonMode;
                         polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
@@ -3837,12 +3752,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
             }
             // draw marking
-            for (const auto& markings:object->GetMarkings())  // draw marking
+            for (const auto& marking:object->GetMarkings())  // draw marking
             {
-                for (const auto& marking:markings->marking_)
-                {
-                    DrawMarking(marking);
-                }
+                DrawMarking(marking);
             }
         }
     }
