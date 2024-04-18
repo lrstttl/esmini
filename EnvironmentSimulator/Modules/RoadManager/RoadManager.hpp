@@ -2010,7 +2010,7 @@ namespace roadmanager
             return radiusEnd_;
         }
 
-        struct RepeatVertexPoints
+        struct RepeatVertexPoint
         {
             double x;
             double y;
@@ -2019,11 +2019,10 @@ namespace roadmanager
             double width;
             double height;
         };
-        std::vector<RepeatVertexPoints> repeatVertexPoints_;
-        void                            CreateRepeatObjectsPoints(Repeat *repeat, RoadObject *obj, int r_id);
-        bool                            IsRepeatObjectsPointsCreated();
+        std::vector<RepeatVertexPoint> repeatVertexPoints_;
     };
 
+    class RMObject ; // forward declaration
     class Marking
     {
     private:
@@ -2080,10 +2079,11 @@ namespace roadmanager
             double z = 0.0;
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
-        void                              FillPointsFromOutline(Outline *outline);
         void                              CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outline);
+        void                              FillPointsFromOutline(Outline *outline);
         void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
-        void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset);
+        void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
+        void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoint repeatPoints, double objHOffset);
 
         // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
 
@@ -2274,7 +2274,7 @@ namespace roadmanager
         {
             return repeat_;
         }
-        std::vector<Repeat *> GetRepeats() const
+        std::vector<Repeat *> GetRepeats()
         {
             return repeats_;
         }
@@ -2322,6 +2322,7 @@ namespace roadmanager
         {
             return markings_;
         }
+        void CreateObjectRepeatPoints(int r_id);
 
     private:
         std::string name_;
@@ -2331,7 +2332,7 @@ namespace roadmanager
         double      t_;
         double      z_offset_;
         Orientation orientation_;
-        double      length_;
+        double      length_; // make some default
         double      height_;
         double      width_;
         double      heading_;

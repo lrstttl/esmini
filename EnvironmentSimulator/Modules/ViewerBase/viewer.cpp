@@ -3640,7 +3640,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         }
                         if (rep != nullptr && rep->GetDistance() > SMALL_NUMBER)
                         {
-                            roadmanager::Repeat::RepeatVertexPoints points;
+                            roadmanager::Repeat::RepeatVertexPoint points;
                             points.x      = pos.GetX();
                             points.y      = pos.GetY();
                             points.z      = pos.GetZ() + object->GetZOffset();

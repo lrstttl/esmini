@@ -2771,7 +2771,7 @@ TEST(TestOsiReporter, MarkingTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).x(), 32);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).y(), 5.5999999999999943);
 
-    EXPECT_EQ(osi_gt.road_marking(23).base().base_polygon_size(), 80);
+    EXPECT_EQ(osi_gt.road_marking(25).base().base_polygon_size(), 80);
 
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).x(), 28);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).y(), 4.3999999999999986);
@@ -2780,7 +2780,7 @@ TEST(TestOsiReporter, MarkingTest)
 
     printf("Enter into Viewer\n");
     const char* args[] =
-        {"--osc", "../../../resources/xosc/markings_test.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+        {"--osc", "../../resources/xosc/markings_test.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     SE_StepDT(0.001f);
@@ -2942,12 +2942,68 @@ TEST(TestOsiReporter, MarkingTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).x(), 32);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(24).base().base_polygon(63).y(), 5.5999999999999943);
 
-    EXPECT_EQ(osi_gt.road_marking(23).base().base_polygon_size(), 80);
+    EXPECT_EQ(osi_gt.road_marking(25).base().base_polygon_size(), 80);
 
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).x(), 28);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).y(), 4.3999999999999986);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).x(), 28);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).y(), 5.2999999999999954);
+
+}
+
+TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
+{
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
+
+    std::string scenario_file = "../../resources/xosc/test_stationary_object_repeat.xosc";
+    const char* Scenario_file = scenario_file.c_str();
+    int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
+    ASSERT_EQ(i_init, 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 1);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 20.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -12.9);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), 6.4600000000000009);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).y(), -1.5999999999999996);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).x(), 6.4600000000000009);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).y(), 2.4000000000000004);
+
+    printf("Enter into Viewer\n");
+    const char* args[] =
+        {"--osc", "../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt1, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 1);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 20.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -12.9);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), 6.4600000000000009);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).y(), -1.5999999999999996);
+
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).x(), 6.4600000000000009);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).y(), 2.4000000000000004);
+
 }
 
 TEST(TestOsiReporter, StationaryObjectTest)

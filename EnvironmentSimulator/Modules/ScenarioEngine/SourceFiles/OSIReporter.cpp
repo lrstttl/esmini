@@ -574,6 +574,18 @@ int UpdateOSIStationaryObjectODRPosition(osi3::StationaryObject *sobj, double x,
     return 0;
 }
 
+void UpdateOSIStationaryObjectODROutlineMarking(std::vector<std::shared_ptr<roadmanager::Outline>> outlines, std::vector<roadmanager::Marking>& markings )
+{
+    for (auto& marking:markings)
+    {
+        marking.CheckAndFillMarkingsFromOutline(outlines);
+        for(const auto& points:marking.vertexPoints_)
+        {
+            UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
+        }
+    }
+}
+
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
     (void)road_id;
@@ -654,13 +666,9 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     }
     else if (object->GetNumberOfRepeats() > 0)  // only repeat
     {
+        object->CreateObjectRepeatPoints(road_id);  // create repeat copies
         for (const auto &repeat : object->GetRepeats())
         {
-            if (!repeat->IsRepeatObjectsPointsCreated())  // maybe repeat copies created in viewer
-            {
-                repeat->CreateRepeatObjectsPoints(repeat, object, road_id);  // create repeat copies
-            }
-
             for (const auto &repeat_points : repeat->repeatVertexPoints_)
             {
                 // Create OSI Stationary Object
@@ -743,87 +751,53 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         }
     }
 
-    if (!object->GetMarkings().empty())  // create road markings
+    if (object->GetMarkings().empty())
     {
-        if (object->GetNumberOfOutlines() == 0 && object->GetNumberOfRepeats() == 0)  // individual objects with no repeat and outline
-        {
-            for (auto &marking : object->GetMarkings())
-            {
-                if (static_cast<int>(marking.vertexPoints_.size()) == 0)  // fill it
-                {
-                    roadmanager::Repeat::RepeatVertexPoints Points;
-                    Points.x      = object->GetX();
-                    Points.y      = object->GetY();
-                    Points.z      = object->GetZ() + object->GetZOffset();
-                    Points.height = object->GetHeight();
-                    Points.length = object->GetLength();
-                    Points.width  = object->GetWidth();
-                    marking.FillPointsFromObjectPoint(Points, object->GetHOffset());
-                }
-                for (const auto &vertexPoints_ : marking.vertexPoints_)  // Vertex are already populated in viewer itself
-                {
-                    std::vector<roadmanager::Marking::Point3D> points = vertexPoints_;
-                    UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
-                }
-            }
-        }
-        else if (object->GetNumberOfOutlines() == 0 && object->GetNumberOfRepeats() > 0)  // non outline object with repeat
-        {
-            for (const auto &repeat : object->GetRepeats())
-            {
-                if (!repeat->IsRepeatObjectsPointsCreated())
-                {
-                    repeat->CreateRepeatObjectsPoints(repeat, object, road_id);
-                }
-                for (size_t i = 0; i < repeat->repeatVertexPoints_.size(); i++)
-                {
-                    for (auto &marking : object->GetMarkings())
-                    {
-                        if (marking.vertexPoints_.size() == i)  // no points from viewer
-                        {
-                            marking.FillPointsFromObjectPoint(repeat->repeatVertexPoints_[i], object->GetHOffset());
-                        }
-                        std::vector<roadmanager::Marking::Point3D> points =
-                            marking.vertexPoints_[i];  // for each repeatVertexPoints_, marking points vector shall be created
-                        UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
-                    }
-                }
-            }
-        }
-        else if (object->GetNumberOfOutlines() > 0 && object->GetNumberOfRepeats() == 0)  // outline with no repeat
-        {
-            // create road markings from outline expect local corner
+        return 0;
+    }
 
-            for (size_t i = 0; i < static_cast<unsigned int>(object->GetNumberOfOutlines()); i++)
-            {
-                auto outline = object->GetOutline(i);
-                if (outline->localCornerScales.size() == 0)  // extra check, no scales shall be present with no repeat
-                {
-                    for (auto& marking:object->GetMarkings())
-                    {
-                        if (marking.vertexPoints_.size() == i)  // no points from roadmanager
-                        {
-                            marking.FillPointsFromOutline(outline.get());
-                        }
-                        std::vector<roadmanager::Marking::Point3D> points =
-                            marking.vertexPoints_[i];  // for each outline, marking points vector shall be created
-                        UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
-                    }
-                }
-            }
-        }
-        else  // outline with repeat, here must have outlineCopies
+    if (object->GetOutlines().empty() && object->GetRepeats().empty())  // individual objects with no repeat and outline
+    {
+        for (auto &marking : object->GetMarkings())
         {
-            for (auto& marking:object->GetMarkings())
+            if (marking.vertexPoints_.empty())  // fill it
             {
-                marking.CheckAndFillMarkingsFromOutline(object->GetOutlinesCopys());
-                for(const auto& points:marking.vertexPoints_)
-                {
-                    UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
-                }
+                roadmanager::Repeat::RepeatVertexPoint Point;
+                Point.x      = object->GetX();
+                Point.y      = object->GetY();
+                Point.z      = object->GetZ() + object->GetZOffset();
+                Point.height = object->GetHeight();
+                Point.length = object->GetLength();
+                Point.width  = object->GetWidth();
+                marking.FillPointsFromObjectPoint(Point, object->GetHOffset());
+            }
+            for (const auto &vertexPoints_ : marking.vertexPoints_)  // Vertex are already populated in viewer itself
+            {
+                std::vector<roadmanager::Marking::Point3D> points = vertexPoints_;
+                UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
             }
         }
     }
+    else if (object->GetOutlines().empty() && !object->GetRepeats().empty())  // non outline object with repeat
+    {
+        for (auto &marking : object->GetMarkings())
+        {
+            marking.FillPointsFromObjectRePeats(object, road_id);
+            for (const auto& points:marking.vertexPoints_)
+            {
+                UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);
+            }
+        }
+    }
+    else if (!object->GetOutlines().empty() && object->GetRepeats().empty())  // outline with no repeat
+    {
+        UpdateOSIStationaryObjectODROutlineMarking(object->GetOutlines(), object->GetMarkings());
+    }
+    else  // outline with repeat, here must have outlineCopies
+    {
+        UpdateOSIStationaryObjectODROutlineMarking(object->GetOutlinesCopys(), object->GetMarkings());
+    }
+
     return 0;
 }
 

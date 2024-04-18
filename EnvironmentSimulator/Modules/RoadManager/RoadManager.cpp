@@ -2736,7 +2736,19 @@ void Marking::FillPointsFromLocalCorners(Outline* outline, Outline::ScalePoints 
     }
 }
 
-void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoints repeatPoints, double objHOffset)
+void Marking::FillPointsFromObjectRePeats(RMObject* object, int road_id)
+{
+    object->CreateObjectRepeatPoints(road_id);
+    for (auto &repeat : object->GetRepeats())
+    {
+        for (const auto& repeatVertexPoint:repeat->repeatVertexPoints_)
+        {
+            FillPointsFromObjectPoint(repeatVertexPoint, object->GetHOffset());
+        }
+    }
+}
+
+void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoint repeatPoints, double objHOffset)
 {
     Point2D point1;
     Point2D point2;
@@ -2823,10 +2835,6 @@ void Marking::FillPointsFromOutline(Outline* outline)
         }
     }
 }
-bool Repeat::IsRepeatObjectsPointsCreated()
-{
-    return repeatVertexPoints_.size() > 0;
-}
 
 void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outlines)
 {
@@ -2836,9 +2844,9 @@ void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outlin
         {
             if (outline->localCornerScales.size() > 0)  // check scale from local corner
             {
-                for (int i = 0; i < outline->localCornerScales.size(); i++)
+                for (const auto& localCornerScale:outline->localCornerScales)
                 {
-                    FillPointsFromLocalCorners(outline.get(), outline->localCornerScales[i]);  // fill local corner
+                    FillPointsFromLocalCorners(outline.get(), localCornerScale);  // fill local corner
                 }
             }
             else
@@ -2849,12 +2857,12 @@ void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outlin
     }
 }
 
-void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id)
+void RMObject::CreateObjectRepeatPoints(int r_id)
 {
-    RMObject* obj                   = static_cast<RMObject*>(object);
-    double    object_width_dynamic  = obj->GetWidth();  // for repeat copies
-    double    object_length_dynamic = obj->GetLength();
-    double    object_height_dynamic = obj->GetHeight();
+
+    double    object_width_dynamic  = GetWidth();  // for repeat copies
+    double    object_length_dynamic = GetLength();
+    double    object_height_dynamic = GetHeight();
     if (object_length_dynamic < SMALL_NUMBER && object_width_dynamic < SMALL_NUMBER && object_height_dynamic < SMALL_NUMBER)
     {
         object_width_dynamic  = 1;  // for repeat copies
@@ -2873,69 +2881,77 @@ void Repeat::CreateRepeatObjectsPoints(Repeat* rep, RoadObject* object, int r_id
     {
         object_height_dynamic = 0.05;
     }
-    if (obj->GetNumberOfOutlines() == 0)
+    if (GetNumberOfOutlines() == 0)
     {  // create repeat information also for non outline object.
-        int    nCopies = 0;
-        double cur_s   = 0.0;
 
-        roadmanager::Position pos;
-        for (;
-             nCopies < 1 || (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_);
-             nCopies++)
+        for (auto &rep : GetRepeats())
         {
-            double factor, t, s, zOffset;
-            factor  = cur_s / rep->GetLength();
-            t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
-            s       = rep->GetS() + cur_s;
-            zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
+            if (rep->repeatVertexPoints_.size() > 0)
+            {
+                continue; // repeat points already calculated
+            }
+            int    nCopies = 0;
+            double cur_s   = 0.0;
 
-            // position mode relative for aligning to road heading
-            pos.SetTrackPosMode(r_id,
-                                s,
-                                t,
-                                roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                    roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-            double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
-            pos.SetHeadingRelative(h_offset);
+            roadmanager::Position pos;
+            for (;
+                nCopies < 1 || (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_);
+                nCopies++)
+            {
+                double factor, t, s, zOffset;
+                factor  = cur_s / rep->GetLength();
+                t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
+                s       = rep->GetS() + cur_s;
+                zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
 
-            if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
-            {
-                object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
-            }
-            if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
-            {
-                object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
-            }
-            if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
-            {
-                object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
-            }
+                // position mode relative for aligning to road heading
+                pos.SetTrackPosMode(r_id,
+                                    s,
+                                    t,
+                                    roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                        roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
+                pos.SetHeadingRelative(h_offset);
 
-            if (IsEqualDouble(cur_s + SMALL_NUMBER, rep->length_) || cur_s > rep->length_)
-            {
-                break;  // object would reach outside specified total length
-            }
+                if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
+                {
+                    object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
+                }
+                if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
+                {
+                    object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
+                }
+                if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
+                {
+                    object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
+                }
 
-            // increase current s according to distance
-            if (rep->distance_ > SMALL_NUMBER)
-            {
-                cur_s += rep->distance_;
-            }
-            else
-            {
-                // for continuous objects, move along s wrt to road curvature
-                cur_s += pos.DistanceToDS(object_length_dynamic);
-            }
-            // printf("cur_s s %.2f \n",cur_s);
+                if (IsEqualDouble(cur_s + SMALL_NUMBER, rep->length_) || cur_s > rep->length_)
+                {
+                    break;  // object would reach outside specified total length
+                }
 
-            roadmanager::Repeat::RepeatVertexPoints points;
-            points.x      = pos.GetX();
-            points.y      = pos.GetY();
-            points.z      = pos.GetZ() + obj->GetZOffset();
-            points.height = object_height_dynamic;
-            points.length = object_length_dynamic;
-            points.width  = object_width_dynamic;
-            rep->repeatVertexPoints_.push_back(points);
+                // increase current s according to distance
+                if (rep->distance_ > SMALL_NUMBER)
+                {
+                    cur_s += rep->distance_;
+                }
+                else
+                {
+                    // for continuous objects, move along s wrt to road curvature
+                    cur_s += pos.DistanceToDS(object_length_dynamic);
+                }
+                // printf("cur_s s %.2f \n",cur_s);
+
+                roadmanager::Repeat::RepeatVertexPoint points;
+                points.x      = pos.GetX();
+                points.y      = pos.GetY();
+                points.z      = pos.GetZ() + GetZOffset();
+                points.height = object_height_dynamic;
+                points.length = object_length_dynamic;
+                points.width  = object_width_dynamic;
+                rep->repeatVertexPoints_.push_back(points);
+            }
         }
     }
 }
@@ -4779,6 +4795,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 double               heading  = atof(object.attribute("hdg").value());
                 double               pitch    = atof(object.attribute("pitch").value());
                 double               roll     = atof(object.attribute("roll").value());
+
 
                 // Read any repeat elements
                 std::vector<Repeat*> Repeats;
