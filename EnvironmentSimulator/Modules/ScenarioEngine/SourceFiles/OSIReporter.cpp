@@ -778,7 +778,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
             }
         }
     }
-    else if (object->GetOutlines().empty() && !object->GetRepeats().empty())  // non outline object with repeat
+    else if (object->GetOutlines().empty() && object->GetOutlinesCopys().empty() && !object->GetRepeats().empty())  // non outline object with repeat
     {
         for (auto &marking : object->GetMarkings())
         {

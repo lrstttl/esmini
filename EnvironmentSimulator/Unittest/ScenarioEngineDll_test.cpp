@@ -2956,7 +2956,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     int               sv_size = 0;
     osi3::GroundTruth osi_gt;
 
-    std::string scenario_file = "../../resources/xosc/test_stationary_object_repeat.xosc";
+    std::string scenario_file = "../../../resources/xosc/test_stationary_object_repeat.xosc";
     const char* Scenario_file = scenario_file.c_str();
     int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
     ASSERT_EQ(i_init, 0);
@@ -2980,9 +2980,19 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).x(), 6.4600000000000009);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).y(), 2.4000000000000004);
 
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).x(), 20);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).y(), -14.5);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(159).x(), 20);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(159).y(), -10.500000000000014);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(0).x(), 30);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(0).y(), -14.5);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).x(), 30);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).y(), -10.500000000000014);
+
     printf("Enter into Viewer\n");
     const char* args[] =
-        {"--osc", "../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+        {"--osc", "../../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     SE_StepDT(0.001f);
@@ -3003,6 +3013,17 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
 
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).x(), 6.4600000000000009);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(5).y(), 2.4000000000000004);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).x(), 20);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(0).y(), -14.5);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(159).x(), 20);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(0).base().base_polygon(159).y(), -10.500000000000014);
+
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(0).x(), 30);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(0).y(), -14.5);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).x(), 30);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).y(), -10.500000000000014);
+
 
 }
 
