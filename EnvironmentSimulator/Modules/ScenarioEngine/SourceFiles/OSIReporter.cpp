@@ -515,7 +515,7 @@ int UpdateOSIStationaryObjectODRMarking(osi3::RoadMarking *rm, osi3::GroundTruth
     return 0;
 }
 
-int UpdateOSIStationaryObjectODRType(roadmanager::RMObject::ObjectType type, osi3::StationaryObject *sobj)
+int UpdateOSIStationaryObjectODRType(roadmanager::RMObject::ObjectType type, osi3::StationaryObject *sobj, std::string restrictions)
 {
     // Set OSI Stationary Object Type and Classification
     if (type == roadmanager::RMObject::ObjectType::POLE)
@@ -546,6 +546,9 @@ int UpdateOSIStationaryObjectODRType(roadmanager::RMObject::ObjectType type, osi
         sobj->mutable_classification()->set_density(
             osi3::StationaryObject_Classification_Density::StationaryObject_Classification_Density_DENSITY_SOLID);
         sobj->mutable_classification()->set_color(osi3::StationaryObject_Classification_Color::StationaryObject_Classification_Color_COLOR_GREY);
+        osi3::ExternalReference *scource_reference = sobj->add_source_reference();
+        std::string             *identifier_string = scource_reference->add_identifier();
+        identifier_string->assign(restrictions);
     }
     else if (type == roadmanager::RMObject::ObjectType::OBSTACLE || type == roadmanager::RMObject::ObjectType::RAILING ||
              type == roadmanager::RMObject::ObjectType::PATCH || type == roadmanager::RMObject::ObjectType::TRAFFICISLAND ||
@@ -588,7 +591,6 @@ void UpdateOSIStationaryObjectODROutlineMarking(std::vector<std::shared_ptr<road
 
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
-    (void)road_id;
     if (object->GetNumberOfRepeats() > 0 && object->GetNumberOfOutlinesCopies() > 0)  // with repeat and outline. so each outline is object
     {
         for (const auto &outline : object->GetOutlinesCopys())
@@ -602,13 +604,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     // Set OSI Stationary Object Mutable ID
                     obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
                     // Set OSI Stationary Object Type and Classification
-                    UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj);
-                    if (object->GetType() == roadmanager::RMObject::ObjectType::PARKINGSPACE)  // special setting for parking
-                    {
-                        osi3::ExternalReference *scource_reference = obj_osi_internal.sobj->add_source_reference();
-                        std::string             *identifier_string = scource_reference->add_identifier();
-                        identifier_string->assign(object->GetParkingSpace().GetRestrictions());
-                    }
+                    UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
                     roadmanager::Position pref;
                     pref.SetTrackPosMode(localCornerScale.roadId_,
@@ -639,13 +635,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                 // Set OSI Stationary Object Mutable ID
                 obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
                 // Set OSI Stationary Object Type and Classification
-                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj);
-                if (object->GetType() == roadmanager::RMObject::ObjectType::PARKINGSPACE)  // special setting for parking
-                {
-                    osi3::ExternalReference *scource_reference = obj_osi_internal.sobj->add_source_reference();
-                    std::string             *identifier_string = scource_reference->add_identifier();
-                    identifier_string->assign(object->GetParkingSpace().GetRestrictions());
-                }
+                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
                 // Set OSI Stationary Object Position
                 UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
@@ -676,13 +666,8 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                 // Set OSI Stationary Object Mutable ID
                 obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
                 // Set OSI Stationary Object Type and Classification
-                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj);
-                if (object->GetType() == roadmanager::RMObject::ObjectType::PARKINGSPACE)  // special setting for parking
-                {
-                    osi3::ExternalReference *scource_reference = obj_osi_internal.sobj->add_source_reference();
-                    std::string             *identifier_string = scource_reference->add_identifier();
-                    identifier_string->assign(object->GetParkingSpace().GetRestrictions());
-                }
+                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
                 // Set OSI Stationary Object Position
                 UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeat_points.x, repeat_points.y, repeat_points.z);
 
@@ -707,13 +692,8 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         // Set OSI Stationary Object Mutable ID
         obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
         // Set OSI Stationary Object Type and Classification
-        UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj);
-        if (object->GetType() == roadmanager::RMObject::ObjectType::PARKINGSPACE)  // special setting for parking
-        {
-            osi3::ExternalReference *scource_reference = obj_osi_internal.sobj->add_source_reference();
-            std::string             *identifier_string = scource_reference->add_identifier();
-            identifier_string->assign(object->GetParkingSpace().GetRestrictions());
-        }
+        UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+        
         // Set OSI Stationary Object Position
         UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
 

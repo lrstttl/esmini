@@ -2890,13 +2890,10 @@ void RMObject::CreateObjectRepeatPoints(int r_id)
             {
                 continue; // repeat points already calculated
             }
-            int    nCopies = 0;
             double cur_s   = 0.0;
 
             roadmanager::Position pos;
-            for (;
-                nCopies < 1 || (rep && rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_);
-                nCopies++)
+            while((rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_))
             {
                 double factor, t, s, zOffset;
                 factor  = cur_s / rep->GetLength();
@@ -2924,11 +2921,6 @@ void RMObject::CreateObjectRepeatPoints(int r_id)
                 if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
                 {
                     object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
-                }
-
-                if (IsEqualDouble(cur_s + SMALL_NUMBER, rep->length_) || cur_s > rep->length_)
-                {
-                    break;  // object would reach outside specified total length
                 }
 
                 // increase current s according to distance

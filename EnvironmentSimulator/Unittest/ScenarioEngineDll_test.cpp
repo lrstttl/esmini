@@ -2956,7 +2956,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     int               sv_size = 0;
     osi3::GroundTruth osi_gt;
 
-    std::string scenario_file = "../../../resources/xosc/test_stationary_object_repeat.xosc";
+    std::string scenario_file = "../../resources/xosc/test_stationary_object_repeat.xosc";
     const char* Scenario_file = scenario_file.c_str();
     int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
     ASSERT_EQ(i_init, 0);
@@ -2968,7 +2968,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     const char* gt = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 1);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 4);
 
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 20.0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -12.9);
@@ -2990,9 +2990,21 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).x(), 30);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).y(), -10.500000000000014);
 
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().x(), 40);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().y(), -12.5);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().x(), 45);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -12.5);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().x(), 50.0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().y(), -12.5);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().z(), 0.0);
+
     printf("Enter into Viewer\n");
     const char* args[] =
-        {"--osc", "../../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+        {"--osc", "../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     SE_StepDT(0.001f);
@@ -3002,7 +3014,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt1, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 1);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 4);
 
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 20.0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -12.9);
@@ -3024,7 +3036,17 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).x(), 30);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(5).base().base_polygon(159).y(), -10.500000000000014);
 
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().x(), 40);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().y(), -12.5);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().z(), 0.0);
 
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().x(), 45);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -12.5);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
+
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().x(), 50.0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().y(), -12.5);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().z(), 0.0);
 }
 
 TEST(TestOsiReporter, StationaryObjectTest)
