@@ -3049,6 +3049,145 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_EQ(osi_gt.stationary_object(3).base().position().z(), 0.0);
 }
 
+TEST(TestOsiReporter, CrestCurveRoadObjectTest)
+{
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
+
+    printf("Enter into Viewer\n");
+    const char* args[] =
+        {"--osc", "../../resources/xosc/test_crest-curve.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt1, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 11);
+
+    // EXPECT_EQ(osi_gt.stationary_object(0).id_.value_, 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 203.51413451161932);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -25.655025131060537);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0.33236151603550002);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().length(), 15);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().width(), 5);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().orientation().yaw(), -0.1033333333333335);
+
+    // EXPECT_EQ(osi_gt.stationary_object(1).id_.value_, 1);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().x(), 191.34659639117515);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().y(), -0.82963812914125601);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().dimension().length(), 5);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().dimension().width(), 1);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().dimension().height(), 1);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(1).base().orientation().yaw(), 1.3000000000000007);
+
+    // EXPECT_EQ(osi_gt.stationary_object(2).id_.value_, 2);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().x(), 238.37120234059455);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -39.678451135223888);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 4.8104956268375005);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().length(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().width(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().dimension().height(), 10);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().orientation().yaw(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon_size(), 4);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).x(), 25.0);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).y(), 0);
+
+    // EXPECT_EQ(osi_gt.stationary_object(3).id_.value_, 3);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().x(), 224.19122252299422);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().y(), -5.5814061201184835);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().position().z(), 1.1895043731800001);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().dimension().length(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().dimension().width(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().dimension().height(), 3.1000000000000005);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().orientation().yaw(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon_size(), 8);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).x(), -4.4784934284002418);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).y(), -2.2233075837085305);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).x(), -10.259891354301139);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).y(), -107.49074806068103);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(7).x(), 4.4784934284002391);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(7).y(), 2.2233075837085279);
+
+    // EXPECT_EQ(osi_gt.stationary_object(4).id_.value_, 4);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().position().x(), 200.53056333185458);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().position().y(), -6.2984541135033858);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().dimension().length(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().dimension().width(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().dimension().height(), 1.9999999999999993);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().orientation().yaw(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon_size(), 22);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(0).x(), -0.015459245076737984);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(0).y(), -0.019647181519426207);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(3).x(), 22.145394419898395);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(3).y(), -21.804664477130672);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(7).x(), 41.503177775000651);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(7).y(), -58.750844483929825);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(8).x(), 43.77285305333956);
+    EXPECT_EQ(osi_gt.stationary_object(4).base().base_polygon(8).y(), -69.078809692800064);
+
+    // EXPECT_EQ(osi_gt.stationary_object(5).id_.value_, 5);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().x(), 272.74031601209629);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().y(), -79.856275102608407);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().position().z(), 3.2952886180696996);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().length(), 0.20000004768371582);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().width(), 0.20000000298023224);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().dimension().height(), 2);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(5).base().orientation().yaw(), -1.3695763333333328);
+
+    // EXPECT_EQ(osi_gt.stationary_object(6).id_.value_, 6);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().position().x(), 197.25861636389305);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().position().y(), -15.748023576650763);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().dimension().length(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().dimension().width(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().dimension().height(), 1.9999999999999993);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().orientation().yaw(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().base_polygon_size(), 22);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().base_polygon(3).x(), 20.516587166347009);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().base_polygon(3).y(), -20.187967866846783);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().base_polygon(18).x(), 20.555649692768231);
+    EXPECT_EQ(osi_gt.stationary_object(6).base().base_polygon(18).y(), -20.156756986859342);
+
+    // EXPECT_EQ(osi_gt.stationary_object(10).id_.value_, 10);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().position().x(), 198.89458984787382);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().position().y(), -11.023238845077074);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().dimension().length(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().dimension().width(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().dimension().height(), 2.0500000000000007);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().orientation().roll(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().orientation().pitch(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().orientation().yaw(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon_size(), 24);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).x(), 221.67785128569153);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).y(), 2.1829561720404875);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(18).x(), 235.16592600150418);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(18).y(), 2.2734163460346899);
+}
+
 TEST(TestOsiReporter, StationaryObjectTest)
 {
     int               sv_size = 0;
