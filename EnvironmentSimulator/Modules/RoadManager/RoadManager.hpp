@@ -2010,16 +2010,21 @@ namespace roadmanager
             return radiusEnd_;
         }
 
-        struct RepeatVertexPoint
+        struct RepeatScale
         {
             double x;
             double y;
             double z;
-            double length;
-            double width;
-            double height;
+            double s;
+            double roll;
+            double pitch;
+            double heading;
+            double hOffset;
+            double scale_x;
+            double scale_y;
+            double scale_z;
         };
-        std::vector<RepeatVertexPoint> repeatVertexPoints_;
+        std::vector<RepeatScale> repeatScales_;
     };
 
     class RMObject ; // forward declaration
@@ -2083,7 +2088,8 @@ namespace roadmanager
         void                              FillPointsFromOutline(Outline *outline);
         void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
         void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
-        void                              FillPointsFromObjectPoint(Repeat::RepeatVertexPoint repeatPoints, double objHOffset);
+        void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
+        void                              FillPointsFromSingleObject(double s, double t, double length, double width, double objHOffset);
 
         // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
 
@@ -2322,7 +2328,11 @@ namespace roadmanager
         {
             return markings_;
         }
-        void CreateObjectRepeatPoints(int r_id);
+        size_t GetNumberOfMarkings() const
+        {
+            return (size_t)outlines_.size();
+        }
+        void CreateObjectRepeatScale(int r_id);
 
     private:
         std::string name_;
@@ -2511,11 +2521,16 @@ namespace roadmanager
         Elevation     *GetSuperElevation(int idx) const;
         int            GetNumberOfSignals() const;
         Signal        *GetSignal(int idx) const;
+        std::vector<Signal *>   GetSignals() const;
         int            GetNumberOfObjects() const
         {
             return (int)object_.size();
         }
         RMObject *GetRoadObject(int idx) const;
+        std::vector<RMObject *> GetRoadObjects()
+        {
+            return object_;
+        }
         int       GetNumberOfElevations() const
         {
             return (int)elevation_profile_.size();
@@ -2933,6 +2948,10 @@ namespace roadmanager
         int       GetNumOfRoads() const
         {
             return (int)road_.size();
+        }
+        std::vector<Road *> GetRoads()
+        {
+            return road_;
         }
         Junction *GetJunctionById(int id) const;
         Junction *GetJunctionByIdx(int idx) const;

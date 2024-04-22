@@ -637,6 +637,7 @@ namespace viewer
         int  DrawMarking(roadmanager::Marking marking);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(roadmanager::Road* road, std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
+        int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road * road_);
         int                                          InitTraits(osg::ref_ptr<osg::GraphicsContext::Traits> traits,
                                                                 int                                        x,
                                                                 int                                        y,

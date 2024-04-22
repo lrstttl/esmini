@@ -2348,6 +2348,11 @@ Signal* Road::GetSignal(int idx) const
     return signal_[idx];
 }
 
+std::vector<Signal*> Road::GetSignals() const
+{
+    return signal_;
+}
+
 void Road::AddObject(RMObject* object)
 {
     /*LOG("Add object[%d]: %s", (int)object_.size(), object->GetName().c_str());*/
@@ -2738,32 +2743,62 @@ void Marking::FillPointsFromLocalCorners(Outline* outline, Outline::ScalePoints 
 
 void Marking::FillPointsFromObjectRePeats(RMObject* object, int road_id)
 {
-    object->CreateObjectRepeatPoints(road_id);
+    object->CreateObjectRepeatScale(road_id);
     for (auto &repeat : object->GetRepeats())
     {
-        for (const auto& repeatVertexPoint:repeat->repeatVertexPoints_)
+        for (const auto& repeatScales:repeat->repeatScales_)
         {
-            FillPointsFromObjectPoint(repeatVertexPoint, object->GetHOffset());
+            FillPointsFromRepeatScale(repeatScales, object->GetLength(), object->GetWidth());
         }
     }
 }
 
-void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoint repeatPoints, double objHOffset)
+void Marking::FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width)
+{
+    Point2D point1;
+    Point2D point2;
+    if (GetSide() == 0)
+    {
+        // find local lower left corner
+        RotateVec2D(-(length * repeatScale.scale_x) / 2, -(width * repeatScale.scale_y) / 2, repeatScale.heading + repeatScale.hOffset, point1.x, point1.y);
+        // find local upper left corner
+        RotateVec2D(-(length * repeatScale.scale_x) / 2, (width * repeatScale.scale_y) / 2, repeatScale.heading + repeatScale.hOffset, point2.x, point2.y);
+        point1.x = repeatScale.x + point1.x;
+        point1.y = repeatScale.y + point1.y;
+        point2.x = repeatScale.x + point2.x;
+        point2.y = repeatScale.y + point2.y;
+        FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
+    }
+    else
+    {
+        // find local lower right corner
+        RotateVec2D((length * repeatScale.scale_x) / 2, -(width * repeatScale.scale_y) / 2, repeatScale.heading + repeatScale.hOffset, point1.x, point1.y);
+        // find local upper right corner
+        RotateVec2D((length * repeatScale.scale_x) / 2, (width * repeatScale.scale_y) / 2, repeatScale.heading + repeatScale.hOffset, point2.x, point2.y);
+        point1.x = repeatScale.x + point1.x;
+        point1.y = repeatScale.y + point1.y;
+        point2.x = repeatScale.x + point2.x;
+        point2.y = repeatScale.y + point2.y;
+        FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
+    }
+}
+
+void Marking::FillPointsFromSingleObject(double s, double t, double length, double width, double objHOffset)
 {
     Point2D point1;
     Point2D point2;
     roadmanager::Position pos;
     pos.SetTrackPosMode(roadId_,
-                        repeatPoints.x,
-                        repeatPoints.y,
+                        s,
+                        t,
                         roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::P_REL |
                             roadmanager::Position::PosMode::R_REL);
     if (GetSide() == 0)
     {
         // find local lower left corner
-        RotateVec2D(-repeatPoints.length / 2, -repeatPoints.width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
+        RotateVec2D(-length / 2, -width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
         // find local upper left corner
-        RotateVec2D(-repeatPoints.length / 2, repeatPoints.width / 2, pos.GetH() + objHOffset, point2.x, point2.y);
+        RotateVec2D(-length / 2, width / 2, pos.GetH() + objHOffset, point2.x, point2.y);
         point1.x = pos.GetX() + point1.x;
         point1.y = pos.GetY() + point1.y;
         point2.x = pos.GetX() + point2.x;
@@ -2773,9 +2808,9 @@ void Marking::FillPointsFromObjectPoint(Repeat::RepeatVertexPoint repeatPoints, 
     else
     {
         // find local lower right corner
-        RotateVec2D(repeatPoints.length / 2, -repeatPoints.width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
+        RotateVec2D(length / 2, -width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
         // find local upper right corner
-        RotateVec2D(repeatPoints.length / 2, repeatPoints.width / 2, pos.GetH() + objHOffset, point2.x, point2.y);
+        RotateVec2D(length / 2, width / 2, pos.GetH() + objHOffset, point2.x, point2.y);
         point1.x = pos.GetX() + point1.x;
         point1.y = pos.GetY() + point1.y;
         point2.x = pos.GetX() + point2.x;
@@ -2857,7 +2892,116 @@ void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outlin
     }
 }
 
-void RMObject::CreateObjectRepeatPoints(int r_id)
+void RMObject::CreateObjectRepeatScale(int r_id)
+{
+    if (GetNumberOfOutlines() == 0)
+    {  // create repeat information only for non outline object.
+
+        for (auto &rep : GetRepeats())
+        {
+            if (rep->repeatScales_.size() > 0)
+            {
+                continue; // repeat points already availble
+            }
+            if (rep->GetLength() < SMALL_NUMBER)
+            {
+                continue; // no length to repeat
+            }
+
+            if (GetLength() < SMALL_NUMBER)
+            {
+                LOG("Object %s missing length, set to bounding box length %.2f", GetName().c_str(), 0.05);
+                SetLength(0.05);
+            }
+            if (GetWidth() < SMALL_NUMBER)
+            {
+                LOG("Object %s missing width, set to bounding box width %.2f", GetName().c_str(), 0.05);
+                SetWidth(0.05);
+            }
+            if (GetHeight() < SMALL_NUMBER)
+            {
+                LOG("Object %s missing height, set to bounding box height %.2f", GetName().c_str(), 0.05);
+                SetHeight(0.05);
+            }
+
+            double repeatLength =
+                GetLengthOfVector2D(rep->GetLength(), (rep->GetTEnd() - rep->GetTStart())) + SMALL_NUMBER;  // add small number to round double value
+            repeatLength = MIN(repeatLength, rep->roadLength_ - rep->GetS()); // either repeat length or reminaing road length
+            double orientation = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0;
+            Position pos;
+            double cur_s   = 0.0;
+            while(cur_s < repeatLength)
+            {
+                double scale_x = 1.0;
+                double scale_y = 1.0;
+                double scale_z = 1.0;
+                double factor  = cur_s / repeatLength;
+                double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength()); // use original length to find angle
+                double object_length_dynamic = GetLength();
+                if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
+                {
+                    scale_x =
+                        ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset)) / GetLength();
+                    object_length_dynamic =
+                        ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
+                }
+                else
+                {
+                    scale_x               = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
+                }
+                if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
+                {
+                    scale_y              = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart())) / GetWidth();
+                }
+                if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
+                {
+                    scale_z               = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart())) / GetHeight();
+                }
+
+                double t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
+                double s       = rep->GetS() + cur_s;
+                double zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
+
+                // position mode relative for aligning to road heading
+                pos.SetTrackPosMode(r_id,
+                                    s,
+                                    t,
+                                   Position::PosMode::H_REL | Position::PosMode::Z_REL |
+                                        Position::PosMode::P_REL | Position::PosMode::R_REL);
+                pos.SetHeadingRelative(h_offset);
+
+                // increase current s according to distance
+                if (rep->GetDistance() > SMALL_NUMBER)
+                {
+                    cur_s += rep->GetDistance();
+                }
+                else
+                {
+                    // for continuous objects, move along s wrt to road curvature
+                    cur_s += pos.DistanceToDS(object_length_dynamic);
+                }
+
+                Repeat::RepeatScale scale;
+                scale.x      = pos.GetX();
+                scale.y      = pos.GetY();
+                scale.z      = pos.GetZ() + zOffset;
+                scale.s      = s;
+                scale.roll   = pos.GetR();
+                scale.pitch  = pos.GetP();
+                scale.heading = pos.GetH();
+                scale.hOffset = orientation + GetHOffset();
+                scale.scale_x = scale_x;
+                scale.scale_y  = scale_y;
+                scale.scale_z = scale_z;
+
+                rep->repeatScales_.push_back(scale);
+            }
+        }
+    }
+}
+
+#if 0
+void RMObject::CreateObjectRepeatScale(int r_id)
 {
 
     double    object_width_dynamic  = GetWidth();  // for repeat copies
@@ -2886,7 +3030,7 @@ void RMObject::CreateObjectRepeatPoints(int r_id)
 
         for (auto &rep : GetRepeats())
         {
-            if (rep->repeatVertexPoints_.size() > 0)
+            if (rep->repeatScales_.size() > 0)
             {
                 continue; // repeat points already calculated
             }
@@ -2935,19 +3079,19 @@ void RMObject::CreateObjectRepeatPoints(int r_id)
                 }
                 // printf("cur_s s %.2f \n",cur_s);
 
-                roadmanager::Repeat::RepeatVertexPoint points;
+                roadmanager::Repeat::RepeatScale points;
                 points.x      = pos.GetX();
                 points.y      = pos.GetY();
                 points.z      = pos.GetZ() + GetZOffset();
                 points.height = object_height_dynamic;
                 points.length = object_length_dynamic;
                 points.width  = object_width_dynamic;
-                rep->repeatVertexPoints_.push_back(points);
+                rep->repeatScales_.push_back(points);
             }
         }
     }
 }
-
+#endif
 void CreateBoundingBoxFromCorners(std::vector<Outline::points> cornerPoints, double& length, double& width, double& height, double& z)
 {
     // Find max, min x and y

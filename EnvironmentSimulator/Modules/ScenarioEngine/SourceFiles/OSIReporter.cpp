@@ -656,10 +656,10 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     }
     else if (object->GetNumberOfRepeats() > 0)  // only repeat
     {
-        object->CreateObjectRepeatPoints(road_id);  // create repeat copies
+        object->CreateObjectRepeatScale(road_id);  // create repeat copies
         for (const auto &repeat : object->GetRepeats())
         {
-            for (const auto &repeat_points : repeat->repeatVertexPoints_)
+            for (const auto &repeatScale : repeat->repeatScales_)
             {
                 // Create OSI Stationary Object
                 obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
@@ -669,12 +669,12 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                 UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
                 // Set OSI Stationary Object Position
-                UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeat_points.x, repeat_points.y, repeat_points.z);
+                UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z);
 
                 // Set OSI Stationary Object Boundingbox
-                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(repeat_points.height);
-                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_width(repeat_points.width);
-                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_length(repeat_points.length);
+                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(repeatScale.scale_z * object->GetHeight());
+                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_width(repeatScale.scale_y * object->GetWidth());
+                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_length(repeatScale.scale_x * object->GetLength());
                 // only bounding box
 
                 // Set OSI Stationary Object Orientation
@@ -693,7 +693,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
         // Set OSI Stationary Object Type and Classification
         UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
-        
+
         // Set OSI Stationary Object Position
         UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
 
@@ -742,14 +742,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         {
             if (marking.vertexPoints_.empty())  // fill it
             {
-                roadmanager::Repeat::RepeatVertexPoint Point;
-                Point.x      = object->GetX();
-                Point.y      = object->GetY();
-                Point.z      = object->GetZ() + object->GetZOffset();
-                Point.height = object->GetHeight();
-                Point.length = object->GetLength();
-                Point.width  = object->GetWidth();
-                marking.FillPointsFromObjectPoint(Point, object->GetHOffset());
+                marking.FillPointsFromSingleObject(object->GetS(), object->GetT(), object->GetLength(), object->GetWidth(), object->GetHOffset());
             }
             for (const auto &vertexPoints_ : marking.vertexPoints_)  // Vertex are already populated in viewer itself
             {
