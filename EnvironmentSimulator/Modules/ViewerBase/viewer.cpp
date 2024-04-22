@@ -3450,6 +3450,10 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         lastLODs = s;
                     }
                     LODGroup->addChild(clone);
+                    for (auto& marking:object->GetMarkings())  // draw marking
+                    {
+                        marking.FillPointsFromRepeatScale(repeatScale, object->GetLength(), object->GetWidth());
+                    }
                 }
             }
         }

@@ -2330,7 +2330,7 @@ namespace roadmanager
         }
         size_t GetNumberOfMarkings() const
         {
-            return (size_t)outlines_.size();
+            return (size_t)markings_.size();
         }
         void CreateObjectRepeatScale(int r_id);
 
