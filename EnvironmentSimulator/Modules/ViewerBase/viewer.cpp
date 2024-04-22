@@ -3294,6 +3294,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
                 LOG("  check that corners are defined counter-clockwise (as OpenGL default).");
+                // draw marking
+                for (const auto& marking:object->GetMarkings())  // draw marking
+                {
+                    DrawMarking(marking);
+                }
                 continue;
             }
             bool foundModel = false;
@@ -3372,15 +3377,33 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 shape->setColor(color);
                 tx->addChild(shape);
             }
-            if (object->GetNumberOfRepeats() == 0)
+            if (object->GetNumberOfRepeats() == 0) // single object
             {
+                double scale_x = 1.0;
+                double scale_y = 1.0;
+                double scale_z = 1.0;
+                // scale it for user provided dimensions
+                if (object->GetLength() > SMALL_NUMBER && dim_x > SMALL_NUMBER)
+                {
+                    scale_x = object->GetLength() / dim_x;
+                }
+                if (object->GetWidth() > SMALL_NUMBER && dim_y > SMALL_NUMBER)
+                {
+                    scale_y = object->GetWidth() / dim_y;
+                }
+                if (object->GetHeight() > SMALL_NUMBER && dim_z > SMALL_NUMBER)
+                {
+                    scale_z = object->GetHeight() / dim_z;
+                }
                 // position mode relative for aligning to road heading
                 pos.SetTrackPosMode(road->GetId(),
                                     object->GetS(),
                                     object->GetT(),
                                     roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
                                         roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                tx->setPosition(osg::Vec3(static_cast<float>(pos.GetX()),
+                clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr;
+                clone->setScale(osg::Vec3(static_cast<float>(scale_x), static_cast<float>(scale_y), static_cast<float>(scale_z)));
+                clone->setPosition(osg::Vec3(static_cast<float>(pos.GetX()),
                                                 static_cast<float>(pos.GetY()),
                                                 static_cast<float>(object->GetZOffset() + pos.GetZ())));
 
@@ -3389,8 +3412,8 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 // Specified local rotation
                 osg::Quat quatLocal(orientation + object->GetHOffset(), osg::Vec3(osg::Z_AXIS));  // Heading
                 // Combine
-                tx->setAttitude(quatLocal * quatRoad);
-                tx->setDataVariance(osg::Object::STATIC);
+                clone->setAttitude(quatLocal * quatRoad);
+                clone->setDataVariance(osg::Object::STATIC);
 
                 // add current LOD and create a new one
                 osg::ref_ptr<osg::LOD> lod = new osg::LOD();
@@ -3401,7 +3424,54 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     0,
                     LOD_DIST_ROAD_FEATURES + MAX(object->GetLength(), object->GetWidth()));
                 objGroup->addChild(lod);
-                LODGroup->addChild(tx);
+                LODGroup->addChild(clone);
+                if (!object->GetNumberOfMarkings() == 0) // draw wireframe for marking
+                {
+                    osg::PolygonMode* polygonMode = new osg::PolygonMode;
+                    polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+                    LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+                }
+                for (auto& marking:object->GetMarkings())  // fill marking point draw marking
+                {
+                    roadmanager::Marking::Point2D point1;
+                    roadmanager::Marking::Point2D point2;
+                    if (marking.GetSide() == 0)
+                    {
+                        // find local lower left corner
+                        RotateVec2D(-object->GetLength() / 2,
+                                    -object->GetWidth() / 2,
+                                    pos.GetH() + object->GetHOffset(),
+                                    point1.x,
+                                    point1.y);
+                        // find local upper left corner
+                        RotateVec2D(-object->GetLength() / 2,
+                                    object->GetWidth() / 2,
+                                    pos.GetH() + object->GetHOffset(),
+                                    point2.x,
+                                    point2.y);
+                        point1.x = pos.GetX() + point1.x;
+                        point1.y = pos.GetY() + point1.y;
+                        point2.x = pos.GetX() + point2.x;
+                        point2.y = pos.GetY() + point2.y;
+                        marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
+                    }
+                    else
+                    {
+                        // find local lower right corner
+                        RotateVec2D(object->GetLength() / 2,
+                                    -object->GetWidth() / 2,
+                                    pos.GetH() + object->GetHOffset(),
+                                    point1.x,
+                                    point1.y);
+                        // find local upper right corner
+                        RotateVec2D(object->GetLength() / 2, object->GetWidth() / 2, pos.GetH() + object->GetHOffset(),point2.x, point2.y);
+                        point1.x = pos.GetX() + point1.x;
+                        point1.y = pos.GetY() + point1.y;
+                        point2.x = pos.GetX() + point2.x;
+                        point2.y = pos.GetY() + point2.y;
+                        marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
+                    }
+                }
             }
             double s = object->GetS();
             for (const auto &repeat : object->GetRepeats())
@@ -3455,6 +3525,17 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         marking.FillPointsFromRepeatScale(repeatScale, object->GetLength(), object->GetWidth());
                     }
                 }
+                if (!object->GetNumberOfMarkings() == 0) // draw wireframe for marking
+                {
+                    osg::PolygonMode* polygonMode = new osg::PolygonMode;
+                    polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+                    LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+                }
+            }
+            // draw marking
+            for (const auto& marking:object->GetMarkings())  // draw marking
+            {
+                DrawMarking(marking);
             }
         }
     }

@@ -2462,7 +2462,7 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
 void Marking::FillPoints(const Point2D& point, OutlineCorner::CornerType cornerType, std::vector<Point3D>& points_)
 {
     roadmanager::Marking::Point3D point_;
-    double x, y, z;
+    double z;
     roadmanager::Position tmp_pos;
     tmp_pos.SetMode(Position::PosModeType::UPDATE,
                     Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
@@ -2476,7 +2476,7 @@ void Marking::FillPoints(const Point2D& point, OutlineCorner::CornerType cornerT
         point_.y = point.y;
         z = 0.0;
     }
-    tmp_pos.SetInertiaPos(x, y, 0.0);
+    tmp_pos.SetInertiaPos(point_.x, point_.y, 0.0);
     point_.z = tmp_pos.GetZ() + z_offset_;
     points_.push_back(point_);
 }
@@ -2504,8 +2504,9 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2,  O
         double deltaP0StartOffset = sin(alpha) * startOffset_;
 
         double x, y, z;
-        double p0 = point1.x;
-        double p1 = point1.y;
+        Point2D point;
+        point.x = point1.x;
+        point.y = point1.y;
 
         double beata = side_ == 1 ? M_PI_2 + alpha : -M_PI_2 + alpha;  // side 1 -right, 0 - left
 
@@ -2514,165 +2515,47 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2,  O
 
         std::vector<Point3D> points_;
 
-        roadmanager::Position tmp_pos;
-        tmp_pos.SetMode(Position::PosModeType::UPDATE,
-                        Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
         // add first block immediate after start offset for line length
+        Point2D pointTemp;
         if (nrOfPoints >= 4)
         {
-            p0 += deltaP0StartOffset;
-            p1 += deltaP1StartOffset;
-            roadmanager::Marking::Point3D point_;
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0, p1, 0.0, x, y, z);  // convert to world cordinate
-            }
-            else
-            {  // already in world cordinate
-                x = p0;
-                y = p1;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            // printf("Points A x %.2f y %.2f z %.2f\n", x, y, z);
-            z = tmp_pos.GetZ();
-            // printf("new z  %.2f\n", z);
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ A
+            point.x += deltaP0StartOffset;
+            point.y += deltaP1StartOffset;
 
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-            }
-            else
-            {
-                x = p0 + deltaP0Far;
-                y = p1 + deltaP1Far;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ B
+            FillPoints(point, cornerType, points_);  // point_ A
+            pointTemp.x = point.x + deltaP0Far;
+            pointTemp.y = point.y + deltaP1Far;
+            FillPoints(pointTemp, cornerType, points_);  // point_ B
 
-            p0 += deltaP0Line;
-            p1 += deltaP1Line;
-            // z_new += deltaZLine;
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-            }
-            else
-            {
-                x = p0 + deltaP0Far;
-                y = p1 + deltaP1Far;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ C
+            point.x += deltaP0Line;
+            point.y += deltaP1Line;
 
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0, p1, 0.0, x, y, z);
-            }
-            else
-            {
-                x = p0;
-                y = p1;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ D
+            pointTemp.x = point.x + deltaP0Far;
+            pointTemp.y = point.y + deltaP1Far;
+            FillPoints(pointTemp, cornerType, points_);  // point_ C
+            FillPoints(point, cornerType, points_);  // point_ D
+
         }
 
         for (int i = 4; i < nrOfPoints; i += 4)  // loop from second block
         {
-            roadmanager::Marking::Point3D point_;
-            p0 += deltaP0Gap;
-            p1 += deltaP1Gap;
-            // z_new += deltaZGap;
 
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0, p1, 0.0, x, y, z);  // convert to world cordinate
-            }
-            else
-            {  // already in world cordinate
-                x = p0;
-                y = p1;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ A
+            point.x += deltaP0Gap;
+            point.y += deltaP1Gap;
 
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-            }
-            else
-            {
-                x = p0 + deltaP0Far;
-                y = p1 + deltaP1Far;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ B
+            FillPoints(point, cornerType, points_);  // point_ A
+            pointTemp.x = point.x + deltaP0Far;
+            pointTemp.y = point.y + deltaP1Far;
+            FillPoints(pointTemp, cornerType, points_);  // point_ B
 
-            p0 += deltaP0Line;
-            p1 += deltaP1Line;
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0 + deltaP0Far, p1 + deltaP1Far, 0.0, x, y, z);
-            }
-            else
-            {
-                x = p0 + deltaP0Far;
-                y = p1 + deltaP1Far;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ C
+            point.x += deltaP0Line;
+            point.y += deltaP1Line;
 
-            if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
-            {
-                GetPos(p0, p1, 0.0, x, y, z);
-            }
-            else
-            {
-                x = p0;
-                y = p1;
-                z = 0.0;
-            }
-            tmp_pos.SetInertiaPos(x, y, 0.0);
-            z       = tmp_pos.GetZ();
-            point_.x = x;
-            point_.y = y;
-            point_.z = z + z_offset_;
-            points_.push_back(point_);  // point_ D
+            pointTemp.x = point.x + deltaP0Far;
+            pointTemp.y = point.y + deltaP1Far;
+            FillPoints(pointTemp, cornerType, points_);  // point_ D
+            FillPoints(point, cornerType, points_);  // point_ C
+
         }
         vertexPoints_.push_back(points_);
     }
@@ -3000,98 +2883,6 @@ void RMObject::CreateObjectRepeatScale(int r_id)
     }
 }
 
-#if 0
-void RMObject::CreateObjectRepeatScale(int r_id)
-{
-
-    double    object_width_dynamic  = GetWidth();  // for repeat copies
-    double    object_length_dynamic = GetLength();
-    double    object_height_dynamic = GetHeight();
-    if (object_length_dynamic < SMALL_NUMBER && object_width_dynamic < SMALL_NUMBER && object_height_dynamic < SMALL_NUMBER)
-    {
-        object_width_dynamic  = 1;  // for repeat copies
-        object_length_dynamic = 1;
-        object_height_dynamic = 1;
-    }
-    else if (object_length_dynamic < SMALL_NUMBER)
-    {
-        object_length_dynamic = 0.05;
-    }
-    else if (object_width_dynamic < SMALL_NUMBER)
-    {
-        object_width_dynamic = 0.05;
-    }
-    else if (object_height_dynamic < SMALL_NUMBER)
-    {
-        object_height_dynamic = 0.05;
-    }
-    if (GetNumberOfOutlines() == 0)
-    {  // create repeat information also for non outline object.
-
-        for (auto &rep : GetRepeats())
-        {
-            if (rep->repeatScales_.size() > 0)
-            {
-                continue; // repeat points already calculated
-            }
-            double cur_s   = 0.0;
-
-            roadmanager::Position pos;
-            while((rep->length_ > SMALL_NUMBER && cur_s < rep->GetLength() + SMALL_NUMBER && cur_s + rep->GetS() < rep->roadLength_))
-            {
-                double factor, t, s, zOffset;
-                factor  = cur_s / rep->GetLength();
-                t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
-                s       = rep->GetS() + cur_s;
-                zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
-
-                // position mode relative for aligning to road heading
-                pos.SetTrackPosMode(r_id,
-                                    s,
-                                    t,
-                                    roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                        roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                double h_offset = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());
-                pos.SetHeadingRelative(h_offset);
-
-                if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
-                {
-                    object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
-                }
-                if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
-                {
-                    object_width_dynamic = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart()));
-                }
-                if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
-                {
-                    object_height_dynamic = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart()));
-                }
-
-                // increase current s according to distance
-                if (rep->distance_ > SMALL_NUMBER)
-                {
-                    cur_s += rep->distance_;
-                }
-                else
-                {
-                    // for continuous objects, move along s wrt to road curvature
-                    cur_s += pos.DistanceToDS(object_length_dynamic);
-                }
-                // printf("cur_s s %.2f \n",cur_s);
-
-                roadmanager::Repeat::RepeatScale points;
-                points.x      = pos.GetX();
-                points.y      = pos.GetY();
-                points.z      = pos.GetZ() + GetZOffset();
-                points.height = object_height_dynamic;
-                points.length = object_length_dynamic;
-                points.width  = object_width_dynamic;
-                rep->repeatScales_.push_back(points);
-            }
-        }
-    }
-}
-#endif
 void CreateBoundingBoxFromCorners(std::vector<Outline::points> cornerPoints, double& length, double& width, double& height, double& z)
 {
     // Find max, min x and y
