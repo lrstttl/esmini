@@ -2956,7 +2956,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     int               sv_size = 0;
     osi3::GroundTruth osi_gt;
 
-    std::string scenario_file = "../../resources/xosc/test_stationary_object_repeat.xosc";
+    std::string scenario_file = "../../../resources/xosc/test_stationary_object_repeat.xosc";
     const char* Scenario_file = scenario_file.c_str();
     int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
     ASSERT_EQ(i_init, 0);
@@ -3004,7 +3004,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
 
     printf("Enter into Viewer\n");
     const char* args[] =
-        {"--osc", "../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+        {"--osc", "../../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     SE_StepDT(0.001f);

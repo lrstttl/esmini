@@ -2975,7 +2975,7 @@ int Viewer::DrawMarking(roadmanager::Marking marking)
     }
     return 0;
 }
-int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::LocalCornerScale> localCornerScales, std::vector<std::shared_ptr<roadmanager::Outline>> outlines, osg::Vec4 color, bool isMarkingAvailable)
+int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale> localCornerScales, std::vector<std::shared_ptr<roadmanager::Outline>> outlines, osg::Vec4 color, bool isMarkingAvailable)
 {
     osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
     // Set vertices
@@ -2989,9 +2989,10 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
         osg::ref_ptr<osg::Vec3Array> vertices_sides =
             new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);                                      // one set at bottom and one at top
         osg::ref_ptr<osg::Vec3Array> vertices_top = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));  // one set at bottom and one at top
+
         for (size_t i = 0; i < outline->corner_.size(); i++)
         {
-            auto localCorner = static_cast<roadmanager::OutlineCornerLocal*>(outline->corner_[i]);
+            roadmanager::OutlineCornerLocal* localCorner = static_cast<roadmanager::OutlineCornerLocal*>(outline->corner_[i]);
             (*vertices_sides)[i * 2 + 0].set(static_cast<float>(localCorner->GetU()),
                                                 static_cast<float>(localCorner->GetV()),
                                                 static_cast<float>(localCorner->GetZ() +
@@ -3003,7 +3004,10 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
                                     static_cast<float>(localCorner->GetV()),
                                     static_cast<float>(localCorner->GetZ() +
                                                         localCorner->GetHeight()));
+        printf("pos U %.2f V %.2f z %.2f height %.2f\n",
+        localCorner->GetU(),localCorner->GetV(), localCorner->GetZ(), localCorner->GetHeight());
         }
+
         // Close geometry
         if ( outline->areaType_ == roadmanager::Outline::CLOSED)
         {
@@ -3041,33 +3045,29 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
         geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
     }
 
-    roadmanager::Position pos;
     for (const auto& localCornerScale:localCornerScales)
     {
         // position mode relative for aligning to road heading
-        pos.SetTrackPosMode(localCornerScale.roadId_,
-                            localCornerScale.s_,
-                            localCornerScale.t_,
-                            roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
         osg::ref_ptr<osg::PositionAttitudeTransform> xform = new osg::PositionAttitudeTransform();
         xform->addChild(geode);
         xform->setScale(osg::Vec3(static_cast<float>(localCornerScale.scale_x),
                                     static_cast<float>(localCornerScale.scale_y),
                                     static_cast<float>(localCornerScale.scale_z)));
 
-        xform->setPosition(osg::Vec3(static_cast<float>(pos.GetX()),
-                                        static_cast<float>(pos.GetY()),
-                                        static_cast<float>(localCornerScale.objZOffset + pos.GetZ())));
+        xform->setPosition(osg::Vec3(static_cast<float>(localCornerScale.x),
+                                        static_cast<float>(localCornerScale.y),
+                                        static_cast<float>(localCornerScale.z)));
 
         // First align to road orientation
-        osg::Quat quatRoad(osg::Quat(pos.GetR(), osg::X_AXIS, pos.GetP(), osg::Y_AXIS, pos.GetH(), osg::Z_AXIS));
+        osg::Quat quatRoad(osg::Quat(localCornerScale.roll, osg::X_AXIS, localCornerScale.pitch, osg::Y_AXIS, localCornerScale.heading, osg::Z_AXIS));
         // Specified local rotation
-        osg::Quat quatLocal(localCornerScale.objH, osg::Vec3(osg::Z_AXIS));  // Heading
+        osg::Quat quatLocal(localCornerScale.hOffset, osg::Vec3(osg::Z_AXIS));  // Heading
 
         // Combine
         xform->setAttitude(quatLocal * quatRoad);
         envTx_->addChild(xform);
+        printf("Viewer scale x %.2f y %.2f z %.2f pos x %.2f y %.2f z %.2f roll %.2f pitch %.2f heading %.2f hoffset %.2f\n",
+        localCornerScale.scale_x, localCornerScale.scale_y, localCornerScale.scale_z, localCornerScale.x, localCornerScale.y, localCornerScale.z, localCornerScale.roll, localCornerScale.pitch, localCornerScale.heading, localCornerScale.hOffset);
     }
     if (isMarkingAvailable)  // draw outlink marking
     {
@@ -3212,6 +3212,8 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
         (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
         (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
         (*vertices_top)[i].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
+        printf("pos x %.2f y %.2f z %.2f height %.2f\n",
+        x, y, z, corner->GetHeight());
     }
 
     // Close geometry
@@ -3599,9 +3601,9 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     {
                         CreateOutlineObject(outline.get(), color, !object->GetNumberOfMarkings() == 0);
                     }
-                    if( repeat->localCornerScales.size() > 0) // local corner outlines with repeat
+                    if( repeat->repeatScales_.size() > 0) // local corner outlines with repeat
                     {
-                        CreateLocalCornerOutlineRepeatObject(repeat->localCornerScales, object->GetOutlines(), color, !object->GetNumberOfMarkings() == 0);
+                        CreateLocalCornerOutlineRepeatObject(repeat->repeatScales_, object->GetOutlines(), color, !object->GetNumberOfMarkings() == 0);
                     }
                     for (auto& marking:object->GetMarkings())  // draw marking
                     {

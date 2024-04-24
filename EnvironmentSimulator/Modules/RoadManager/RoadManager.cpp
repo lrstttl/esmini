@@ -5029,7 +5029,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     {
                         if ( cornerType == OutlineCorner::CornerType::LOCAL_CORNER)
                         {
-                            Repeat::LocalCornerScale scale_points;  // for shollow copy
+                            Repeat::RepeatScale scale_point;  // for shollow copy
                             while(!(IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat))
                             {
                                 double factor = cur_s / total_length_from_repeat;
@@ -5063,17 +5063,23 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                                     rtStart + factor * (rtEnd - rtStart),
                                                     roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
                                                         roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                                pos.SetHeadingRelative(h_offset);
 
-                                scale_points.scale_x    = scale_u;
-                                scale_points.scale_y    = scale_v;
-                                scale_points.scale_z    = scale_z;
-                                scale_points.scale_h    = scale_h;
-                                scale_points.s_         = repeat->GetS() + cur_s;
-                                scale_points.t_         = rtStart + factor * (rtEnd - rtStart);
-                                scale_points.objZOffset = obj->GetZOffset();
-                                scale_points.objH       = roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0 + obj->GetH();
-                                scale_points.roadId_    = r->GetId();
-                                repeat->localCornerScales.push_back(scale_points);  // store points for shallow copy
+                                scale_point.scale_x    = scale_u;
+                                scale_point.scale_y    = scale_v;
+                                scale_point.scale_z    = scale_z;
+                                scale_point.x           = pos.GetX();
+                                scale_point.y           = pos.GetY();
+                                scale_point.z           = pos.GetZ() + obj->GetZOffset();
+                                scale_point.s       = repeat->GetS() + cur_s;
+                                scale_point.roll   = pos.GetR();
+                                scale_point.pitch  = pos.GetP();
+                                scale_point.heading = pos.GetH();
+                                scale_point.hOffset = (orientation == roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0) + obj->GetHOffset();
+                                printf("rm scale x %.2f y %.2f z %.2f pos x %.2f y %.2f z %.2f roll %.2f pitch %.2f heading %.2f hoffset%.2f\n",
+                                scale_point.scale_x, scale_point.scale_y, scale_point.scale_z, scale_point.x, scale_point.y, scale_point.z, scale_point.roll, scale_point.pitch, scale_point.heading, scale_point.hOffset);
+
+                                repeat->repeatScales_.push_back(scale_point);  // store points for shallow copy
 
                                 if (repeat->distance_ < SMALL_NUMBER)
                                 {
