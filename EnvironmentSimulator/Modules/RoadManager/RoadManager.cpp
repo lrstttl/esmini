@@ -2578,7 +2578,7 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
     }
 }
 
-void Marking::FillPointsFromLocalCorners(Outline* outline, Outline::ScalePoints localCornerScales)
+void Marking::FillPointsFromLocalCorners(Outline* outline, Repeat::LocalCornerScale localCornerScales)
 {
     Point2D point1;
     Point2D point2;
@@ -2633,6 +2633,7 @@ void Marking::FillPointsFromObjectRePeats(RMObject* object, int road_id)
         {
             FillPointsFromRepeatScale(repeatScales, object->GetLength(), object->GetWidth());
         }
+        CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines() ,repeat->localCornerScales);
     }
 }
 
@@ -2753,7 +2754,7 @@ void Marking::FillPointsFromOutline(Outline* outline)
         }
     }
 }
-
+#if 0
 void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outlines)
 {
     if (vertexPoints_.empty()) // fill only empty
@@ -2770,6 +2771,31 @@ void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outlin
             else
             {
                 FillPointsFromOutline(outline.get());  // fill from road corner
+            }
+        }
+    }
+}
+#endif
+void Marking::CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outlines)
+{
+    if (vertexPoints_.empty()) // fill only empty
+    {
+        for (const auto& outline:outlines)
+        {
+            FillPointsFromOutline(outline.get());  // fill from road corner
+        }
+    }
+}
+
+void Marking::CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat::LocalCornerScale> localCornerScales)
+{
+    if (vertexPoints_.empty()) // fill only empty
+    {
+        for (const auto& outline:outlines)
+        {
+            for (const auto& localCornerScale:localCornerScales)
+            {
+                FillPointsFromLocalCorners(outline.get(), localCornerScale);  // fill local corner
             }
         }
     }
@@ -2883,30 +2909,34 @@ void RMObject::CreateObjectRepeatScale(int r_id)
     }
 }
 
-void CreateBoundingBoxFromCorners(std::vector<Outline::points> cornerPoints, double& length, double& width, double& height, double& z)
+void CreateBoundingBoxFromCorners(std::vector<std::vector<Repeat::point>> cornerPointsVector, double& length, double& width, double& height, double& z)
 {
     // Find max, min x and y
     // Initialize with first element's x value for clarity
-    double minX      = cornerPoints[0].x;
-    double maxX      = cornerPoints[0].x;
-    double minY      = cornerPoints[0].y;
-    double maxY      = cornerPoints[0].y;
-    double minZ      = cornerPoints[0].z;
-    double maxZ      = cornerPoints[0].z;
-    double minHieght = cornerPoints[0].h;
-    double maxHieght = cornerPoints[0].h;
+    double minX      = cornerPointsVector[0][0].x;
+    double maxX      = cornerPointsVector[0][0].x;
+    double minY      = cornerPointsVector[0][0].y;
+    double maxY      = cornerPointsVector[0][0].y;
+    double minZ      = cornerPointsVector[0][0].z;
+    double maxZ      = cornerPointsVector[0][0].z;
+    double minHieght = cornerPointsVector[0][0].h;
+    double maxHieght = cornerPointsVector[0][0].h;
 
-    for (const auto cornerPoint:cornerPoints)
+    for (const auto cornerPoints:cornerPointsVector)
     {
-        minX      = min(minX, cornerPoint.x);  // Update minX with the smaller value
-        maxX      = max(maxX, cornerPoint.x);  // Update maxX with the larger value
-        minY      = min(minY, cornerPoint.y);
-        maxY      = max(maxY, cornerPoint.y);
-        minZ      = min(minZ, cornerPoint.z);
-        maxZ      = max(maxZ, cornerPoint.z);
-        minHieght = min(minZ, cornerPoint.h);
-        maxHieght = max(maxZ, cornerPoint.h);
+        for (const auto cornerPoint:cornerPoints)
+        {
+            minX      = min(minX, cornerPoint.x);  // Update minX with the smaller value
+            maxX      = max(maxX, cornerPoint.x);  // Update maxX with the larger value
+            minY      = min(minY, cornerPoint.y);
+            maxY      = max(maxY, cornerPoint.y);
+            minZ      = min(minZ, cornerPoint.z);
+            maxZ      = max(maxZ, cornerPoint.z);
+            minHieght = min(minZ, cornerPoint.h);
+            maxHieght = max(maxZ, cornerPoint.h);
+        }
     }
+
     // find local bb from corner points
     length = maxX - minX;
     width  = maxY - minY;
@@ -4930,30 +4960,290 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     }
                 }
 
-                for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
+                for (auto& repeat:obj->GetRepeats())
                 {
-                    auto outlineOriginal = obj->GetOutline(static_cast<int>(i));
-                    for (size_t j = 0; j < obj->GetNumberOfRepeats(); j++)
+                    double  rtStart       = repeat->GetTStart();
+                    double  rtEnd         = repeat->GetTEnd();
+                    double  rlengthStart  = repeat->GetLengthStart();
+                    double  rlengthEnd    = repeat->GetLengthEnd();
+                    double  rwidthStart   = repeat->GetWidthStart();
+                    double  rwidthEnd     = repeat->GetWidthEnd();
+                    double  rheightStart  = repeat->GetHeightStart();
+                    double  rheightEnd    = repeat->GetHeightEnd();
+                    double  rzOffsetStart = repeat->GetZOffsetStart();
+                    double  rzOffsetEnd   = repeat->GetZOffsetEnd();
+                    std::vector<std::vector<Repeat::point>> cornerPoints_;
+                    OutlineCorner::CornerType cornerType = OutlineCorner::CornerType::LOCAL_CORNER;
+                    Outline:: AreaType areaType = Outline:: AreaType::CLOSED;
+                    for (auto& outlineOriginal:obj->GetOutlines())
                     {
-                        Repeat* repeat        = obj->GetRepeatByIdx(static_cast<int>(j));
-                        double  rtStart       = repeat->GetTStart();
-                        double  rtEnd         = repeat->GetTEnd();
-                        double  rlengthStart  = repeat->GetLengthStart();
-                        double  rlengthEnd    = repeat->GetLengthEnd();
-                        double  rwidthStart   = repeat->GetWidthStart();
-                        double  rwidthEnd     = repeat->GetWidthEnd();
-                        double  rheightStart  = repeat->GetHeightStart();
-                        double  rheightEnd    = repeat->GetHeightEnd();
-                        double  rzOffsetStart = repeat->GetZOffsetStart();
-                        double  rzOffsetEnd   = repeat->GetZOffsetEnd();
+                        std::vector<Repeat::point> cornerPoints;
+                        if (outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
+                        {
+                            for (const auto& corner : outlineOriginal->corner_)
+                            {
+                                Repeat::point points_;
+                                OutlineCornerLocal* localCorner = static_cast<OutlineCornerLocal*>(corner);
+                                points_.x = localCorner->GetU(); // u and v not transformed to x and y yet. just storing as x and y for future processing
+                                points_.y = localCorner->GetV();
+                                points_.z = localCorner->GetZ();
+                                points_.h = localCorner->GetHeight();
+                                cornerPoints.push_back(points_);
+                            }
+                            cornerType = OutlineCorner::CornerType::LOCAL_CORNER;
+                        }
+                        else  // road corner
+                        {
+                            // store all the corner points
+                            for (const auto& corner:outlineOriginal->corner_)
+                            {
+                                Repeat::point point_;
+                                OutlineCornerRoad* roadCorner = static_cast<OutlineCornerRoad*>(corner);
+                                point_.x = roadCorner->GetS(); // s and t not transformed to x and y yet. just storing as x and y for future processing
+                                point_.y = roadCorner->GetT();
+                                point_.z = roadCorner->GetZ();
+                                point_.h = roadCorner->GetHeight();
+                                cornerPoints.push_back(point_);
+                            }
+                            cornerType = OutlineCorner::CornerType::ROAD_CORNER;
+                            areaType = outlineOriginal->GetAreaType();
+                        }
+                        cornerPoints_.push_back(cornerPoints);
+                    }
+                    // find the bb from the corner
+                    double length_from_corner;
+                    double width_from_corner;
+                    double z_from_corner;
+                    double height_from_corner;
+                    CreateBoundingBoxFromCorners(cornerPoints_, length_from_corner, width_from_corner, height_from_corner, z_from_corner);
 
+                    int    nCopies = 0;
+                    double cur_s   = 0.0;
+                    double total_length_from_repeat = GetLengthOfVector2D(repeat->GetLength(), (rtEnd - rtStart)) + SMALL_NUMBER;  // add small number to round double value
+                    double                   h_offset       = atan2(rtEnd - rtStart, total_length_from_repeat);
+                    double                   dynamic_length = length_from_corner;
+                    double                   dynamic_width  = width_from_corner;
+                    double                   dynamic_z      = z_from_corner;
+                    double                   dynamic_height = height_from_corner;
+                    if (total_length_from_repeat > SMALL_NUMBER)
+                    {
+                        if ( cornerType == OutlineCorner::CornerType::LOCAL_CORNER)
+                        {
+                            Repeat::LocalCornerScale scale_points;  // for shollow copy
+                            while(!(IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat))
+                            {
+                                double factor = cur_s / total_length_from_repeat;
+                                // find the new length and details from repeat, calculate how much to add based on local dimension
+                                double scale_u = 1.0;
+                                if (rlengthStart > SMALL_NUMBER || rlengthEnd > SMALL_NUMBER)
+                                {
+                                    dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart)) / cos(h_offset));
+                                    scale_u        = abs(dynamic_length / length_from_corner);
+                                }
+                                double scale_v = 1.0;
+                                if (rwidthEnd > SMALL_NUMBER || rwidthStart > SMALL_NUMBER)
+                                {
+                                    dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
+                                    scale_v       = abs(dynamic_width / width_from_corner);
+                                }
+                                double scale_z = 1.0;
+                                if (rzOffsetEnd > SMALL_NUMBER || rzOffsetStart > SMALL_NUMBER)
+                                {
+                                    dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
+                                    scale_z   = abs(dynamic_z / z_from_corner);
+                                }
+                                double scale_h = 1.0;
+                                if (rheightStart > SMALL_NUMBER || rheightEnd > SMALL_NUMBER)
+                                {
+                                    dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
+                                    scale_h        = dynamic_height / height_from_corner;
+                                }
+                                pos.SetTrackPosMode(r->GetId(),
+                                                    repeat->GetS() + cur_s,
+                                                    rtStart + factor * (rtEnd - rtStart),
+                                                    roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                                        roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+
+                                scale_points.scale_x    = scale_u;
+                                scale_points.scale_y    = scale_v;
+                                scale_points.scale_z    = scale_z;
+                                scale_points.scale_h    = scale_h;
+                                scale_points.s_         = repeat->GetS() + cur_s;
+                                scale_points.t_         = rtStart + factor * (rtEnd - rtStart);
+                                scale_points.objZOffset = obj->GetZOffset();
+                                scale_points.objH       = roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0 + obj->GetH();
+                                scale_points.roadId_    = r->GetId();
+                                repeat->localCornerScales.push_back(scale_points);  // store points for shallow copy
+
+                                if (repeat->distance_ < SMALL_NUMBER)
+                                {
+                                    cur_s += pos.DistanceToDS(dynamic_length);
+                                }
+                                else
+                                {
+                                    cur_s += repeat->distance_;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            double minX = cornerPoints_[0][0].x;
+                            double maxX = cornerPoints_[0][0].x;
+                            for (const auto cornerPoints:cornerPoints_)
+                            {
+                                for (const auto cornerPoint:cornerPoints)
+                                {
+                                    minX = min(minX, cornerPoint.x);  // Update minX with the smaller value
+                                    maxX = max(maxX, cornerPoint.x);  // Update maxX with the larger value
+                                }
+                            }
+                            // find the local points based on s direction
+                            std::vector<Repeat::point> localPoints;
+                            for (const auto cornerPoints:cornerPoints_)
+                            {
+                                for (const auto cornerPoint:cornerPoints)
+                                {
+                                    Repeat::point points_;
+                                    points_.x = cornerPoint.x - minX;
+                                    points_.y = cornerPoint.y;
+                                    points_.z = cornerPoint.z;
+                                    localPoints.push_back(points_);
+                                }
+                            }
+                            std::shared_ptr<Outline> outline        = nullptr;
+                            while (!(IsEqualDouble(cur_s + SMALL_NUMBER, total_length_from_repeat) || cur_s > total_length_from_repeat))
+                            {
+                                double factor = cur_s / total_length_from_repeat;
+
+                                // find the new length from repeat
+                                if (rlengthStart > SMALL_NUMBER || rlengthEnd > SMALL_NUMBER)
+                                {
+                                    dynamic_length = ((rlengthStart + factor * (rlengthEnd - rlengthStart)) / cos(h_offset));
+                                }
+                                if (rwidthEnd > SMALL_NUMBER || rwidthStart > SMALL_NUMBER)
+                                {
+                                    dynamic_width = (rwidthStart + (factor * (rwidthEnd - rwidthStart)));
+                                }
+                                if (rzOffsetEnd > SMALL_NUMBER || rzOffsetStart > SMALL_NUMBER)
+                                {
+                                    dynamic_z = (rzOffsetStart + (factor * (rzOffsetEnd - rzOffsetStart)));
+                                }
+                                if (rheightStart > SMALL_NUMBER || rheightEnd > SMALL_NUMBER)
+                                {
+                                    dynamic_height = (rheightStart + (factor * (rheightEnd - rheightStart)));
+                                }
+
+                                unsigned int k = 0;
+                                for (const auto cornerPoints:cornerPoints_)
+                                {
+                                    outline = std::make_shared<Outline>(nCopies,
+                                                                        Outline::FillType::FILL_TYPE_UNDEFINED,
+                                                                        areaType);  // new outline for each segment
+                                    for (const auto cornerPoint:cornerPoints)
+                                    {
+                                        double x_to_add = localPoints[k].x;
+                                        // calculate how much to add based on local dimension
+                                        if (rlengthStart > SMALL_NUMBER || rlengthEnd > SMALL_NUMBER)
+                                        {
+                                            if (localPoints[k].x == 0.0 && length_from_corner == 0.0)  // avoid 0/0
+                                            {
+                                                x_to_add = dynamic_length;
+                                            }
+                                            else
+                                            {
+                                                x_to_add = dynamic_length * (localPoints[k].x / length_from_corner);
+                                            }
+                                        }
+                                        double y_to_add = localPoints[k].y;
+                                        if (rwidthEnd > SMALL_NUMBER || rwidthStart > SMALL_NUMBER)
+                                        {
+                                            if (localPoints[k].y == 0.0 && width_from_corner == 0.0)  // avoid 0/0
+                                            {
+                                                y_to_add = dynamic_width;
+                                            }
+                                            else
+                                            {
+                                                y_to_add = dynamic_width * (localPoints[k].y / width_from_corner);
+                                            }
+                                        }
+                                        double z_to_add = localPoints[k].z;
+                                        if (rzOffsetEnd > SMALL_NUMBER || rzOffsetStart > SMALL_NUMBER)
+                                        {
+                                            if (localPoints[k].z == 0.0 && z_from_corner == 0.0)  // avoid 0/0
+                                            {
+                                                z_to_add = dynamic_z;
+                                            }
+                                            else
+                                            {
+                                                z_to_add = dynamic_z * (localPoints[k].z / z_from_corner);
+                                            }
+                                        }
+                                        double h_to_add = localPoints[k].h;
+                                        if (rheightStart > SMALL_NUMBER || rheightEnd > SMALL_NUMBER)
+                                        {
+                                            if (localPoints[k].h == 0.0 && height_from_corner == 0.0)  // avoid 0/0
+                                            {
+                                                h_to_add = dynamic_height;
+                                            }
+                                            else
+                                            {
+                                                h_to_add = (dynamic_height / (height_from_corner / localPoints[k].h));
+                                            }
+                                        }
+
+                                        double start_s = repeat->GetS() + cur_s + x_to_add;
+                                        double start_t = rtStart + y_to_add;
+                                        double start_z = z_to_add;
+                                        double start_h = h_to_add;
+
+                                        OutlineCorner* corner = (OutlineCorner*)(new OutlineCornerRoad(r->GetId(),
+                                                                                                    start_s,
+                                                                                                    start_t,
+                                                                                                    start_z,
+                                                                                                    start_h,
+                                                                                                    cur_s,
+                                                                                                    rtStart,
+                                                                                                    heading,
+                                                                                                    k));
+                                        outline->AddCorner(corner);
+                                        k+=1;
+                                    }
+                                    obj->AddOutlineCopy(outline);
+                                }
+                                if (repeat->distance_ < SMALL_NUMBER)
+                                {
+                                    cur_s += dynamic_length;
+                                }
+                                else
+                                {
+                                    cur_s += repeat->distance_;
+                                }
+                            }
+                        }
+                    }
+                }
+#if 0
+                for (auto& repeat:obj->GetRepeats())
+                {
+                    double  rtStart       = repeat->GetTStart();
+                    double  rtEnd         = repeat->GetTEnd();
+                    double  rlengthStart  = repeat->GetLengthStart();
+                    double  rlengthEnd    = repeat->GetLengthEnd();
+                    double  rwidthStart   = repeat->GetWidthStart();
+                    double  rwidthEnd     = repeat->GetWidthEnd();
+                    double  rheightStart  = repeat->GetHeightStart();
+                    double  rheightEnd    = repeat->GetHeightEnd();
+                    double  rzOffsetStart = repeat->GetZOffsetStart();
+                    double  rzOffsetEnd   = repeat->GetZOffsetEnd();
+                    for (auto& outlineOriginal:obj->GetOutlines())
+                    {
                         if (outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
                         {
                             std::shared_ptr<Outline>     outline = std::make_shared<Outline>(*outlineOriginal.get());
-                            std::vector<Outline::points> cornerPoints;
+                            std::vector<Outline::point> cornerPoints;
                             for (auto corner : outline->corner_)
                             {
-                                Outline::points points_;
+                                Outline::point points_;
                                 points_.x = static_cast<OutlineCornerLocal*>(corner)->GetU();
                                 points_.y = static_cast<OutlineCornerLocal*>(corner)->GetV();
                                 points_.z = static_cast<OutlineCornerLocal*>(corner)->GetZ();
@@ -4980,7 +5270,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             double               dynamic_width  = width_from_corner;
                             double               dynamic_z      = z_from_corner;
                             double               dynamic_height = height_from_corner;
-                            Outline::ScalePoints scale_points;  // for shollow copy
+                            Outline::LocalCornerScale scale_points;  // for shollow copy
 
                             if (total_length_from_repeat > SMALL_NUMBER)
                             {
@@ -5044,10 +5334,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         else  // road corner
                         {
                             // store all the corner points
-                            std::vector<Outline::points> cornerPoints;
+                            std::vector<Outline::point> cornerPoints;
                             for (const auto& corner:outlineOriginal->corner_)
                             {
-                                Outline::points points_;
+                                Outline::point points_;
                                 OutlineCornerRoad* roadCorner = static_cast<OutlineCornerRoad*>(corner);
                                 points_.x = roadCorner->GetS();
                                 points_.y = roadCorner->GetT();
@@ -5071,10 +5361,10 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 maxX = max(maxX, cornerPoint.x);  // Update maxX with the larger value
                             }
                             // find the local points based on s direction
-                            std::vector<Outline::points> localPoints;
+                            std::vector<Outline::point> localPoints;
                             for (const auto cornerPoint_:cornerPoints)
                             {
-                                Outline::points points_;
+                                Outline::point points_;
                                 points_.x = cornerPoint_.x - minX;
                                 points_.y = cornerPoint_.y;
                                 points_.z = cornerPoint_.z;
@@ -5188,7 +5478,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         }
                     }
                 }
-
+#endif
                 pugi::xml_node parking_space_node = object.child("parkingSpace");
                 if (!parking_space_node.empty())
                 {

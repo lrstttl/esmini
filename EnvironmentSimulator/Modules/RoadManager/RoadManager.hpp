@@ -1804,28 +1804,6 @@ namespace roadmanager
         {
             return areaType_;
         }
-        struct points
-        {
-            double x;
-            double y;
-            double z;
-            double h;
-        };
-
-        struct ScalePoints
-        {
-            double scale_x;
-            double scale_y;
-            double scale_z;
-            double scale_h;
-            double s_;
-            double t_;
-            double objZOffset;
-            double objH;
-            int    roadId_;
-            int    cornerId;
-        };
-        std::vector<ScalePoints> localCornerScales;
     };
 
     class ParkingSpace
@@ -2025,6 +2003,29 @@ namespace roadmanager
             double scale_z;
         };
         std::vector<RepeatScale> repeatScales_;
+        struct point
+        {
+            double x;
+            double y;
+            double z;
+            double h;
+        };
+
+        struct LocalCornerScale
+        {
+            double scale_x;
+            double scale_y;
+            double scale_z;
+            double scale_h;
+            double s_;
+            double t_;
+            double objZOffset;
+            double objH;
+            int    roadId_;
+            int    cornerId;
+        };
+        std::vector<LocalCornerScale> localCornerScales;
+
     };
 
     class RMObject ; // forward declaration
@@ -2085,8 +2086,9 @@ namespace roadmanager
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
         void                              CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outline);
+        void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat::LocalCornerScale> localCornerScales);
         void                              FillPointsFromOutline(Outline *outline);
-        void                              FillPointsFromLocalCorners(Outline *outline, Outline::ScalePoints localCornerScales);
+        void                              FillPointsFromLocalCorners(Outline *outline, Repeat::LocalCornerScale localCornerScales);
         void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
         void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
         void                              FillPointsFromSingleObject(double s, double t, double length, double width, double objHOffset);

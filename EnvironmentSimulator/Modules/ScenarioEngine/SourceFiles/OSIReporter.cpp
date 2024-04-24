@@ -591,31 +591,31 @@ void UpdateOSIStationaryObjectODROutlineMarking(std::vector<std::shared_ptr<road
 
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
-    if (object->GetNumberOfRepeats() > 0 && object->GetNumberOfOutlinesCopies() > 0)  // with repeat and outline. so each outline is object
+    if (object->GetNumberOfRepeats() > 0 && (object->GetNumberOfOutlinesCopies() > 0 || object->GetNumberOfOutlines() > 0))  // with repeat and outline. so each outline is object
     {
-        for (const auto &outline : object->GetOutlinesCopys())
+        for (const auto &repeat : object->GetRepeats())
         {
-            if (outline->localCornerScales.size() > 0)  // local corner so each scale is object
+            for (const auto &localCornerScale : repeat->localCornerScales)
             {
-                for (const auto &localCornerScale : outline->localCornerScales)
+                // Create OSI Stationary Object
+                obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
+                // Set OSI Stationary Object Mutable ID
+                obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+                // Set OSI Stationary Object Type and Classification
+                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
+                roadmanager::Position pref;
+                pref.SetTrackPosMode(localCornerScale.roadId_,
+                                        localCornerScale.s_,
+                                        localCornerScale.t_,
+                                        roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL |
+                                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                // Set OSI Stationary Object Position
+                UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, pref.GetX(), pref.GetY(), pref.GetZ() + localCornerScale.objZOffset);
+
+                double height = 0;
+                for (const auto &outline : object->GetOutlinesCopys())
                 {
-                    // Create OSI Stationary Object
-                    obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
-                    // Set OSI Stationary Object Mutable ID
-                    obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
-                    // Set OSI Stationary Object Type and Classification
-                    UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
-
-                    roadmanager::Position pref;
-                    pref.SetTrackPosMode(localCornerScale.roadId_,
-                                         localCornerScale.s_,
-                                         localCornerScale.t_,
-                                         roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL |
-                                             roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                    // Set OSI Stationary Object Position
-                    UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, pref.GetX(), pref.GetY(), pref.GetZ() + localCornerScale.objZOffset);
-
-                    double height = 0;
                     for (const auto &corner : outline->corner_)
                     {
                         roadmanager::OutlineCornerLocal *cornerLocal =
@@ -628,7 +628,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                 }
             }
-            else  // road corner so each outline is object
+            for (const auto &outline : object->GetOutlinesCopys())
             {
                 // Create OSI Stationary Object
                 obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
