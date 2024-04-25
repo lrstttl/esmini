@@ -577,7 +577,7 @@ int UpdateOSIStationaryObjectODRPosition(osi3::StationaryObject *sobj, double x,
     return 0;
 }
 
-void UpdateOSIStationaryObjectODROutlineMarking(std::vector<std::shared_ptr<roadmanager::Outline>> outlines, std::vector<roadmanager::Marking>& markings )
+void UpdateOSIStationaryObjectODROutlineMarking(std::vector<std::shared_ptr<roadmanager::Outline>> outlines, std::vector<roadmanager::Marking>& markings)
 {
     for (auto& marking:markings)
     {
@@ -589,43 +589,56 @@ void UpdateOSIStationaryObjectODROutlineMarking(std::vector<std::shared_ptr<road
     }
 }
 
+void UpdateOSIStationaryObjectODROutlineRepeatMarking(std::vector<std::shared_ptr<roadmanager::Outline>> outlines, std::vector<roadmanager::Marking>& markings, std::vector<roadmanager::Repeat *> repeats)
+{
+    for (auto& repeat:repeats)
+    {
+        for (auto& marking:markings)
+        {
+            marking.CheckAndFillMarkingsFromOutlineRepeat(outlines, repeat->repeatScales_);
+            for(const auto& points:marking.vertexPoints_)
+            {
+                UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
+            }
+        }
+    }
+
+}
+
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
     if (object->GetNumberOfRepeats() > 0 && (object->GetNumberOfOutlinesCopies() > 0 || object->GetNumberOfOutlines() > 0))  // with repeat and outline. so each outline is object
     {
         for (const auto &repeat : object->GetRepeats())
         {
-            for (const auto &localCornerScale : repeat->localCornerScales)
+            if ( !(repeat->repeatScales_ .size ()> 0 && object->GetNumberOfOutlinesCopies() > 0)) // special case, outline copy created from repeat with no distance. create one object
             {
-                // Create OSI Stationary Object
-                obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
-                // Set OSI Stationary Object Mutable ID
-                obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
-                // Set OSI Stationary Object Type and Classification
-                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
-
-                roadmanager::Position pref;
-                pref.SetTrackPosMode(localCornerScale.roadId_,
-                                        localCornerScale.s_,
-                                        localCornerScale.t_,
-                                        roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL |
-                                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                // Set OSI Stationary Object Position
-                UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, pref.GetX(), pref.GetY(), pref.GetZ() + localCornerScale.objZOffset);
-
-                double height = 0;
-                for (const auto &outline : object->GetOutlinesCopys())
+                for (const auto &repeatScale : repeat->repeatScales_)
                 {
-                    for (const auto &corner : outline->corner_)
+                    // Create OSI Stationary Object
+                    obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
+                    // Set OSI Stationary Object Mutable ID
+                    obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+                    // Set OSI Stationary Object Type and Classification
+                    UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
+                    // Set OSI Stationary Object Position
+                    UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z + repeatScale.hOffset);
+
+                    double height = 0;
+                    for (const auto &outline : object->GetOutlines())
                     {
-                        roadmanager::OutlineCornerLocal *cornerLocal =
-                            static_cast<roadmanager::OutlineCornerLocal *>(corner);  // make sure its local corner since only this corner has U and V
-                        osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
-                        vec->set_x(cornerLocal->GetU() * localCornerScale.scale_x);
-                        vec->set_y(cornerLocal->GetV() * localCornerScale.scale_y);
-                        height += (cornerLocal->GetHeight() * localCornerScale.scale_h) / static_cast<double>(outline->corner_.size());
+                        for (const auto &corner : outline->corner_)
+                        {
+                            roadmanager::OutlineCornerLocal *cornerLocal =
+                                static_cast<roadmanager::OutlineCornerLocal *>(corner);  // make sure its local corner since only this corner has U and V
+                            osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
+                            vec->set_x(cornerLocal->GetU() * repeatScale.scale_x);
+                            vec->set_y(cornerLocal->GetV() * repeatScale.scale_y);
+                            height += (cornerLocal->GetHeight() * repeatScale.scale_z) / static_cast<double>(outline->corner_.size());
+                        }
+                        obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                     }
-                    obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                 }
             }
             for (const auto &outline : object->GetOutlinesCopys())
@@ -766,7 +779,11 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     {
         UpdateOSIStationaryObjectODROutlineMarking(object->GetOutlines(), object->GetMarkings());
     }
-    else  // outline with repeat, here must have outlineCopies
+    else if (object->GetNumberOfOutlines() > 0 && object->GetNumberOfRepeats() > 0) // original outline with repeat, here must have repeat scales
+    {
+        UpdateOSIStationaryObjectODROutlineRepeatMarking(object->GetOutlinesCopys(), object->GetMarkings(), object->GetRepeats());
+    }
+    else  // outline copies with repeat, here must have outlineCopies
     {
         UpdateOSIStationaryObjectODROutlineMarking(object->GetOutlinesCopys(), object->GetMarkings());
     }

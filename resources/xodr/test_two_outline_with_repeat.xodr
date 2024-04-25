@@ -88,6 +88,7 @@
                 <repeat s="0" length="100" distance ="15.0" tStart="-18.0" tEnd="-18.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="15" heightStart="4.0" heightEnd="4.0"/>
                 <repeat s="0" length="100" distance ="15.0" tStart="-30.0" tEnd="-30.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="14.0"/>
                 <repeat s="200" length="100" distance ="0.0" tStart="-13.0" tEnd="-13.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>
+                <repeat s="200" length="100" distance ="7.0" tStart="13.0" tEnd="13.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>
             </object>
             <object type="barrier" id="0" s="0" t="0">
                 <outlines>
@@ -106,6 +107,7 @@
                 <repeat s="0" length="100" distance ="15.0" tStart="18.0" tEnd="18.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="15" heightStart="4.0" heightEnd="4.0"/>
                 <repeat s="0" length="100" distance ="15.0" tStart="30.0" tEnd="30.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="14.0"/>
                 <repeat s="200" length="100" distance ="0.0" tStart="-7.0" tEnd="-7.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>
+                <repeat s="200" length="100" distance ="7.0" tStart="7.0" tEnd="7.0" lengthStart="6" lengthEnd="6" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>
             </object>
         </objects>
         <signals>
