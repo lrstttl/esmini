@@ -634,20 +634,23 @@ namespace viewer
         bool CreateRoadLines(roadmanager::OpenDrive* od);
         bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
         int  CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, bool isMarkingAvailable);
-        int  CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale> localCornerScales, std::vector<std::shared_ptr<roadmanager::Outline>> outlines, osg::Vec4 color, bool isMarkingAvailable);
+        int  CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale>      localCornerScales,
+                                                  std::vector<std::shared_ptr<roadmanager::Outline>> outlines,
+                                                  osg::Vec4                                          color,
+                                                  bool                                               isMarkingAvailable);
         int  DrawMarking(roadmanager::Marking marking);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(roadmanager::Road* road, std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
-        int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road * road_);
-        int                                          InitTraits(osg::ref_ptr<osg::GraphicsContext::Traits> traits,
-                                                                int                                        x,
-                                                                int                                        y,
-                                                                int                                        w,
-                                                                int                                        h,
-                                                                int                                        samples,
-                                                                bool                                       decoration,
-                                                                int                                        screenNum,
-                                                                bool                                       headless);
+        int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road* road_);
+        int InitTraits(osg::ref_ptr<osg::GraphicsContext::Traits> traits,
+                       int                                        x,
+                       int                                        y,
+                       int                                        w,
+                       int                                        h,
+                       int                                        samples,
+                       bool                                       decoration,
+                       int                                        screenNum,
+                       bool                                       headless);
 
         int                                   AddGroundSurface();
         bool                                  keyUp_;
