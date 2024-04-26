@@ -2088,10 +2088,8 @@ namespace roadmanager
         void                              CheckAndFillPointsFromObject(double s, double t, double length, double width, double objHOffset);
         void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outline);
         void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
-
-        void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat::RepeatScale> repeatScales);
+        void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat*> repeats);
         void                              FillPointsFromOutline(Outline *outline);
-
         void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
         void                              FillPointsFromLocalCorners(Outline* outline, roadmanager::Repeat::RepeatScale localCornerScales);
 
