@@ -579,21 +579,20 @@ int UpdateOSIStationaryObjectODRPosition(osi3::StationaryObject *sobj, double x,
 
 void UpdateOSIStationaryObjectODROutlineRepeatMarking(std::vector<std::shared_ptr<roadmanager::Outline>> outlines, std::vector<roadmanager::Marking>& markings, std::vector<roadmanager::Repeat *> repeats)
 {
-    for (auto& repeat:repeats)
+
+    for (auto& marking:markings)
     {
-        for (auto& marking:markings)
+        marking.CheckAndFillMarkingsFromOutlineRepeat(outlines, repeats);
+        if(marking.vertexPoints_.size() == 0) // no point from scale check outlines
         {
-            marking.CheckAndFillMarkingsFromOutlineRepeat(outlines, repeat->repeatScales_);
-            if(marking.vertexPoints_.size() == 0) // no point from scale check outlines
-            {
-                marking.CheckAndFillPointsFromOutlines(outlines);
-            }
-            for(const auto& points:marking.vertexPoints_)
-            {
-                UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
-            }
+            marking.CheckAndFillPointsFromOutlines(outlines);
+        }
+        for(const auto& points:marking.vertexPoints_)
+        {
+            UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
         }
     }
+
 }
 
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
@@ -791,15 +790,12 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     }
     else  // outline with repeat, check repeat scale for local corner outline
     {
-        for (auto& repeat:object->GetRepeats())
+        for (auto& marking:object->GetMarkings())
         {
-            for (auto& marking:object->GetMarkings())
+            marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
+            for(const auto& points:marking.vertexPoints_)
             {
-                marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), repeat->repeatScales_);
-                for(const auto& points:marking.vertexPoints_)
-                {
-                    UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
-                }
+                UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points); // each vertex vector is separate road marking
             }
         }
     }

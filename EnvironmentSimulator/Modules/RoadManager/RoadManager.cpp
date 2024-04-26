@@ -2850,15 +2850,18 @@ void Marking::CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline
     }
 }
 
-void Marking::CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat::RepeatScale> repeatScales)
+void Marking::CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat*> repeats)
 {
     if (vertexPoints_.empty()) // fill only empty
     {
-        for (const auto& outline:outlines)
+        for (auto& repeat:repeats)
         {
-            for (const auto& repeatScale:repeatScales)
+            for (const auto& outline:outlines)
             {
-                FillPointsFromLocalCorners(outline.get(), repeatScale);  // fill local corner
+                for (const auto& repeatScale:repeat->repeatScales_)
+                {
+                    FillPointsFromLocalCorners(outline.get(), repeatScale);  // fill local corner
+                }
             }
         }
     }

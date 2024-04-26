@@ -3475,7 +3475,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     for (auto& marking:object->GetMarkings())  // draw marking
                     {
                         marking.CheckAndFillPointsFromOutlines(object->GetOutlinesCopys());
-                        marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), repeat->repeatScales_);
+                        marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
                     }
                     continue;
                 }
