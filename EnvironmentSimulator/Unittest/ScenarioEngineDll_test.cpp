@@ -2898,7 +2898,6 @@ TEST(TestOsiReporter, MarkingTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(19).base().base_polygon(7).x(), 90);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(19).base().base_polygon(7).y(), -11.9);
 
-
     // no marking for object id 7
     // now object id 8
 
@@ -2951,7 +2950,6 @@ TEST(TestOsiReporter, MarkingTest)
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(16).y(), 4.3999999999999986);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).x(), 28);
     EXPECT_DOUBLE_EQ(osi_gt.road_marking(25).base().base_polygon(52).y(), 5.2999999999999954);
-
 }
 
 TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
