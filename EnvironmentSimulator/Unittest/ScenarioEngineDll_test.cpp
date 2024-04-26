@@ -3380,6 +3380,93 @@ TEST(TestOsiReporter, ObjectAsOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).y(), -2.8361097676528955);
 }
 
+TEST(TestOsiReporter, MoreOutlineWithRepeats)
+{
+    int               sv_size = 0;
+    osi3::GroundTruth osi_gt;
+
+    std::string scenario_file = "../../../resources/xosc/test_two_outline_with_repeat.xosc";
+    const char* Scenario_file = scenario_file.c_str();
+    int         i_init        = SE_Init(Scenario_file, 0, 0, 0, 0);
+    ASSERT_EQ(i_init, 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 581);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().position().x(), 60);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().position().y(), -30);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon_size(), 6);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).y(), -2.5);
+
+    EXPECT_EQ(osi_gt.stationary_object(181).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().position().y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().base_polygon_size(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().base_polygon(0).y(), -6.2499999625000004);
+
+    EXPECT_EQ(osi_gt.stationary_object(470).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().position().y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().base_polygon_size(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().base_polygon(0).x(), 184.47130082167257);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().base_polygon(0).y(), -74.066155825316883);
+
+    EXPECT_EQ(osi_gt.stationary_object(570).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().position().y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().base_polygon_size(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().base_polygon(0).x(), 194.97754482566216);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().base_polygon(0).y(), -54.6475353066621);
+
+    const char* args[] =
+        {"--osc", "../../../resources/xosc/test_two_outline_with_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+    ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
+
+    SE_StepDT(0.001f);
+
+    SE_UpdateOSIGroundTruth();
+
+    const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
+    osi_gt.ParseFromArray(gt1, sv_size);
+
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 581);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().position().x(), 60);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().position().y(), -30);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon_size(), 6);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).y(), -2.5);
+
+    EXPECT_EQ(osi_gt.stationary_object(181).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().position().y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().base_polygon_size(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(181).base().base_polygon(0).y(), -6.2499999625000004);
+
+    EXPECT_EQ(osi_gt.stationary_object(470).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().position().y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().base_polygon_size(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().base_polygon(0).x(), 184.47130082167257);
+    EXPECT_EQ(osi_gt.stationary_object(470).base().base_polygon(0).y(), -74.066155825316883);
+
+    EXPECT_EQ(osi_gt.stationary_object(570).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().position().y(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().base_polygon_size(), 3);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().base_polygon(0).x(), 194.97754482566216);
+    EXPECT_EQ(osi_gt.stationary_object(570).base().base_polygon(0).y(), -54.6475353066621);
+}
+
 TEST(ParameterTest, GetTypedParameterValues)
 {
     std::string scenario_file = "../../../resources/xosc/lane_change.xosc";
