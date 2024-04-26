@@ -2979,13 +2979,13 @@ void RMObject::CheckAndCreateObjectRepeatScales(int r_id)
     }
 }
 
-void CreateBoundingBoxFromCorners(std::vector<std::vector<Repeat::point>> cornerPointsVector,
+void CreateBoundingBoxFromCorners(const std::vector<std::vector<Repeat::point>>& cornerPointsVector,
                                   double&                                 length,
                                   double&                                 width,
                                   double&                                 height,
                                   double&                                 z)
 {
-    // Find max, min x and y
+    // Find max, min x and y,z and height
     // Initialize with first element's x value for clarity
     double minX      = cornerPointsVector[0][0].x;
     double maxX      = cornerPointsVector[0][0].x;
@@ -2993,29 +2993,25 @@ void CreateBoundingBoxFromCorners(std::vector<std::vector<Repeat::point>> corner
     double maxY      = cornerPointsVector[0][0].y;
     double minZ      = cornerPointsVector[0][0].z;
     double maxZ      = cornerPointsVector[0][0].z;
-    double minHieght = cornerPointsVector[0][0].h;
-    double maxHieght = cornerPointsVector[0][0].h;
 
-    for (const auto cornerPoints : cornerPointsVector)
+    for (const auto& cornerPoints : cornerPointsVector)
     {
-        for (const auto cornerPoint : cornerPoints)
+        for (const auto& cornerPoint : cornerPoints)
         {
-            minX      = min(minX, cornerPoint.x);  // Update minX with the smaller value
-            maxX      = max(maxX, cornerPoint.x);  // Update maxX with the larger value
-            minY      = min(minY, cornerPoint.y);
-            maxY      = max(maxY, cornerPoint.y);
-            minZ      = min(minZ, cornerPoint.z);
-            maxZ      = max(maxZ, cornerPoint.z);
-            minHieght = min(minZ, cornerPoint.h);
-            maxHieght = max(maxZ, cornerPoint.h);
+            minX      = std::min(minX, cornerPoint.x);  // Update minX with the smaller value
+            minY      = std::min(minY, cornerPoint.y);
+            minZ      = std::min(minZ, cornerPoint.z);
+            maxX      = std::max(maxX, cornerPoint.x);  // Update maxX with the larger value
+            maxY      = std::max(maxY, cornerPoint.y);
+            maxZ      = std::max(maxZ, cornerPoint.z + cornerPoint.h);
         }
     }
 
     // find local bb from corner points
     length = maxX - minX;
     width  = maxY - minY;
-    z      = maxZ - minZ;
-    height = maxHieght - minHieght;
+    height    = maxZ - minZ;
+    z = minZ;
 }
 std::string RMObject::Type2Str(RMObject::ObjectType type)
 {
@@ -5069,54 +5065,44 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         double                                  rheightEnd    = repeat->GetHeightEnd();
                         double                                  rzOffsetStart = repeat->GetZOffsetStart();
                         double                                  rzOffsetEnd   = repeat->GetZOffsetEnd();
-                        std::vector<std::vector<Repeat::point>> cornerPoints_;
-                        OutlineCorner::CornerType               cornerType = OutlineCorner::CornerType::LOCAL_CORNER;
+                        std::vector<std::vector<Repeat::point>> cornerPointsList;  // store one entry for each outline
                         Outline::AreaType                       areaType   = Outline::AreaType::CLOSED;
                         for (auto& outlineOriginal : obj->GetOutlines())
                         {
-                            std::vector<Repeat::point> cornerPoints;
-                            if (outlineOriginal->corner_[0]->GetCornerType() == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
+                            std::vector<Repeat::point> cornerPoints;  // store corners of one outline
+                            cornerPoints.reserve(outlineOriginal->corner_.size());
+                            OutlineCorner::CornerType cornerType = outlineOriginal->corner_[0]->GetCornerType();
+                            for (const auto& corner : outlineOriginal->corner_)
                             {
-                                for (const auto& corner : outlineOriginal->corner_)
+                                Repeat::point       point;
+                                if (cornerType == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
                                 {
-                                    Repeat::point       points_;
                                     OutlineCornerLocal* localCorner = static_cast<OutlineCornerLocal*>(corner);
-                                    points_.x =
+                                    point.x =
                                         localCorner->GetU();  // u and v not transformed to x and y yet. just storing as x and y for future processing
-                                    points_.y = localCorner->GetV();
-                                    points_.z = localCorner->GetZ();
-                                    points_.h = localCorner->GetHeight();
-                                    cornerPoints.push_back(points_);
+                                    point.y = localCorner->GetV();
                                 }
-                                cornerType = OutlineCorner::CornerType::LOCAL_CORNER;
-                            }
-                            else  // road corner
-                            {
-                                // store all the corner points
-                                for (const auto& corner : outlineOriginal->corner_)
+                                else
                                 {
-                                    Repeat::point      point_;
                                     OutlineCornerRoad* roadCorner = static_cast<OutlineCornerRoad*>(corner);
-                                    point_.x =
+                                    point.x =
                                         roadCorner->GetS();  // s and t not transformed to x and y yet. just storing as x and y for future processing
-                                    point_.y = roadCorner->GetT();
-                                    point_.z = roadCorner->GetZ();
-                                    point_.h = roadCorner->GetHeight();
-                                    cornerPoints.push_back(point_);
+                                    point.y = roadCorner->GetT();
+
                                 }
-                                cornerType = OutlineCorner::CornerType::ROAD_CORNER;
-                                areaType   = outlineOriginal->GetAreaType();
+                                point.z = corner->GetZ();
+                                point.h = corner->GetHeight();
+                                cornerPoints.emplace_back(std::move(point));
                             }
-                            cornerPoints_.push_back(cornerPoints);
+                            cornerPointsList.push_back(cornerPoints);
                         }
                         // find the bb from the corner
                         double length_from_corner;
                         double width_from_corner;
                         double z_from_corner;
                         double height_from_corner;
-                        CreateBoundingBoxFromCorners(cornerPoints_, length_from_corner, width_from_corner, height_from_corner, z_from_corner);
+                        CreateBoundingBoxFromCorners(cornerPointsList, length_from_corner, width_from_corner, height_from_corner, z_from_corner);
 
-                        int    nCopies = 0;
                         double cur_s   = 0.0;
                         double total_length_from_repeat =
                             GetLengthOfVector2D(repeat->GetLength(), (rtEnd - rtStart)) + SMALL_NUMBER;  // add small number to round double value

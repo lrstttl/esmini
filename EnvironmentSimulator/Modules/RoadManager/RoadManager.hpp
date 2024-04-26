@@ -1691,6 +1691,7 @@ namespace roadmanager
         virtual double     GetHeight()                                  = 0;
         virtual int        GetCornerId()                                = 0;
         virtual CornerType GetCornerType()                              = 0;
+        virtual double GetZ()                                           = 0;
 
         virtual ~OutlineCorner()
         {
@@ -1731,7 +1732,7 @@ namespace roadmanager
         {
             return t_;
         }
-        double GetZ()
+        double GetZ() override
         {
             return dz_;
         }
@@ -1769,7 +1770,7 @@ namespace roadmanager
         {
             return v_;
         }
-        double GetZ()
+        double GetZ() override
         {
             return zLocal_;
         }
