@@ -3004,8 +3004,6 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
                                     static_cast<float>(localCorner->GetV()),
                                     static_cast<float>(localCorner->GetZ() +
                                                         localCorner->GetHeight()));
-        printf("pos U %.2f V %.2f z %.2f height %.2f\n",
-        localCorner->GetU(),localCorner->GetV(), localCorner->GetZ(), localCorner->GetHeight());
         }
 
         // Close geometry
@@ -3066,8 +3064,6 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
         // Combine
         xform->setAttitude(quatLocal * quatRoad);
         envTx_->addChild(xform);
-        printf("Viewer scale x %.2f y %.2f z %.2f pos x %.2f y %.2f z %.2f roll %.2f pitch %.2f heading %.2f hoffset %.2f\n",
-        localCornerScale.scale_x, localCornerScale.scale_y, localCornerScale.scale_z, localCornerScale.x, localCornerScale.y, localCornerScale.z, localCornerScale.roll, localCornerScale.pitch, localCornerScale.heading, localCornerScale.hOffset);
     }
     if (isMarkingAvailable)  // draw outlink marking
     {
@@ -3102,8 +3098,6 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
         (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
         (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
         (*vertices_top)[i].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
-        printf("pos x %.2f y %.2f z %.2f height %.2f\n",
-        x, y, z, corner->GetHeight());
     }
 
     // Close geometry
@@ -3297,7 +3291,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
                 for (auto& marking:object->GetMarkings())  // draw marking
                 {
-                    marking.CheckAndFillMarkingsFromOutline(object->GetOutlines());
+                    marking.CheckAndFillPointsFromOutlines(object->GetOutlines());
                 }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
@@ -3368,7 +3362,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             double                                       lastLODs = 0.0;  // used for putting object copies in LOD groups
             osg::ref_ptr<osg::Group>                     LODGroup = 0;
             double orientation = object->GetOrientation() == roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0;
-            object->CreateObjectRepeatScale(road->GetId());
+            object->CheckAndCreateObjectRepeatScales(road->GetId());
             if (tx == nullptr)  // No model loaded
             {
                 // make sure bounding box created after checking repeating scale, dimensation details may change
@@ -3441,44 +3435,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
                 for (auto& marking:object->GetMarkings())  // fill marking point draw marking
                 {
-                    roadmanager::Marking::Point2D point1;
-                    roadmanager::Marking::Point2D point2;
-                    if (marking.GetSide() == 0)
-                    {
-                        // find local lower left corner
-                        RotateVec2D(-object->GetLength() / 2,
-                                    -object->GetWidth() / 2,
-                                    pos.GetH() + object->GetHOffset(),
-                                    point1.x,
-                                    point1.y);
-                        // find local upper left corner
-                        RotateVec2D(-object->GetLength() / 2,
-                                    object->GetWidth() / 2,
-                                    pos.GetH() + object->GetHOffset(),
-                                    point2.x,
-                                    point2.y);
-                        point1.x = pos.GetX() + point1.x;
-                        point1.y = pos.GetY() + point1.y;
-                        point2.x = pos.GetX() + point2.x;
-                        point2.y = pos.GetY() + point2.y;
-                        marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
-                    }
-                    else
-                    {
-                        // find local lower right corner
-                        RotateVec2D(object->GetLength() / 2,
-                                    -object->GetWidth() / 2,
-                                    pos.GetH() + object->GetHOffset(),
-                                    point1.x,
-                                    point1.y);
-                        // find local upper right corner
-                        RotateVec2D(object->GetLength() / 2, object->GetWidth() / 2, pos.GetH() + object->GetHOffset(),point2.x, point2.y);
-                        point1.x = pos.GetX() + point1.x;
-                        point1.y = pos.GetY() + point1.y;
-                        point2.x = pos.GetX() + point2.x;
-                        point2.y = pos.GetY() + point2.y;
-                        marking.FillMarkingPoints(point1, point2, roadmanager::OutlineCorner::CornerType::LOCAL_CORNER);
-                    }
+                    marking.CheckAndFillPointsFromObject(object->GetS(), object->GetT(), object->GetLength(), object->GetWidth(), object->GetHOffset());
                 }
             }
             double s = object->GetS();
@@ -3497,7 +3454,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     }
                     for (auto& marking:object->GetMarkings())  // draw marking
                     {
-                        marking.CheckAndFillMarkingsFromOutline(object->GetOutlinesCopys());
+                        marking.CheckAndFillPointsFromOutlines(object->GetOutlinesCopys());
                         marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), repeat->repeatScales_);
                     }
                     continue;

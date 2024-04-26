@@ -127,17 +127,19 @@
                     </marking>
                 </markings>
             </object>
-            <object type="crosswalk" id="4" s="10.0" t="0.0" zOffset="0.0" orientation="none" length="10.0" width="7.0" hdg="0.0" pitch="0.0" roll="0.0">
+            <object type="crosswalk" id="4" s="255.0" t="0" zOffset="0.0" orientation="none" length="10.0" width="7.0" hdg="0.0" pitch="0.0" roll="0.0">
                 <outlines>
                     <outline id="0" closed="true">
-                        <cornerLocal u="255" v="-60" z="0" height="0" id='0'/>
-                        <cornerLocal u="242" v="-66" z="0" height="0" id='1'/>
+                        <cornerLocal u="0" v="3.5" z="0" height="0" id='0'/>
+                        <cornerLocal u="0" v="-3.5.0" z="0" height="0" id='1'/>
+                        <cornerLocal u="7" v="-3.5" z="0" height="0" id='2'/>
+                        <cornerLocal u="7" v="3.5" z="0" height="0" id='3'/>
                     </outline>
                 </outlines>
                 <markings>
-                    <marking side="left" width="5" color="white" zOffset="0.02" spaceLength ="0.4" lineLength ="0.5" startOffset="1.3" stopOffset="6.0">
-                        <cornerReference id="0"/>
+                    <marking width="5" color="white" zOffset="0.02" spaceLength ="0.4" lineLength ="0.5" startOffset="0.0" stopOffset="0.0">
                         <cornerReference id="1"/>
+                        <cornerReference id="0"/>
                     </marking>
                 </markings>
             </object>

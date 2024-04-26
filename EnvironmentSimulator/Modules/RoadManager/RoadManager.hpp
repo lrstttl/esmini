@@ -2085,12 +2085,14 @@ namespace roadmanager
             double z = 0.0;
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
-        void                              CheckAndFillMarkingsFromOutline(std::vector<std::shared_ptr<Outline>> outline);
+        void                              CheckAndFillPointsFromObject(double s, double t, double length, double width, double objHOffset);
+        void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outline);
+        void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
+
         void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat::RepeatScale> repeatScales);
         void                              FillPointsFromOutline(Outline *outline);
-        void                              FillPointsFromObjectRePeats(RMObject* object, int road_id);
+
         void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
-        void                              FillPointsFromSingleObject(double s, double t, double length, double width, double objHOffset);
         void                              FillPointsFromLocalCorners(Outline* outline, roadmanager::Repeat::RepeatScale localCornerScales);
 
         // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
@@ -2334,7 +2336,7 @@ namespace roadmanager
         {
             return (size_t)markings_.size();
         }
-        void CreateObjectRepeatScale(int r_id);
+        void CheckAndCreateObjectRepeatScales(int r_id);
 
     private:
         std::string name_;
