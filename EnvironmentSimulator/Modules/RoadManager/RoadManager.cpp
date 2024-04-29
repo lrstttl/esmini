@@ -11374,7 +11374,7 @@ void ClothoidSplineShape::AddSegment(Position* posStart, double curvStart, doubl
 
     if (posStart != nullptr)
     {
-        pos = new Position(*posStart);
+        pos = posStart;
     }
 
     segments_.emplace_back(pos, curvStart, curvEnd, length, h_offset, time);
