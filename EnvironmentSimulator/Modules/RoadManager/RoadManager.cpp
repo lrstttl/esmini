@@ -3017,7 +3017,7 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                 }
                 else
                 {
-                    h_to_add = (cur_height / (heightOutline / localPoints[i][j].h));
+                    h_to_add = cur_height * ( localPoints[i][j].h / zOutline );
                     scale_h        = abs(cur_height / heightOutline);
                 }
             }
@@ -5263,7 +5263,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         double cur_s   = 0.0;
                         double repeatLength =
                             GetLengthOfVector2D(repeat->GetLength(), (repeat->GetTEnd() - repeat->GetTStart())) + SMALL_NUMBER;  // add small number to round double value
-                        repeatLength         = std::min(repeatLength, repeat->GetLength() - repeat->GetS());  // either repeat length or reminaing road length
+                        repeatLength         = std::min(repeatLength, repeat->roadLength_ - repeat->GetS());  // either repeat length or reminaing road length
                         double h_offset       = atan2(repeat->GetTEnd() - repeat->GetTStart(), repeatLength);
                         double cur_length = lengthOutline;
                         double cur_width  = widthOutline;
@@ -5274,7 +5274,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         {
                             std::shared_ptr<Outline> outline = nullptr;
                             Repeat::RepeatScale scale;  // for shollow copy
-                            while(cur_s < repeatLength)
+                            while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
                             {
                                 double factor = cur_s / repeatLength;
                                 // find the new length from repeat for the factor
@@ -5311,7 +5311,15 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                 }
                                 if (repeat->GetDistance() < SMALL_NUMBER)
                                 {
-                                    cur_s += pos.DistanceToDS(cur_length);
+                                    if (createShallowCopy)
+                                    {
+                                        cur_s += pos.DistanceToDS(cur_length);
+                                    }
+                                    else
+                                    {
+                                        cur_s += cur_length;
+                                    }
+
                                 }
                                 else
                                 {
