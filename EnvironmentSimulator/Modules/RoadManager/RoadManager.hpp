@@ -1782,7 +1782,6 @@ namespace roadmanager
         OutlineCorner::CornerType type_ = OutlineCorner::CornerType::LOCAL_CORNER;
     };
 
-    class Repeat;
     class Outline
     {
     public:
@@ -2036,6 +2035,7 @@ namespace roadmanager
             double scale_z;
         };
         std::vector<RepeatScale> repeatScales_;
+        void GetBBDetails(double factor, double& length, double& width, double& z, double& height);
 
     };
 
@@ -2345,6 +2345,7 @@ namespace roadmanager
         }
         void CheckAndCreateObjectRepeatScales(int r_id);
         void CreateRepeatScales( Repeat* repeat, int r_id);
+        void CreateOutlineCopies(  Repeat* repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
 
     private:
         std::string name_;
