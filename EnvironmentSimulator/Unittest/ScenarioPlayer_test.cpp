@@ -435,7 +435,7 @@ TEST(Controllers, TestSeparateControllersOnLatLong)
         player->Frame(dt);
     }
 
-    delete se;
+    delete player;
 }
 
 // #define LOG_TO_CONSOLE

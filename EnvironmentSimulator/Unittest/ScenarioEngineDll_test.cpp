@@ -3273,6 +3273,7 @@ TEST(ExternalController, TestPositionAlignment)
         }
         counter++;
     }
+    SE_SimpleVehicleDelete(vehicleHandle);
     SE_Close();
 }
 

@@ -107,6 +107,12 @@ ScenarioPlayer::~ScenarioPlayer()
         }
     }
 #endif  // _USE_OSG
+
+    for (auto &s:sensor)
+    {
+        delete s;
+    }
+
     Logger::Inst().SetTimePtr(0);
     if (scenarioEngine)
     {
