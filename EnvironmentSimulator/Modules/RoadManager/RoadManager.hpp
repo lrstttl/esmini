@@ -1737,6 +1737,7 @@ namespace roadmanager
             return dz_;
         }
 
+
     private:
         int                       roadId_, cornerId_;
         double                    s_, t_, dz_, height_, center_s_, center_t_, center_heading_;
@@ -1781,6 +1782,7 @@ namespace roadmanager
         OutlineCorner::CornerType type_ = OutlineCorner::CornerType::LOCAL_CORNER;
     };
 
+    class Repeat;
     class Outline
     {
     public:
@@ -1826,6 +1828,15 @@ namespace roadmanager
         {
             return areaType_;
         }
+
+        struct point
+        {
+            double x;
+            double y;
+            double z;
+            double h;
+        };
+        void TransformRoadCornerToLocal(std::vector<Outline::point>& localPointsList);
     };
 
     class ParkingSpace
@@ -2025,13 +2036,7 @@ namespace roadmanager
             double scale_z;
         };
         std::vector<RepeatScale> repeatScales_;
-        struct point
-        {
-            double x;
-            double y;
-            double z;
-            double h;
-        };
+
     };
 
     class RMObject;  // forward declaration
@@ -2339,6 +2344,7 @@ namespace roadmanager
             return (size_t)markings_.size();
         }
         void CheckAndCreateObjectRepeatScales(int r_id);
+        void CreateRepeatScales( Repeat* repeat, int r_id);
 
     private:
         std::string name_;
