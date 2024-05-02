@@ -3280,6 +3280,20 @@ void GetObjectColor(roadmanager::RMObject::ObjectType type, osg::Vec4& color)
         color = osg::Vec4(0.4f, 0.4f, 0.4f, 1.0f);
     }
 }
+
+void Viewer::CreateOutline(std::vector<std::shared_ptr<roadmanager::Outline>> Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
+{
+    for (const auto outline : Outlines)
+    {
+        CreateOutlineObject(outline.get(), color, !markings.size() == 0);
+    }
+    for (auto& marking : markings)  // draw marking
+    {
+        marking.CheckAndFillPointsFromOutlines(Outlines);
+        DrawMarking(marking);
+    }
+}
+
 int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 {
     osg::ref_ptr<osg::Group> objGroup = new osg::Group;
@@ -3294,25 +3308,12 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             osg::Vec4                                    color;
             osg::ref_ptr<osg::PositionAttitudeTransform> tx = nullptr;
             GetObjectColor(object->GetType(), color);
-            if (object->GetNumberOfOutlines() > 0 && object->GetNumberOfRepeats() == 0 &&
-                object->GetNumberOfOutlinesCopies() == 0)  // if repeats are defined, wait and see if outline should replace failed 3D model or not
+            if (object->GetNumberOfOutlines() > 0 && object->GetNumberOfRepeats() == 0)  // if repeats are defined, wait and see if outline should replace failed 3D model or not
             {
-                for (const auto outline : object->GetOutlines())
-                {
-                    CreateOutlineObject(outline.get(), color, !object->GetNumberOfMarkings() == 0);
-                }
-                for (auto& marking : object->GetMarkings())  // draw marking
-                {
-                    marking.CheckAndFillPointsFromOutlines(object->GetOutlines());
-                }
+                CreateOutline(object->GetOutlines(), object->GetMarkings(), color);
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
                 LOG("  check that corners are defined counter-clockwise (as OpenGL default).");
-                // draw marking
-                for (const auto& marking : object->GetMarkings())  // draw marking
-                {
-                    DrawMarking(marking);
-                }
                 continue;
             }
             bool foundModel = false;
@@ -3374,9 +3375,21 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             double                                       lastLODs = 0.0;  // used for putting object copies in LOD groups
             osg::ref_ptr<osg::Group>                     LODGroup = 0;
             double orientation = object->GetOrientation() == roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0;
-            object->CheckAndCreateObjectRepeatScales(road->GetId());
             if (tx == nullptr)  // No model loaded
             {
+                if (object->GetLength() < SMALL_NUMBER)
+                {
+                    LOG("Object %s missing length, set to bounding box length %.2f for viewer purpose", object->GetName().c_str(), 0.05);
+                }
+                if (object->GetWidth() < SMALL_NUMBER)
+                {
+                    LOG("Object %s missing width, set to bounding box width %.2f for viewer purpose", object->GetName().c_str(), 0.05);
+                }
+                if (object->GetHeight() < SMALL_NUMBER)
+                {
+                    LOG("Object %s missing height, set to bounding box height %.2f for viewer purpose", object->GetName().c_str(), 0.05);
+                }
+
                 // make sure bounding box created after checking repeating scale, dimensation details may change
                 // create a bounding box to represent the object
                 tx = new osg::PositionAttitudeTransform;
@@ -3450,39 +3463,48 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                                          object->GetHOffset());
                 }
             }
+            if (object->GetNumberOfRepeats() > 0)  // single object
+            {
+                object->CheckAndCreateRepeatDetails(road->GetId()); // create deatils
+            }
+
+            if (object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
+            {
+                CreateOutline(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                LOG("Created outline geometry for object %s.", object->GetName().c_str());
+                LOG("  if it looks strange, e.g.faces too dark or light color, ");
+                LOG("  check that corners are defined counter-clockwise (as OpenGL default).");
+                continue;
+                continue;
+            }
             double s = object->GetS();
             for (const auto& repeat : object->GetRepeats())
             {
-                if (!foundModel && (object->GetNumberOfOutlinesCopies() > 0 ||
-                                    object->GetNumberOfOutlines() > 0))  // continuous objects, outline copy already created
+                if (repeat->repeatScales_.size() == 0)  // no deatils to process
                 {
-                    // use outline, if exists
-                    for (auto& outline : object->GetOutlinesCopys())
-                    {
-                        CreateOutlineObject(outline.get(), color, !object->GetNumberOfMarkings() == 0);
-                    }
-                    if (repeat->repeatScales_.size() > 0)  // local corner outlines with repeat
-                    {
-                        CreateLocalCornerOutlineRepeatObject(repeat->repeatScales_,
-                                                             object->GetOutlines(),
-                                                             color,
-                                                             !object->GetNumberOfMarkings() == 0);
-                    }
+                    break;
+                }
+                if (object->GetNumberOfOutlinesCopies() > 0)  // local corner outlines with repeat
+                {
+                    CreateLocalCornerOutlineRepeatObject(repeat->repeatScales_,
+                                                            object->GetOutlines(),
+                                                            color,
+                                                            !object->GetNumberOfMarkings() == 0);
                     for (auto& marking : object->GetMarkings())  // draw marking
                     {
-                        marking.CheckAndFillPointsFromOutlines(object->GetOutlinesCopys());
                         marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
                     }
                     continue;
                 }
-                for (const auto& repeatScale : repeat->repeatScales_)
+
+                for (const auto& repeatScale : repeat->repeatScales_) // use repeat scales
                 {
                     s     = repeatScale.s;
                     clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr;
                     clone->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::ON);
                     clone->setScale(osg::Vec3(static_cast<float>(repeatScale.scale_x),
-                                              static_cast<float>(repeatScale.scale_y),
-                                              static_cast<float>(repeatScale.scale_z)));
+                                            static_cast<float>(repeatScale.scale_y),
+                                            static_cast<float>(repeatScale.scale_z)));
                     clone->setPosition(
                         osg::Vec3(static_cast<float>(repeatScale.x), static_cast<float>(repeatScale.y), static_cast<float>(repeatScale.z)));
 
@@ -3500,8 +3522,8 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         LODGroup                   = new osg::Group();
                         lod->addChild(LODGroup);
                         lod->setRange(0,
-                                      0,
-                                      LOD_DIST_ROAD_FEATURES + MAX(boundingBox.xMax() - boundingBox.xMin(), boundingBox.yMax() - boundingBox.yMin()));
+                                    0,
+                                    LOD_DIST_ROAD_FEATURES + MAX(boundingBox.xMax() - boundingBox.xMin(), boundingBox.yMax() - boundingBox.yMin()));
                         objGroup->addChild(lod);
                         lastLODs = s;
                     }
@@ -3511,13 +3533,14 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         marking.FillPointsFromRepeatScale(repeatScale, object->GetLength(), object->GetWidth());
                     }
                 }
-                if (!object->GetNumberOfMarkings() == 0)  // draw wireframe for marking
-                {
-                    osg::PolygonMode* polygonMode = new osg::PolygonMode;
-                    polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
-                    LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
-                }
             }
+            if (!object->GetNumberOfMarkings() == 0)  // draw wireframe for marking
+            {
+                osg::PolygonMode* polygonMode = new osg::PolygonMode;
+                polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+                LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+            }
+
             // draw marking
             for (const auto& marking : object->GetMarkings())  // draw marking
             {

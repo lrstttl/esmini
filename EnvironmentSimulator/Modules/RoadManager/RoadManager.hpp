@@ -2096,16 +2096,13 @@ namespace roadmanager
         std::vector<std::vector<Point3D>> vertexPoints_;
         void                              CheckAndFillPointsFromObject(double s, double t, double length, double width, double objHOffset);
         void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outline);
+        void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat *> repeats);
         void                              FillPointsFromObjectRePeats(RMObject *object, int road_id);
-        void CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat *> repeats);
-        void FillPointsFromOutline(Outline *outline);
-        void FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
-        void FillPointsFromLocalCorners(Outline *outline, roadmanager::Repeat::RepeatScale localCornerScales);
-
-        // void FillMarkingPoints(double p00, double p01, double p10, double p11, int cornerType);
-
-        void FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
-        void FillPoints(const Point2D &point, OutlineCorner::CornerType cornerType, std::vector<Point3D> &points_);
+        void                              FillPointsFromOutline(Outline *outline);
+        void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
+        void                              FillPointsFromLocalCorners(Outline *outline, roadmanager::Repeat::RepeatScale localCornerScales);
+        void                              FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
+        void                              FillPoints(const Point2D &point, OutlineCorner::CornerType cornerType, std::vector<Point3D> &points_);
 
         ~Marking()
         {
@@ -2304,7 +2301,7 @@ namespace roadmanager
         {
             return (int)outlinesCopies_.size();
         }
-        std::vector<std::shared_ptr<Outline>> GetOutlinesCopys() const
+        std::vector<std::shared_ptr<Outline>> GetOutlinesCopies() const
         {
             return outlinesCopies_;
         }
@@ -2335,7 +2332,7 @@ namespace roadmanager
         {
             return parking_space_;
         }
-        std::vector<Marking> &GetMarkings()
+        std::vector<Marking>& GetMarkings()
         {
             return markings_;
         }
@@ -2343,9 +2340,10 @@ namespace roadmanager
         {
             return (size_t)markings_.size();
         }
-        void CheckAndCreateObjectRepeatScales(int r_id);
+        void CheckAndCreateRepeatDetails(int r_id);
         void CreateRepeatScales( Repeat* repeat, int r_id);
         void CreateOutlineCopies(  Repeat* repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
+        int checkAndCreateOutlineRepeatDetails(int r_id);
 
     private:
         std::string name_;
@@ -2367,7 +2365,7 @@ namespace roadmanager
         Repeat                               *repeat_;
         std::vector<Repeat *>                 repeats_;
         ParkingSpace                          parking_space_;
-        std::vector<Marking>                  markings_;
+        std::vector<Marking>                    markings_;
     };
 
     enum class SpeedUnit
