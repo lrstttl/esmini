@@ -12344,7 +12344,7 @@ void Position::EvaluateRelation(bool release)
     }
 }
 
-int Route::AddWaypoint(Position* position)
+int Route::AddWaypoint(Position wp_pos)
 {
     int retval = 0;
 
@@ -12354,13 +12354,13 @@ int Route::AddWaypoint(Position* position)
         // Keep first specified waypoint for first road
         // then, for following roads, keep the last waypoint.
 
-        if (position->GetTrackId() == minimal_waypoints_.back().GetTrackId())
+        if (wp_pos.GetTrackId() == minimal_waypoints_.back().GetTrackId())
         {
             if (minimal_waypoints_.size() == 1)
             {
                 // Ignore
-                LOG("Ignoring additional waypoint for road %d (s %.2f)", position->GetTrackId(), position->GetS());
-                all_waypoints_.push_back(*position);
+                LOG("Ignoring additional waypoint for road %d (s %.2f)", wp_pos.GetTrackId(), wp_pos.GetS());
+                all_waypoints_.push_back(wp_pos);
                 return -1;
             }
             else  // at least two road-unique waypoints
@@ -12374,7 +12374,7 @@ int Route::AddWaypoint(Position* position)
         }
 
         // Check that there is a valid path from previous waypoint
-        std::unique_ptr<RoadPath> path = std::make_unique<RoadPath>(&minimal_waypoints_.back(), position);
+        std::unique_ptr<RoadPath> path = std::make_unique<RoadPath>(&minimal_waypoints_.back(), &wp_pos);
         double                    dist = 0;
         retval                         = path->Calculate(dist, false);
         if (retval == 0)
@@ -12432,25 +12432,25 @@ int Route::AddWaypoint(Position* position)
     else
     {
         // First waypoint, make it the current position
-        currentPos_ = *position;
+        currentPos_ = wp_pos;
     }
     if (retval >= -1)
     {
         // Add waypoint defined by scenario
-        scenario_waypoints_.push_back(*position);
+        scenario_waypoints_.push_back(wp_pos);
 
         // Add all waypoints including a valid road ID (retval == -2 indicates invalid road ID)
-        all_waypoints_.push_back(*position);
+        all_waypoints_.push_back(wp_pos);
         LOG("Route::AddWaypoint Added waypoint %d: %d, %d, %.2f",
             (int)all_waypoints_.size() - 1,
-            position->GetTrackId(),
-            position->GetLaneId(),
-            position->GetS());
+            wp_pos.GetTrackId(),
+            wp_pos.GetLaneId(),
+            wp_pos.GetS());
 
         if (retval == 0)
         {
             // For OpenSCENARIO routes, add only waypoints to which a path has been found
-            minimal_waypoints_.push_back(*position);
+            minimal_waypoints_.push_back(wp_pos);
         }
         else
         {
@@ -12461,9 +12461,9 @@ int Route::AddWaypoint(Position* position)
     {
         LOG("Route::AddWaypoint Failed to add waypoint %d: %d, %d, %.2f",
             (int)minimal_waypoints_.size() - 1,
-            position->GetTrackId(),
-            position->GetLaneId(),
-            position->GetS());
+            wp_pos.GetTrackId(),
+            wp_pos.GetLaneId(),
+            wp_pos.GetS());
     }
 
     return 0;

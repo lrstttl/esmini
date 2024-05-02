@@ -42,7 +42,7 @@ set(ENABLE_COVERAGE
           "Enable code coverage (Will force no optimizations)")
 
 set(ENABLE_SANITIZERS
-    OFF
+    ON
     CACHE BOOL
           "Enable sanitizers (Only valid for Linux and Mac OS)")
 

@@ -39,6 +39,7 @@ namespace scenarioengine
     {
     public:
         ControllerFollowRoute(InitArgs *args);
+        ~ControllerFollowRoute();
 
         static const char *GetTypeNameStatic()
         {

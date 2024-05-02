@@ -1070,12 +1070,14 @@ roadmanager::Route *ScenarioReader::parseOSCRoute(pugi::xml_node routeNode)
                 rs = roadmanager::Position::RouteStrategy::SHORTEST;
             }
 
-            std::unique_ptr<OSCPosition> pos = std::unique_ptr<OSCPosition>{parseOSCPosition(routeChild.first_child())};
-            if (pos)
+            // std::unique_ptr<OSCPosition> pos = std::unique_ptr<OSCPosition>{parseOSCPosition(routeChild.first_child())};
+            OSCPosition* pos = parseOSCPosition(routeChild.first_child());
+            if (pos != nullptr)
             {
                 roadmanager::Position *p = pos->GetRMPos();
                 p->SetRouteStrategy(rs);
-                route->AddWaypoint(p);
+                route->AddWaypoint(*p);
+                delete pos;
             }
             else
             {

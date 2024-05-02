@@ -4080,7 +4080,7 @@ namespace roadmanager
         @param position A regular position created with road, lane or world coordinates
         @return Non zero return value indicates error of some kind
         */
-        int AddWaypoint(Position *position);
+        int AddWaypoint(Position position);
 
         /**
         Return direction Adds a waypoint to the route. One waypoint per road. At most one junction between waypoints.

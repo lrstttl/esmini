@@ -60,6 +60,17 @@ ControllerFollowRoute::ControllerFollowRoute(InitArgs *args) : Controller(args),
     }
 }
 
+ControllerFollowRoute::~ControllerFollowRoute()
+{
+    if (laneChangeAction_ != nullptr)
+    {
+        delete static_cast<LatLaneChangeAction*>(laneChangeAction_);
+    }
+    allWaypoints_.clear();
+    waypoints_.clear();
+    printf("ControllerFollowRoute destructor\n");
+}
+
 void ControllerFollowRoute::Init()
 {
     // FollowRoute controller forced into additive mode - will perform scenario actions, except during lane changes
@@ -197,8 +208,11 @@ void ControllerFollowRoute::CalculateWaypoints()
 {
     roadmanager::LaneIndependentRouter router(odr_);
 
-    roadmanager::Position startPos  = object_->pos_;
-    roadmanager::Position targetPos = object_->pos_.GetRoute()->scenario_waypoints_[static_cast<unsigned int>(scenarioWaypointIndex_)];
+    roadmanager::Position startPos;
+    startPos.CopyRMPos(&object_->pos_);
+
+    roadmanager::Position targetPos;
+    targetPos.CopyRMPos(&object_->pos_.GetRoute()->scenario_waypoints_[static_cast<unsigned int>(scenarioWaypointIndex_)]);
 
     // If start and target is on same road, set next waypoint as target
     if (startPos.GetTrackId() == targetPos.GetTrackId())
@@ -212,7 +226,6 @@ void ControllerFollowRoute::CalculateWaypoints()
         }
         targetPos = object_->pos_.GetRoute()->scenario_waypoints_[static_cast<unsigned int>(scenarioWaypointIndex_)];
     }
-
     std::vector<roadmanager::Node> pathToGoal = router.CalculatePath(startPos, targetPos);
     if (pathToGoal.empty())
     {
@@ -372,6 +385,7 @@ void ControllerFollowRoute::Deactivate()
     {
         gateway_->updateObjectSpeed(object_->GetId(), 0.0, 0.0);
     }
+
     LOG("ControllerFollowRoute - Deactivated");
     Controller::Deactivate();
 }
