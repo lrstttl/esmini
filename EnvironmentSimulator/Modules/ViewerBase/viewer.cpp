@@ -3468,13 +3468,12 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 object->CheckAndCreateRepeatDetails(road->GetId()); // create deatils
             }
 
-            if (object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
+            if (!foundModel && object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
             {
                 CreateOutline(object->GetOutlinesCopies(), object->GetMarkings(), color);
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
                 LOG("  check that corners are defined counter-clockwise (as OpenGL default).");
-                continue;
                 continue;
             }
             double s = object->GetS();
@@ -3484,7 +3483,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 {
                     break;
                 }
-                if (object->GetNumberOfOutlinesCopies() > 0)  // local corner outlines with repeat
+                if (object->GetNumberOfOutlines() > 0)  // local corner outlines with repeat
                 {
                     CreateLocalCornerOutlineRepeatObject(repeat->repeatScales_,
                                                             object->GetOutlines(),
@@ -3492,7 +3491,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                                                             !object->GetNumberOfMarkings() == 0);
                     for (auto& marking : object->GetMarkings())  // draw marking
                     {
-                        marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
+                        marking.CheckAndFillPointsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
                     }
                     continue;
                 }

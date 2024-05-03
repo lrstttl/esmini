@@ -583,7 +583,7 @@ void UpdateOSIStationaryObjectODROutlineRepeatMarking(std::vector<std::shared_pt
 {
     for (auto &marking : markings)
     {
-        marking.CheckAndFillMarkingsFromOutlineRepeat(outlines, repeats);
+        marking.CheckAndFillPointsFromOutlineRepeat(outlines, repeats);
         if (marking.vertexPoints_.size() == 0)  // no point from scale check outlines
         {
             marking.CheckAndFillPointsFromOutlines(outlines);
@@ -794,7 +794,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     {
         for (auto &marking : object->GetMarkings())
         {
-            marking.CheckAndFillMarkingsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
+            marking.CheckAndFillPointsFromOutlineRepeat(object->GetOutlines(), object->GetRepeats());
             for (const auto &points : marking.vertexPoints_)
             {
                 UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, points);  // each vertex vector is separate road marking

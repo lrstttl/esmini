@@ -2461,7 +2461,10 @@ OutlineCornerRoad::OutlineCornerRoad(int    roadId,
                                      double center_s,
                                      double center_t,
                                      double center_heading,
-                                     int    cornerId)
+                                     int    cornerId,
+                                     double x = NAN,
+                                     double y = NAN,
+                                     double z = NAN)
     : roadId_(roadId),
       s_(s),
       t_(t),
@@ -2470,17 +2473,29 @@ OutlineCornerRoad::OutlineCornerRoad(int    roadId,
       center_s_(center_s),
       center_t_(center_t),
       center_heading_(center_heading),
-      cornerId_(cornerId)
+      cornerId_(cornerId),
+      x_(x),
+      y_(y),
+      z_(z)
 {
 }
 
 void OutlineCornerRoad::GetPos(double& x, double& y, double& z)
 {
-    roadmanager::Position pos;
-    pos.SetTrackPos(roadId_, s_, t_);
-    x = pos.GetX();
-    y = pos.GetY();
-    z = pos.GetZ() + dz_;
+    if( IsCalculated)
+    {
+        x = x_;
+        y = y_;
+        z = z_;
+    }
+    else
+    {
+        roadmanager::Position pos;
+        pos.SetTrackPos(roadId_, s_, t_);
+        x = x_ = pos.GetX();
+        y = y_ = pos.GetY();
+        z = z_ = pos.GetZ() + dz_;
+    }
 }
 
 void OutlineCornerRoad::GetPosLocal(double& x, double& y, double& z)
@@ -2496,7 +2511,7 @@ void OutlineCornerRoad::GetPosLocal(double& x, double& y, double& z)
     z = pref.GetZ() + dz_;
 }
 
-OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId)
+OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId, double x = NAN, double y = NAN, double z = NAN)
     : roadId_(roadId),
       s_(s),
       t_(t),
@@ -2505,25 +2520,37 @@ OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u,
       zLocal_(zLocal),
       height_(height),
       heading_(heading),
-      cornerId_(cornerId)
+      cornerId_(cornerId),
+      x_(x),
+      y_(y),
+      z_(z)
 {
 }
 
 void OutlineCornerLocal::GetPos(double& x, double& y, double& z)
 {
-    roadmanager::Position pref;
-    pref.SetTrackPosMode(roadId_,
-                         s_,
-                         t_,
-                         roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
-                             roadmanager::Position::PosMode::R_REL);
-    double total_heading = GetAngleSum(pref.GetH(), heading_);
-    double u2, v2;
-    RotateVec2D(u_, v_, total_heading, u2, v2);
+    if( IsCalculated)
+    {
+        x = x_;
+        y = y_;
+        z = z_;
+    }
+    else
+    {
+        roadmanager::Position pref;
+        pref.SetTrackPosMode(roadId_,
+                            s_,
+                            t_,
+                            roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
+                                roadmanager::Position::PosMode::R_REL);
+        double total_heading = GetAngleSum(pref.GetH(), heading_);
+        double u2, v2;
+        RotateVec2D(u_, v_, total_heading, u2, v2);
 
-    x = pref.GetX() + u2;
-    y = pref.GetY() + v2;
-    z = pref.GetZ() + zLocal_;
+        x = x_ = pref.GetX() + u2;
+        y = y_ = pref.GetY() + v2;
+        z = z_ = pref.GetZ() + zLocal_;
+    }
 }
 
 void OutlineCornerLocal::GetPosLocal(double& x, double& y, double& z)
@@ -2585,26 +2612,26 @@ void Marking::GetPos(double s, double t, double dz, double& x, double& y, double
     z = pos.GetZ() + dz;
 }
 
-void Marking::FillPoints(const Point2D& point, OutlineCorner::CornerType cornerType, std::vector<Point3D>& points_)
+Marking::Point3D Marking::GetPoint(const Point2D& point, OutlineCorner::CornerType cornerType)
 {
-    roadmanager::Marking::Point3D point_;
+    roadmanager::Marking::Point3D pointTemp;
     double                        z;
     roadmanager::Position         tmp_pos;
     tmp_pos.SetMode(Position::PosModeType::UPDATE,
                     Position::PosMode::Z_REL | Position::PosMode::H_REL | Position::PosMode::H_REL | Position::PosMode::H_REL);
     if (cornerType == OutlineCorner::CornerType::ROAD_CORNER)  // raod
     {
-        GetPos(point.x, point.y, 0.0, point_.x, point_.y, z);  // convert to world cordinate
+        GetPos(point.x, point.y, 0.0, pointTemp.x, pointTemp.y, z);  // convert to world cordinate
     }
     else
     {  // already in world cordinate
-        point_.x = point.x;
-        point_.y = point.y;
+        pointTemp.x = point.x;
+        pointTemp.y = point.y;
         z        = 0.0;
     }
-    tmp_pos.SetInertiaPos(point_.x, point_.y, 0.0);
-    point_.z = tmp_pos.GetZ() + z_offset_;
-    points_.push_back(point_);
+    tmp_pos.SetInertiaPos(pointTemp.x, pointTemp.y, 0.0);
+    pointTemp.z = tmp_pos.GetZ() + z_offset_;
+    return pointTemp;
 }
 
 void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, OutlineCorner::CornerType cornerType)
@@ -2639,7 +2666,7 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
         double deltaP1Far = cos(beata) * width_;
         double deltaP0Far = sin(beata) * width_;
 
-        std::vector<Point3D> points_;
+        std::vector<Point3D> points;
 
         // add first block immediate after start offset for line length
         Point2D pointTemp;
@@ -2648,18 +2675,18 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
             point.x += deltaP0StartOffset;
             point.y += deltaP1StartOffset;
 
-            FillPoints(point, cornerType, points_);  // point_ A
+            points.push_back( GetPoint(point, cornerType));  // point_ A
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            FillPoints(pointTemp, cornerType, points_);  // point_ B
+            points.push_back( GetPoint(pointTemp, cornerType));// point_ B
 
             point.x += deltaP0Line;
             point.y += deltaP1Line;
 
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            FillPoints(pointTemp, cornerType, points_);  // point_ C
-            FillPoints(point, cornerType, points_);      // point_ D
+            points.push_back( GetPoint(pointTemp, cornerType)); // point_ C
+            points.push_back( GetPoint(point, cornerType));      // point_ D
         }
 
         for (int i = 4; i < nrOfPoints; i += 4)  // loop from second block
@@ -2667,20 +2694,20 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
             point.x += deltaP0Gap;
             point.y += deltaP1Gap;
 
-            FillPoints(point, cornerType, points_);  // point_ A
+            points.push_back( GetPoint(point, cornerType));  // point_ A
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            FillPoints(pointTemp, cornerType, points_);  // point_ B
+            points.push_back( GetPoint(pointTemp, cornerType));  // point_ B
 
             point.x += deltaP0Line;
             point.y += deltaP1Line;
 
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            FillPoints(pointTemp, cornerType, points_);  // point_ D
-            FillPoints(point, cornerType, points_);      // point_ C
+            points.push_back( GetPoint(pointTemp, cornerType));  // point_ D
+            points.push_back( GetPoint(point, cornerType));      // point_ C
         }
-        vertexPoints_.push_back(points_);
+        vertexPoints_.push_back(points);
     }
 }
 
@@ -2837,57 +2864,6 @@ void Marking::CheckAndFillPointsFromObject(double s, double t, double length, do
     }
 }
 
-void Marking::FillPointsFromOutline(Outline* outline)
-{
-    Point2D point1;
-    Point2D point2;
-
-    if (cornerReferenceIds.size() > 0)  // no corner ids
-    {
-        std::vector<OutlineCorner*> cornerReferences;
-        GetCorners(cornerReferenceIds, outline, cornerReferences);
-        if (cornerReferences.size() >= 2)  // corner referrence found
-        {
-            for (size_t i = 0; i < cornerReferences.size() - 1; i++)  // dont loop last corner, eg marking between 1 and 2 corner
-            {
-                if (cornerReferences[i]->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)  // road corner
-                {
-                    point1.x = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i])->GetS();
-                    point2.x = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetS();
-                    point1.y = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i])->GetT();
-                    point2.y = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetT();
-                    FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
-                }
-                else
-                {
-                    double z1, z2;
-                    (cornerReferences[i])->GetPos(point1.x, point1.y, z1);
-                    (cornerReferences[i + 1])->GetPos(point2.x, point2.y, z2);
-                    FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
-                }
-            }
-        }
-    }
-    else
-    {
-        // no corner referrence in marking, check corner from repeat without distance
-        for (size_t k = 0; k < outline->corner_.size() / 2; k++)
-        {
-            point1.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS();                                // 1st corner
-            point2.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetS();  // last corner
-            point1.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
-            point2.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetT();
-            if (GetSide() == RoadSide::LEFT)
-            {
-                FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
-            }
-            else
-            {
-                FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
-            }
-        }
-    }
-}
 
 void Marking::CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outlines)
 {
@@ -2895,12 +2871,59 @@ void Marking::CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline
     {
         for (const auto& outline : outlines)
         {
-            FillPointsFromOutline(outline.get());  // fill from road corner
+            Point2D point1;
+            Point2D point2;
+
+            if (cornerReferenceIds.size() > 0)  // no corner ids
+            {
+                std::vector<OutlineCorner*> cornerReferences;
+                GetCorners(cornerReferenceIds, outline.get(), cornerReferences);
+                if (cornerReferences.size() >= 2)  // corner referrence found
+                {
+                    for (size_t i = 0; i < cornerReferences.size() - 1; i++)  // dont loop last corner, eg marking between 1 and 2 corner
+                    {
+                        if (cornerReferences[i]->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)  // road corner
+                        {
+                            point1.x = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i])->GetS();
+                            point2.x = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetS();
+                            point1.y = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i])->GetT();
+                            point2.y = static_cast<roadmanager::OutlineCornerRoad*>(cornerReferences[i + 1])->GetT();
+                            FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
+                        }
+                        else
+                        {
+                            double z1, z2;
+                            (cornerReferences[i])->GetPos(point1.x, point1.y, z1);
+                            (cornerReferences[i + 1])->GetPos(point2.x, point2.y, z2);
+                            FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // no corner referrence in marking, check corner from repeat without distance
+                for (size_t k = 0; k < outline->corner_.size() / 2; k++)
+                {
+                    point1.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS();                                // 1st corner
+                    point2.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetS();  // last corner
+                    point1.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
+                    point2.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetT();
+                    if (GetSide() == RoadSide::LEFT)
+                    {
+                        FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
+                    }
+                    else
+                    {
+                        FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
+                    }
+                }
+            }
         }
     }
 }
 
-void Marking::CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat*> repeats)
+void Marking::CheckAndFillPointsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat*> repeats)
 {
     if (vertexPoints_.empty())  // fill only empty
     {

@@ -1692,6 +1692,7 @@ namespace roadmanager
         virtual int        GetCornerId()                                = 0;
         virtual CornerType GetCornerType()                              = 0;
         virtual double GetZ()                                           = 0;
+        virtual bool IsCalculated()                                     = 0;
 
         virtual ~OutlineCorner()
         {
@@ -1709,7 +1710,10 @@ namespace roadmanager
                           double center_s,
                           double center_t,
                           double center_heading,
-                          int    cornerId);
+                          int    cornerId,
+                          double x,
+                          double y,
+                          double z);
         void   GetPos(double &x, double &y, double &z) override;
         void   GetPosLocal(double &x, double &y, double &z) override;
         double GetHeight()
@@ -1736,18 +1740,23 @@ namespace roadmanager
         {
             return dz_;
         }
+        bool IsCalculated()
+        {
+            return x_ == NAN && y_ == NAN && z_ == NAN;
+        }
 
 
     private:
         int                       roadId_, cornerId_;
         double                    s_, t_, dz_, height_, center_s_, center_t_, center_heading_;
         OutlineCorner::CornerType type_ = OutlineCorner::CornerType::ROAD_CORNER;
+        double x_, y_, z_;
     };
 
     class OutlineCornerLocal : public OutlineCorner
     {
     public:
-        OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId);
+        OutlineCornerLocal(int roadId, double s, double t, double u, double v, double zLocal, double height, double heading, int cornerId, double x, double y, double z);
         // OutlineCornerLocal operator=(const OutlineCornerLocal&);
         void   GetPos(double &x, double &y, double &z) override;
         void   GetPosLocal(double &x, double &y, double &z) override;
@@ -1775,11 +1784,16 @@ namespace roadmanager
         {
             return zLocal_;
         }
+        bool IsCalculated()
+        {
+            return x_ == NAN && y_ == NAN && z_ == NAN;
+        }
 
     private:
         int                       roadId_, cornerId_;
         double                    s_, t_, u_, v_, zLocal_, height_, heading_;
         OutlineCorner::CornerType type_ = OutlineCorner::CornerType::LOCAL_CORNER;
+        double x_, y_, z_;
     };
 
     class Outline
@@ -2098,14 +2112,14 @@ namespace roadmanager
         };
         std::vector<std::vector<Point3D>> vertexPoints_;
         void                              CheckAndFillPointsFromObject(double s, double t, double length, double width, double objHOffset);
-        void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outline);
-        void                              CheckAndFillMarkingsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat *> repeats);
+        void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outlines);
         void                              FillPointsFromObjectRePeats(RMObject *object, int road_id);
-        void                              FillPointsFromOutline(Outline *outline);
+
+        void                              CheckAndFillPointsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat *> repeats);
         void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
         void                              FillPointsFromLocalCorners(Outline *outline, roadmanager::Repeat::RepeatScale localCornerScales);
         void                              FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
-        void                              FillPoints(const Point2D &point, OutlineCorner::CornerType cornerType, std::vector<Point3D> &points_);
+        Point3D                           GetPoint(const Point2D &point, OutlineCorner::CornerType cornerType);
 
         ~Marking()
         {
