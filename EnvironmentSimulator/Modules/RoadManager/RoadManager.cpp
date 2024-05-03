@@ -2533,6 +2533,49 @@ void OutlineCornerLocal::GetPosLocal(double& x, double& y, double& z)
     z = zLocal_;
 }
 
+ParkingSpace::Access ParkingSpace::ParseAccess(pugi::xml_node node)
+{
+    std::string          access_string = node.attribute("access").value();
+    ParkingSpace::Access access;
+    if (access_string == "all")
+    {
+        access = ParkingSpace::Access::ACCESS_ALL;
+    }
+    else if (access_string == "bus")
+    {
+        access = ParkingSpace::Access::ACCESS_BUS;
+    }
+    else if (access_string == "car")
+    {
+        access = ParkingSpace::Access::ACCESS_CAR;
+    }
+    else if (access_string == "electric")
+    {
+        access = ParkingSpace::Access::ACCESS_ELECTRIC;
+    }
+    else if (access_string == "handicapped")
+    {
+        access = ParkingSpace::Access::ACCESS_HANDICAPPED;
+    }
+    else if (access_string == "residents")
+    {
+        access = ParkingSpace::Access::ACCESS_RESIDENTS;
+    }
+    else if (access_string == "truck")
+    {
+        access = ParkingSpace::Access::ACCESS_TRUCK;
+    }
+    else if (access_string == "women")
+    {
+        access = ParkingSpace::Access::ACCESS_WOMEN;
+    }
+    else
+    {
+        access = ParkingSpace::Access::ACCESS_ALL;
+    }
+    return access;
+}
+
 void Marking::GetPos(double s, double t, double dz, double& x, double& y, double& z)
 {
     roadmanager::Position pos;
@@ -2591,7 +2634,7 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
         point.x = point1.x;
         point.y = point1.y;
 
-        double beata = side_ == 1 ? M_PI_2 + alpha : -M_PI_2 + alpha;  // side 1 -right, 0 - left
+        double beata = side_ == RoadSide::RIGHT ? M_PI_2 + alpha : -M_PI_2 + alpha;
 
         double deltaP1Far = cos(beata) * width_;
         double deltaP0Far = sin(beata) * width_;
@@ -2713,7 +2756,7 @@ void Marking::FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double 
 {
     Point2D point1;
     Point2D point2;
-    if (GetSide() == 0)
+    if (GetSide() == RoadSide::LEFT)
     {
         // find local lower left corner
         RotateVec2D(-(length * repeatScale.scale_x) / 2,
@@ -2767,7 +2810,7 @@ void Marking::CheckAndFillPointsFromObject(double s, double t, double length, do
                             t,
                             roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::P_REL |
                                 roadmanager::Position::PosMode::R_REL);
-        if (GetSide() == 0)
+        if (GetSide() == RoadSide::LEFT)
         {
             // find local lower left corner
             RotateVec2D(-length / 2, -width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
@@ -2834,7 +2877,7 @@ void Marking::FillPointsFromOutline(Outline* outline)
             point2.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetS();  // last corner
             point1.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
             point2.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetT();
-            if (GetSide() == 0)
+            if (GetSide() == RoadSide::LEFT)
             {
                 FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
             }
@@ -5123,8 +5166,28 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 double               pitch    = atof(object.attribute("pitch").value());
                 double               roll     = atof(object.attribute("roll").value());
 
+                // create object with position of the object main element
+                pos.SetTrackPos(rid, s, t);
+
+                obj = new RMObject(s,
+                                    t,
+                                    ids,
+                                    name,
+                                    orientation,
+                                    z_offset,
+                                    type,
+                                    length,
+                                    height,
+                                    width,
+                                    heading,
+                                    pitch,
+                                    roll,
+                                    pos.GetX(),
+                                    pos.GetY(),
+                                    pos.GetZ(),
+                                    pos.GetHRoad());
+
                 // Read any repeat elements
-                std::vector<Repeat*> Repeats;
                 for (pugi::xml_node repeat_node = object.child("repeat"); repeat_node; repeat_node = repeat_node.next_sibling("repeat"))
                 {
                     std::string rattr;
@@ -5145,29 +5208,24 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     double rradiusStart = (rattr = ReadAttribute(repeat_node, "radiusStart", false)) == "" ? 0.0 : std::stod(rattr);
                     double rradiusEnd   = (rattr = ReadAttribute(repeat_node, "radiusEnd", false)) == "" ? 0.0 : std::stod(rattr);
 
-                    if (obj == nullptr)
-                    {
-                        // create object with position of first repeat object
-                        pos.SetTrackPos(rid, rs, t);
+                    // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
+                    Repeat* repeat =
+                        new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
 
-                        obj = new RMObject(rs,
-                                           t,
-                                           ids,
-                                           name,
-                                           orientation,
-                                           z_offset,
-                                           type,
-                                           length,
-                                           height,
-                                           width,
-                                           heading,
-                                           pitch,
-                                           roll,
-                                           pos.GetX(),
-                                           pos.GetY(),
-                                           pos.GetZ(),
-                                           pos.GetHRoad());
-                    }
+                    if (fabs(rwidthStart) > SMALL_NUMBER)
+                        repeat->SetWidthStart(rwidthStart);
+                    if (fabs(rwidthEnd) > SMALL_NUMBER)
+                        repeat->SetWidthEnd(rwidthEnd);
+                    if (fabs(rlengthStart) > SMALL_NUMBER)
+                        repeat->SetLengthStart(rlengthStart);
+                    if (fabs(rlengthEnd) > SMALL_NUMBER)
+                        repeat->SetLengthEnd(rlengthEnd);
+                    if (fabs(rradiusStart) > SMALL_NUMBER)
+                        printf("Attribute object/repeat/radiusStart not supported yet\n");
+                    if (fabs(rradiusEnd) > SMALL_NUMBER)
+                        printf("Attribute object/repeat/radiusEnd not supported yet\n");
+                    obj->AddRepeat(repeat);
+
                     pugi::xml_node outlines_node_ = object.child("outlines");
                     if (rdistance < SMALL_NUMBER &&
                         outlines_node_ == NULL)  // create outline when no outline in the object with repeat. Outline with repeat handed separately/
@@ -5228,57 +5286,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         }
                         obj->AddOutlineCopy(outline);
                     }
-
-                    // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
-                    Repeat* repeat =
-                        new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
-                    Repeats.push_back(repeat);
-
-                    if (fabs(rwidthStart) > SMALL_NUMBER)
-                        repeat->SetWidthStart(rwidthStart);
-                    if (fabs(rwidthEnd) > SMALL_NUMBER)
-                        repeat->SetWidthEnd(rwidthEnd);
-                    if (fabs(rlengthStart) > SMALL_NUMBER)
-                        repeat->SetLengthStart(rlengthStart);
-                    if (fabs(rlengthEnd) > SMALL_NUMBER)
-                        repeat->SetLengthEnd(rlengthEnd);
-                    if (fabs(rradiusStart) > SMALL_NUMBER)
-                        printf("Attribute object/repeat/radiusStart not supported yet\n");
-                    if (fabs(rradiusEnd) > SMALL_NUMBER)
-                        printf("Attribute object/repeat/radiusEnd not supported yet\n");
-                }
-
-                if (obj == nullptr)
-                {
-                    // create object with position of the object main element
-                    pos.SetTrackPos(rid, s, t);
-
-                    obj = new RMObject(s,
-                                       t,
-                                       ids,
-                                       name,
-                                       orientation,
-                                       z_offset,
-                                       type,
-                                       length,
-                                       height,
-                                       width,
-                                       heading,
-                                       pitch,
-                                       roll,
-                                       pos.GetX(),
-                                       pos.GetY(),
-                                       pos.GetZ(),
-                                       pos.GetHRoad());
-                }
-
-                if (Repeats.size() > 0)
-                {
-                    for (Repeat* rp : Repeats)
-                    {
-                        obj->AddRepeat(rp);
-                    }
-                    obj->SetRepeat(Repeats[0]);
                 }
 
                 pugi::xml_node outlines_node = object.child("outlines");
@@ -5328,54 +5335,13 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         obj->AddOutline(outline);
                     }
                 }
-
                 pugi::xml_node parking_space_node = object.child("parkingSpace");
                 if (!parking_space_node.empty())
                 {
                     ParkingSpace parking_space;
-
-                    std::string          access_string = parking_space_node.attribute("access").value();
-                    ParkingSpace::Access access;
-                    if (access_string == "all")
-                    {
-                        access = ParkingSpace::Access::ACCESS_ALL;
-                    }
-                    else if (access_string == "bus")
-                    {
-                        access = ParkingSpace::Access::ACCESS_BUS;
-                    }
-                    else if (access_string == "car")
-                    {
-                        access = ParkingSpace::Access::ACCESS_CAR;
-                    }
-                    else if (access_string == "electric")
-                    {
-                        access = ParkingSpace::Access::ACCESS_ELECTRIC;
-                    }
-                    else if (access_string == "handicapped")
-                    {
-                        access = ParkingSpace::Access::ACCESS_HANDICAPPED;
-                    }
-                    else if (access_string == "residents")
-                    {
-                        access = ParkingSpace::Access::ACCESS_RESIDENTS;
-                    }
-                    else if (access_string == "truck")
-                    {
-                        access = ParkingSpace::Access::ACCESS_TRUCK;
-                    }
-                    else if (access_string == "women")
-                    {
-                        access = ParkingSpace::Access::ACCESS_WOMEN;
-                    }
-                    else
-                    {
-                        access = ParkingSpace::Access::ACCESS_ALL;
-                    }
-
-                    std::string restrictions = parking_space_node.attribute("restrictions").value();
-
-                    obj->SetParkingSpace(roadmanager::ParkingSpace(access, restrictions));
+                    parking_space.SetAccess(parking_space.ParseAccess(parking_space_node));
+                    parking_space.SetRestrictions(parking_space_node.attribute("restrictions").value());
+                    obj->SetParkingSpace(std::move(parking_space));
                 }
                 pugi::xml_node markings_node = object.child("markings");
                 if (markings_node != NULL)
@@ -5383,81 +5349,26 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     for (pugi::xml_node marking_node = markings_node.child("marking"); marking_node; marking_node = marking_node.next_sibling())
                     {
                         Marking marking;
-                        // default values
-                        RoadMarkColor color       = RoadMarkColor::WHITE;
-                        double        width       = .1;
-                        double        z_offset    = 0.005;
-                        double        spaceLength = 0.05;
-                        double        lineLength  = 0.2;
-                        double        startOffset, stopOffset = 0.0;
-                        int           side = 1;  // 0 left , 1 right
                         if (!strcmp(marking_node.name(), "marking"))
                         {
                             std::string color_str_ = marking_node.attribute("color").value();
 
-                            RoadMarkColor color_str;
-                            if (color_str_ == "blue")
-                            {
-                                color_str = RoadMarkColor::BLUE;
-                            }
-                            else if (color_str_ == "red")
-                            {
-                                color_str = RoadMarkColor::RED;
-                            }
-                            else if (color_str_ == "green")
-                            {
-                                color_str = RoadMarkColor::GREEN;
-                            }
-                            else if (color_str_ == "white")
-                            {
-                                color_str = RoadMarkColor::WHITE;
-                            }
-                            else if (color_str_ == "Yellow")
-                            {
-                                color_str = RoadMarkColor::YELLOW;
-                            }
-                            else if (color_str_ == "standard")
-                            {
-                                color_str = RoadMarkColor::STANDARD_COLOR;
-                            }
-                            else
-                            {
-                                color_str = RoadMarkColor::UNKNOWN;
-                                LOG("Unexpected and unsupported roadmark color %s", color_str_);
-                            }
+                            LaneRoadMark laneRoadMark;
+                            RoadMarkColor color = laneRoadMark.ParseColor(marking_node);
 
-                            if (obj->GetNumberOfOutlines() == 0 && marking_node.attribute("side").empty())
+                            if (obj->GetNumberOfOutlines() == 0 && (marking_node.attribute("side").value() != "left" || marking_node.attribute("side").value() != "right"))
                             {
                                 LOG("Side attribute is mandatory in marking with no outline, skiping");
                                 break;
                             }
-                            std::string side_string = marking_node.attribute("side").value();
-                            double      side        = side_string == "left" ? 0 : 1;  // 0-left, 1-right, deafult right side
-                            if (!marking_node.attribute("width").empty())
-                            {
-                                width = atof(marking_node.attribute("width").value());
-                            }
-                            if (!marking_node.attribute("zOffset").empty())
-                            {
-                                z_offset = atof(marking_node.attribute("zOffset").value());
-                            }
-                            if (!marking_node.attribute("spaceLength").empty())
-                            {
-                                spaceLength = atof(marking_node.attribute("spaceLength").value());
-                            }
-                            if (!marking_node.attribute("lineLength").empty())
-                            {
-                                lineLength = atof(marking_node.attribute("lineLength").value());
-                            }
-                            if (!marking_node.attribute("startOffset").empty())
-                            {
-                                startOffset = atof(marking_node.attribute("startOffset").value());
-                            }
-                            if (!marking_node.attribute("stopOffset").empty())
-                            {
-                                stopOffset = atof(marking_node.attribute("stopOffset").value());
-                            }
-                            marking = Marking(r->GetId(), color_str, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
+                            Marking::RoadSide      side        = marking_node.attribute("side").value() == "left" ? Marking::RoadSide::LEFT : Marking::RoadSide::RIGHT; //deafult right side
+                            double width = atof(marking_node.attribute("width").value());
+                            double z_offset = atof(marking_node.attribute("zOffset").value());
+                            double spaceLength = atof(marking_node.attribute("spaceLength").value());
+                            double lineLength = atof(marking_node.attribute("lineLength").value());
+                            double startOffset = atof(marking_node.attribute("startOffset").value());
+                            double stopOffset = atof(marking_node.attribute("stopOffset").value());
+                            marking = Marking(r->GetId(), color, width, z_offset, spaceLength, lineLength, startOffset, stopOffset, side);
                         }
                         for (pugi::xml_node cornerReference_node = marking_node.child("cornerReference"); cornerReference_node;
                              cornerReference_node                = cornerReference_node.next_sibling())
@@ -5465,24 +5376,12 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                             int id = atoi(cornerReference_node.attribute("id").value());
                             marking.cornerReferenceIds.push_back(id);
                         }
-                        bool isValidMarking = true;
-                        if (obj->GetNumberOfOutlines() > 0)
+                        if (obj->GetNumberOfOutlines() > 0 && marking.cornerReferenceIds.size() < 2)
                         {
-                            for (size_t i = 0; i < obj->GetNumberOfOutlines(); i++)
-                            {
-                                auto outlineOriginal = obj->GetOutline(i);
-
-                                if (marking.cornerReferenceIds.size() != 2)
-                                {
-                                    LOG("If an outline is used at least two <cornerReference> elements are mandatory, Skiping");
-                                    isValidMarking = false;
-                                }
-                            }
+                            LOG("If an outline is used at least two <cornerReference> elements are mandatory, Skiping");
+                            break;
                         }
-                        if (isValidMarking)
-                        {
-                            obj->AddMarking(std::move(marking));
-                        }
+                        obj->AddMarking(std::move(marking));
                     }
                 }
 

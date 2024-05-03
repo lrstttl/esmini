@@ -670,7 +670,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z + repeatScale.hOffset);
 
                     double height = 0;
-                    for (const auto &outline : object->GetOutlines())
+                    for (const auto &outline : object->GetOutlinesCopies())
                     {
                         for (const auto &corner : outline->corner_)
                         {

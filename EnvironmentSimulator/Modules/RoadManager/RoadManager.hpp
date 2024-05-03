@@ -769,7 +769,7 @@ namespace roadmanager
             BOTH,
             NONE_LANECHANGE
         };
-
+        LaneRoadMark(){};
         LaneRoadMark(double             s_offset,
                      RoadMarkType       type,
                      RoadMarkWeight     weight,
@@ -1866,6 +1866,8 @@ namespace roadmanager
             access_ = access;
         }
 
+        Access ParseAccess(pugi::xml_node node);
+
         void SetRestrictions(const std::string &restrictions)
         {
             restrictions_ = restrictions;
@@ -2042,12 +2044,13 @@ namespace roadmanager
     class RMObject;  // forward declaration
     class Marking
     {
-    private:
-        RoadMarkColor color_ = RoadMarkColor::WHITE;
-        double        width_ = 0.1, z_offset_ = 0.005, spaceLength_ = 0.05, lineLength_ = 0.2, startOffset_ = 0.0, stopOffset_ = 0.0;
-        int           roadId_, side_ = 1;  // 0 left , 1 right
 
     public:
+        enum class RoadSide
+        {
+            LEFT,
+            RIGHT
+        };
         Marking(){};
         Marking(int           roadId,
                 RoadMarkColor color_str,
@@ -2057,7 +2060,7 @@ namespace roadmanager
                 double        lineLength,
                 double        startOffset,
                 double        stopOffset,
-                int           side)
+                RoadSide      side)
             : roadId_(roadId),
               color_(color_str),
               width_(width),
@@ -2069,7 +2072,7 @@ namespace roadmanager
               side_(side)
         {
         }
-        int GetSide()
+        RoadSide GetSide()
         {
             return side_;
         }
@@ -2107,6 +2110,12 @@ namespace roadmanager
         ~Marking()
         {
         }
+
+    private:
+        RoadMarkColor color_ = RoadMarkColor::WHITE;
+        double        width_, z_offset_, spaceLength_, lineLength_, startOffset_, stopOffset_;
+        int           roadId_;
+        RoadSide side_ = RoadSide::RIGHT;  // 0 left , 1 right
     };
 
     class RMObject : public RoadObject
