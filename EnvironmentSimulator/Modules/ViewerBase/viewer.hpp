@@ -642,7 +642,7 @@ namespace viewer
                                                   std::vector<std::shared_ptr<roadmanager::Outline>> outlines,
                                                   osg::Vec4                                          color,
                                                   bool                                               isMarkingAvailable);
-        int  DrawMarking(roadmanager::Marking marking);
+        int  DrawMarking(roadmanager::Marking marking, roadmanager::RMObject* object);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(roadmanager::Road* road, std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
         int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road* road_);

@@ -2110,14 +2110,14 @@ namespace roadmanager
         {
             double z = 0.0;
         };
-        std::vector<std::vector<Point3D>> vertexPoints_;
-        void                              CheckAndFillPointsFromObject(double s, double t, double length, double width, double objHOffset);
-        void                              CheckAndFillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outlines);
-        void                              FillPointsFromObjectRePeats(RMObject *object, int road_id);
-
-        void                              CheckAndFillPointsFromOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat *> repeats);
-        void                              FillPointsFromRepeatScale(Repeat::RepeatScale repeatScale, double length, double width);
-        void                              FillPointsFromLocalCorners(Outline *outline, roadmanager::Repeat::RepeatScale localCornerScales);
+        std::vector<std::vector<Point3D>> markingsPoints_;
+        std::vector<std::vector<Point3D>> GetMarkingsPoints(RMObject* object);
+        void                              CreateMarkingsPoints(RMObject* object);
+        void                              FillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outlines);
+        void                              FillPointsFromLocalOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<Repeat *> repeats);
+        void                              FillPointsFromScales(Outline *outline, Repeat::RepeatScale repeatScales);
+        void                              FillPointsFromRepeatsScales(std::vector<Repeat *> repeats, double length, double width);
+        void                              FillPointsFromObject(double s, double t, double length, double width, double objHOffset);
         void                              FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
         Point3D                           GetPoint(const Point2D &point, OutlineCorner::CornerType cornerType);
 
