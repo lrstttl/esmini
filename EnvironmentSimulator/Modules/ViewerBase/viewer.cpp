@@ -2991,27 +2991,27 @@ int Viewer::DrawMarking(roadmanager::Marking marking, roadmanager::RMObject* obj
     }
     return 0;
 }
-int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale>      localCornerScales,
-                                                 std::vector<std::shared_ptr<roadmanager::Outline>> outlines,
+int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale>      repeatScales,
+                                                 std::vector<roadmanager::Outline>& outlines,
                                                  osg::Vec4                                          color,
                                                  bool                                               isMarkingAvailable)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
     // Set vertices
-    for (const auto& outline : outlines)
+    for (auto& outline : outlines)
     {
-        bool roof = outline->areaType_ == roadmanager::Outline::CLOSED ? true : false;
+        bool roof = outline.GetAreaType() == roadmanager::Outline::CLOSED ? true : false;
 
         // nrPoints will be corners + 1 if the outline should be closed, reusing first corner as last
-        int                          nrPoints = outline->areaType_ == roadmanager::Outline::CLOSED ? static_cast<int>(outline->corner_.size()) + 1
-                                                                                                   : static_cast<int>(outline->corner_.size());
+        int                          nrPoints = outline.GetAreaType() == roadmanager::Outline::CLOSED ? static_cast<int>(outline.corner_.size()) + 1
+                                                                                                   : static_cast<int>(outline.corner_.size());
         osg::ref_ptr<osg::Vec3Array> vertices_sides =
             new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);                                      // one set at bottom and one at top
         osg::ref_ptr<osg::Vec3Array> vertices_top = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));  // one set at bottom and one at top
 
-        for (size_t i = 0; i < outline->corner_.size(); i++)
+        for (size_t i = 0; i < outline.corner_.size(); i++)
         {
-            roadmanager::OutlineCornerLocal* localCorner = static_cast<roadmanager::OutlineCornerLocal*>(outline->corner_[i]);
+            roadmanager::OutlineCornerLocal* localCorner = static_cast<roadmanager::OutlineCornerLocal*>(outline.corner_[i]);
             (*vertices_sides)[i * 2 + 0].set(static_cast<float>(localCorner->GetU()),
                                              static_cast<float>(localCorner->GetV()),
                                              static_cast<float>(localCorner->GetZ() + localCorner->GetHeight()));
@@ -3024,7 +3024,7 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
         }
 
         // Close geometry
-        if (outline->areaType_ == roadmanager::Outline::CLOSED)
+        if (outline.GetAreaType() == roadmanager::Outline::CLOSED)
         {
             (*vertices_sides)[2 * static_cast<unsigned int>(nrPoints) - 2].set((*vertices_sides)[0]);
             (*vertices_sides)[2 * static_cast<unsigned int>(nrPoints) - 1].set((*vertices_sides)[1]);
@@ -3060,22 +3060,22 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
         geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
     }
 
-    for (const auto& localCornerScale : localCornerScales)
+    for (const auto& repeatScale : repeatScales)
     {
         // position mode relative for aligning to road heading
         osg::ref_ptr<osg::PositionAttitudeTransform> xform = new osg::PositionAttitudeTransform();
         xform->addChild(geode);
-        xform->setScale(osg::Vec3(static_cast<float>(localCornerScale.scale_x),
-                                  static_cast<float>(localCornerScale.scale_y),
-                                  static_cast<float>(localCornerScale.scale_z)));
+        xform->setScale(osg::Vec3(static_cast<float>(repeatScale.scale_x),
+                                  static_cast<float>(repeatScale.scale_y),
+                                  static_cast<float>(repeatScale.scale_z)));
 
         xform->setPosition(
-            osg::Vec3(static_cast<float>(localCornerScale.x), static_cast<float>(localCornerScale.y), static_cast<float>(localCornerScale.z)));
+            osg::Vec3(static_cast<float>(repeatScale.x), static_cast<float>(repeatScale.y), static_cast<float>(repeatScale.z)));
 
         // First align to road orientation
-        osg::Quat quatRoad(osg::Quat(localCornerScale.roll, osg::X_AXIS, localCornerScale.pitch, osg::Y_AXIS, localCornerScale.heading, osg::Z_AXIS));
+        osg::Quat quatRoad(osg::Quat(repeatScale.roll, osg::X_AXIS, repeatScale.pitch, osg::Y_AXIS, repeatScale.heading, osg::Z_AXIS));
         // Specified local rotation
-        osg::Quat quatLocal(localCornerScale.hOffset, osg::Vec3(osg::Z_AXIS));  // Heading
+        osg::Quat quatLocal(repeatScale.hOffset, osg::Vec3(osg::Z_AXIS));  // Heading
 
         // Combine
         xform->setAttitude(quatLocal * quatRoad);
@@ -3090,25 +3090,23 @@ int Viewer::CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat
     return 0;
 }
 
-int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, bool isMarkingAvailable)
+int Viewer::CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable)
 {
-    if (outline == 0)
-        return -1;
-    bool roof = outline->areaType_ == roadmanager::Outline::CLOSED ? true : false;
+    bool roof = outline.GetAreaType() == roadmanager::Outline::CLOSED ? true : false;
 
     // nrPoints will be corners + 1 if the outline should be closed, reusing first corner as last
-    int                      nrPoints = outline->areaType_ == roadmanager::Outline::CLOSED ? static_cast<int>(outline->corner_.size()) + 1
-                                                                                           : static_cast<int>(outline->corner_.size());
+    int                      nrPoints = outline.GetAreaType() == roadmanager::Outline::CLOSED ? static_cast<int>(outline.corner_.size()) + 1
+                                                                                           : static_cast<int>(outline.corner_.size());
     osg::ref_ptr<osg::Group> group    = new osg::Group();
 
     osg::ref_ptr<osg::Vec3Array> vertices_sides = new osg::Vec3Array(static_cast<unsigned int>(nrPoints) * 2);  // one set at bottom and one at top
     osg::ref_ptr<osg::Vec3Array> vertices_top   = new osg::Vec3Array(static_cast<unsigned int>(nrPoints));      // one set at bottom and one at top
 
     // Set vertices
-    for (size_t i = 0; i < outline->corner_.size(); i++)
+    for (size_t i = 0; i < outline.corner_.size(); i++)
     {
         double                      x, y, z;
-        roadmanager::OutlineCorner* corner = outline->corner_[i];
+        roadmanager::OutlineCorner* corner = outline.corner_[i];
         corner->GetPos(x, y, z);
         (*vertices_sides)[i * 2 + 0].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z + corner->GetHeight()));
         (*vertices_sides)[i * 2 + 1].set(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
@@ -3116,7 +3114,7 @@ int Viewer::CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, 
     }
 
     // Close geometry
-    if (outline->areaType_ == roadmanager::Outline::CLOSED)
+    if (outline.GetAreaType() == roadmanager::Outline::CLOSED)
     {
         (*vertices_sides)[2 * static_cast<unsigned int>(nrPoints) - 2].set((*vertices_sides)[0]);
         (*vertices_sides)[2 * static_cast<unsigned int>(nrPoints) - 1].set((*vertices_sides)[1]);
@@ -3282,14 +3280,24 @@ void GetObjectColor(roadmanager::RMObject::ObjectType type, osg::Vec4& color)
     }
 }
 
-void Viewer::CreateOutline(std::vector<std::shared_ptr<roadmanager::Outline>> Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
+void Viewer::CreateOutline(std::vector<roadmanager::Outline>& Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
 {
-    for (const auto outline : Outlines)
+    for (auto& outline : Outlines)
     {
-        CreateOutlineObject(outline.get(), color, !markings.size() == 0);
+        CreateOutlineObject(outline, color, !markings.size() == 0);
     }
 }
 
+void Viewer::CreateOutlineCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
+{
+    for (auto& outlines : OutlinesCopies)
+    {
+        for (auto& outline : outlines)
+        {
+            CreateOutlineObject(outline, color, !markings.size() == 0);
+        }
+    }
+}
 int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 {
     osg::ref_ptr<osg::Group> objGroup = new osg::Group;
@@ -3307,6 +3315,10 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             if (object->GetNumberOfOutlines() > 0 && object->GetNumberOfRepeats() == 0)  // if repeats are defined, wait and see if outline should replace failed 3D model or not
             {
                 CreateOutline(object->GetOutlines(), object->GetMarkings(), color);
+                for (const auto& marking : object->GetMarkings())
+                {
+                    DrawMarking(marking, object);
+                }
                 LOG("Created outline geometry for object %s.", object->GetName().c_str());
                 LOG("  if it looks strange, e.g.faces too dark or light color, ");
                 LOG("  check that corners are defined counter-clockwise (as OpenGL default).");
@@ -3340,7 +3352,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             double dim_y = 0.0;
             double dim_z = 0.0;
             osg::BoundingBox boundingBox;
-            if (tx != nullptr)
+            if (tx != nullptr) // model loaded
             {
                 osg::ComputeBoundsVisitor cbv;
                 tx->accept(cbv);
@@ -3382,28 +3394,32 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
                 tx->setScale(osg::Vec3(static_cast<float>(scale_x), static_cast<float>(scale_y), static_cast<float>(scale_z)));
             }
-            if (tx == nullptr)  // No model loaded
+            else  // No model loaded
             {
                 if (object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
                 {
-                    CreateOutline(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                    CreateOutlineCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                    for (const auto& marking : object->GetMarkings())
+                    {
+                        DrawMarking(marking, object);
+                    }
                     continue;
                 }
                 else
                 {
-                    if (object->GetLength() < SMALL_NUMBER || object->GetLength() == NAN)
+                    if (object->GetLength() < SMALL_NUMBER || std::isnan(object->GetLength()))
                     {
-                        object->SetLength(0.0);
+                        object->SetLength(0.05);
                         LOG("Object %s missing or zero length, set to bounding box length %.2f for viewer purpose", object->GetName().c_str(), defalutDimValue);
                     }
-                    if (object->GetWidth() < SMALL_NUMBER  || object->GetWidth() == NAN)
+                    if (object->GetWidth() < SMALL_NUMBER  ||  std::isnan(object->GetWidth()))
                     {
-                        object->SetWidth(0.0);
+                        object->SetWidth(0.05);
                         LOG("Object %s missing or zero width, set to bounding box width %.2f for viewer purpose", object->GetName().c_str(), defalutDimValue);
                     }
-                    if (object->GetHeight() < SMALL_NUMBER || object->GetHeight() == NAN)
+                    if (object->GetHeight() < SMALL_NUMBER || std::isnan(object->GetHeight()))
                     {
-                        object->SetHeight(0.0);
+                        object->SetHeight(0.05);
                         LOG("Object %s missing or zero height, set to bounding box height %.2f for viewer purpose", object->GetName().c_str(), defalutDimValue);
                     }
 
@@ -3456,27 +3472,30 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
                     LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
                 }
-                continue;
             }
             else  // single object
             {
                 object->CheckAndCreateRepeatDetails(road->GetId()); // create deatils
                 if (object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
                 {
-                    CreateOutline(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                    CreateOutlineCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                    for (const auto& marking : object->GetMarkings())
+                    {
+                        DrawMarking(marking, object);
+                    }
                     continue;
                 }
                 for (const auto& repeat : object->GetRepeats())
                 {
-                    if (repeat->repeatScales_.size() > 0 && object->GetNumberOfOutlines() > 0)  // local corner outlines with repeat
+                    if (repeat.repeatScales_.size() > 0 && object->GetNumberOfOutlines() > 0)  // local corner outlines with repeat
                     {
-                        CreateLocalCornerOutlineRepeatObject(repeat->repeatScales_,
+                        CreateLocalCornerOutlineRepeatObject(repeat.repeatScales_,
                                                                 object->GetOutlines(),
                                                                 color,
                                                                 !object->GetNumberOfMarkings() == 0);
                         continue;
                     }
-                    for (const auto& repeatScale : repeat->repeatScales_) // use repeat scales
+                    for (const auto& repeatScale : repeat.repeatScales_) // use repeat scales
                     {
                         double s     = repeatScale.s;
                         clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr;
@@ -3508,13 +3527,13 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         }
                         LODGroup->addChild(clone);
                     }
+                    if (!object->GetNumberOfMarkings() == 0)  // draw wireframe for marking
+                    {
+                        osg::PolygonMode* polygonMode = new osg::PolygonMode;
+                        polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+                        LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
+                    }
                 }
-            }
-            if (!object->GetNumberOfMarkings() == 0)  // draw wireframe for marking
-            {
-                osg::PolygonMode* polygonMode = new osg::PolygonMode;
-                polygonMode->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
-                LODGroup->getOrCreateStateSet()->setAttributeAndModes(polygonMode, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
             }
             // draw marking
             for (const auto& marking : object->GetMarkings())

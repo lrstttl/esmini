@@ -1742,7 +1742,7 @@ namespace roadmanager
         }
         bool IsCalculated()
         {
-            return x_ == NAN && y_ == NAN && z_ == NAN;
+            return std::isnan(x_) && std::isnan(y_) && std::isnan(z_);
         }
 
 
@@ -1827,9 +1827,6 @@ namespace roadmanager
 
         ~Outline()
         {
-            // for (size_t i = 0; i < corner_.size(); i++)
-            //     delete (corner_[i]);
-            // corner_.clear();
         }
 
         void AddCorner(OutlineCorner *outlineCorner)
@@ -2098,7 +2095,7 @@ namespace roadmanager
         void GetPos(double s, double t, double dz, double &x, double &y, double &z);
 
         std::vector<int> cornerReferenceIds;
-        void             GetCorners(std::vector<int> cornerReferenceIds, Outline *outline, std::vector<OutlineCorner *> &cornerReferences);
+        void             GetCorners(std::vector<int> cornerReferenceIds, Outline &outline, std::vector<OutlineCorner *> &cornerReferences);
 
         struct Point2D
         {
@@ -2113,10 +2110,11 @@ namespace roadmanager
         std::vector<std::vector<Point3D>> markingsPoints_;
         std::vector<std::vector<Point3D>> GetMarkingsPoints(RMObject* object);
         void                              CreateMarkingsPoints(RMObject* object);
-        void                              FillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outlines);
-        void                              FillPointsFromLocalOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<Repeat *> repeats);
-        void                              FillPointsFromScales(Outline *outline, Repeat::RepeatScale repeatScales);
-        void                              FillPointsFromRepeatsScales(std::vector<Repeat *> repeats, double length, double width);
+        void                              FillPointsFromOutlines(std::vector<Outline>& outlines);
+         void                             FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& outlines);
+        void                              FillPointsFromLocalOutlineRepeat(std::vector<Outline>& outlines, std::vector<Repeat>& repeats);
+        void                              FillPointsFromScales(Outline& outline, Repeat::RepeatScale repeatScales);
+        void                              FillPointsFromRepeatsScales(std::vector<Repeat>& repeats, double length, double width);
         void                              FillPointsFromObject(double s, double t, double length, double width, double objHOffset);
         void                              FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
         Point3D                           GetPoint(const Point2D &point, OutlineCorner::CornerType cornerType);
@@ -2195,20 +2193,12 @@ namespace roadmanager
               heading_(heading),
               pitch_(pitch),
               roll_(roll),
-              repeat_(0),
               RoadObject(x, y, z, h)
         {
         }
 
         ~RMObject()
         {
-            // for (size_t i = 0; i < outlines_.size(); i++)
-            //     delete (outlines_[i]);
-            // outlines_.clear();
-
-            for (size_t i = 0; i < repeats_.size(); i++)
-                delete (repeats_[i]);
-            repeats_.clear();
         }
 
         static std::string Type2Str(ObjectType type);
@@ -2290,28 +2280,24 @@ namespace roadmanager
         {
             return orientation_;
         }
-        void AddOutline(std::shared_ptr<Outline> outline)
+        void AddOutline(Outline outline)
         {
-            outlines_.push_back(outline);
+            outlines_.emplace_back(std::move(outline));
         }
-        void AddOutlineCopy(std::shared_ptr<Outline> outline)
+        void AddOutlineCopy(std::vector<Outline> outlineCopies)
         {
-            outlinesCopies_.push_back(outline);
+            outlinesCopies_.emplace_back(std::move(outlineCopies));
         }
         void AddMarking(Marking marking)
         {
             markings_.emplace_back(std::move(marking));
         }
-        void SetRepeat(Repeat *repeat);
-        void AddRepeat(Repeat *repeat)
+        void AddRepeat(Repeat repeat)
         {
-            repeats_.push_back(repeat);
+            repeats_.emplace_back(std::move(repeat));
         };
-        Repeat *GetRepeat() const
-        {
-            return repeat_;
-        }
-        std::vector<Repeat *> GetRepeats()
+
+        std::vector<Repeat>& GetRepeats()
         {
             return repeats_;
         }
@@ -2324,7 +2310,7 @@ namespace roadmanager
         {
             return (int)outlinesCopies_.size();
         }
-        std::vector<std::shared_ptr<Outline>> GetOutlinesCopies() const
+        std::vector<std::vector<Outline>>& GetOutlinesCopies()
         {
             return outlinesCopies_;
         }
@@ -2333,24 +2319,15 @@ namespace roadmanager
             return (int)repeats_.size();
         }
 
-        std::vector<std::shared_ptr<Outline>> GetOutlines() const
+        std::vector<Outline>& GetOutlines()
         {
             return outlines_;
         }
-        std::shared_ptr<Outline> GetOutline(size_t i) const
+        Outline& GetOutline(size_t i)
         {
-            return (i < outlines_.size()) ? outlines_[i] : nullptr;
+            return outlines_.at(i);
         }
 
-        std::shared_ptr<Outline> GetOutlineCopysByIdx(size_t i) const
-        {
-            return (i < outlinesCopies_.size()) ? outlinesCopies_[i] : nullptr;
-        }
-
-        Repeat *GetRepeatByIdx(int i) const
-        {
-            return (0 <= i && i < repeats_.size()) ? repeats_[i] : 0;
-        }
         ParkingSpace GetParkingSpace()
         {
             return parking_space_;
@@ -2364,9 +2341,9 @@ namespace roadmanager
             return (size_t)markings_.size();
         }
         void CheckAndCreateRepeatDetails(int r_id);
-        void CreateRepeatScales( Repeat* repeat, int r_id);
-        void CreateOutlineCopies(  Repeat* repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
-        int checkAndCreateOutlineRepeatDetails(int r_id);
+        void CreateRepeatScales(Repeat& repeat, int r_id);
+        void CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
+        int  checkAndCreateOutlineRepeatDetails(int r_id);
 
     private:
         std::string name_;
@@ -2383,10 +2360,9 @@ namespace roadmanager
         double      pitch_;
         double      roll_;
         // std::vector<Outline *> outlines_;
-        std::vector<std::shared_ptr<Outline>> outlines_;
-        std::vector<std::shared_ptr<Outline>> outlinesCopies_;
-        Repeat                               *repeat_;
-        std::vector<Repeat *>                 repeats_;
+        std::vector<Outline> outlines_;
+        std::vector<std::vector<Outline>> outlinesCopies_;
+        std::vector<Repeat>                 repeats_;
         ParkingSpace                          parking_space_;
         std::vector<Marking>                    markings_;
     };

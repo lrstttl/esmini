@@ -2482,7 +2482,7 @@ OutlineCornerRoad::OutlineCornerRoad(int    roadId,
 
 void OutlineCornerRoad::GetPos(double& x, double& y, double& z)
 {
-    if( IsCalculated)
+    if( IsCalculated())
     {
         x = x_;
         y = y_;
@@ -2529,7 +2529,7 @@ OutlineCornerLocal::OutlineCornerLocal(int roadId, double s, double t, double u,
 
 void OutlineCornerLocal::GetPos(double& x, double& y, double& z)
 {
-    if( IsCalculated)
+    if( IsCalculated())
     {
         x = x_;
         y = y_;
@@ -2711,11 +2711,11 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
     }
 }
 
-void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, std::vector<OutlineCorner*>& cornerReferences)
+void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline& outline, std::vector<OutlineCorner*>& cornerReferences)
 {
     for (const auto cornerReferenceId : cornerReferenceIds)
     {
-        for (const auto& corner : outline->corner_)
+        for (const auto& corner : outline.corner_)
         {
             if (corner->GetCornerId() == cornerReferenceId)
             {
@@ -2726,7 +2726,7 @@ void Marking::GetCorners(std::vector<int> cornerReferenceIds, Outline* outline, 
     }
 }
 
-void Marking::FillPointsFromScales(Outline* outline, roadmanager::Repeat::RepeatScale repeatScales)
+void Marking::FillPointsFromScales(Outline& outline, roadmanager::Repeat::RepeatScale repeatScales)
 {
     Point2D               point1;
     Point2D               point2;
@@ -2767,11 +2767,11 @@ void Marking::FillPointsFromScales(Outline* outline, roadmanager::Repeat::Repeat
     }
 }
 
-void Marking::FillPointsFromRepeatsScales(std::vector<Repeat *> repeats, double length, double width)
+void Marking::FillPointsFromRepeatsScales(std::vector<Repeat>& repeats, double length, double width)
 {
     for (const auto& repeat : repeats)
     {
-        for (const auto& repeatScale : repeat->repeatScales_)
+        for (const auto& repeatScale : repeat.repeatScales_)
         {
             Point2D point1;
             Point2D point2;
@@ -2856,9 +2856,9 @@ void Marking::FillPointsFromObject(double s, double t, double length, double wid
 }
 
 
-void Marking::FillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outlines)
+void Marking::FillPointsFromOutlines(std::vector<Outline>& outlines)
 {
-    for (const auto& outline : outlines)
+    for (auto& outline : outlines)
     {
         Point2D point1;
         Point2D point2;
@@ -2866,7 +2866,7 @@ void Marking::FillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outli
         if (cornerReferenceIds.size() > 0)  // no corner ids
         {
             std::vector<OutlineCorner*> cornerReferences;
-            GetCorners(cornerReferenceIds, outline.get(), cornerReferences);
+            GetCorners(cornerReferenceIds, outline, cornerReferences);
             if (cornerReferences.size() >= 2)  // corner referrence found
             {
                 for (size_t i = 0; i < cornerReferences.size() - 1; i++)  // dont loop last corner, eg marking between 1 and 2 corner
@@ -2892,12 +2892,12 @@ void Marking::FillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outli
         else
         {
             // no corner referrence in marking, check corner from repeat without distance
-            for (size_t k = 0; k < outline->corner_.size() / 2; k++)
+            for (size_t k = 0; k < outline.corner_.size() / 2; k++)
             {
-                point1.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetS();                                // 1st corner
-                point2.x = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetS();  // last corner
-                point1.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[k])->GetT();
-                point2.y = static_cast<roadmanager::OutlineCornerRoad*>(outline->corner_[outline->corner_.size() - k - 1])->GetT();
+                point1.x = static_cast<roadmanager::OutlineCornerRoad*>(outline.corner_[k])->GetS();                                // 1st corner
+                point2.x = static_cast<roadmanager::OutlineCornerRoad*>(outline.corner_[outline.corner_.size() - k - 1])->GetS();  // last corner
+                point1.y = static_cast<roadmanager::OutlineCornerRoad*>(outline.corner_[k])->GetT();
+                point2.y = static_cast<roadmanager::OutlineCornerRoad*>(outline.corner_[outline.corner_.size() - k - 1])->GetT();
                 if (GetSide() == RoadSide::LEFT)
                 {
                     FillMarkingPoints(point1, point2, OutlineCorner::CornerType::ROAD_CORNER);
@@ -2911,15 +2911,23 @@ void Marking::FillPointsFromOutlines(std::vector<std::shared_ptr<Outline>> outli
     }
 }
 
-void Marking::FillPointsFromLocalOutlineRepeat(std::vector<std::shared_ptr<Outline>> outlines, std::vector<roadmanager::Repeat*> repeats)
+void Marking::FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& outlinescopies)
+{
+    for (auto& outlines : outlinescopies)
+    {
+       FillPointsFromOutlines(outlines);
+    }
+}
+
+void Marking::FillPointsFromLocalOutlineRepeat(std::vector<Outline>& outlines, std::vector<roadmanager::Repeat>& repeats)
 {
     for (auto& repeat : repeats)
     {
-        for (const auto& outline : outlines)
+        for (auto& outline : outlines)
         {
-            for (const auto& repeatScale : repeat->repeatScales_)
+            for (const auto& repeatScale : repeat.repeatScales_)
             {
-                FillPointsFromScales(outline.get(), repeatScale);  // fill local corner
+                FillPointsFromScales(outline, repeatScale);  // fill local corner
             }
         }
     }
@@ -2931,7 +2939,7 @@ void Marking::CreateMarkingsPoints(RMObject* object)
     {
         if(object->GetNumberOfOutlinesCopies() > 0) // road corner outline with repeat
         {
-            FillPointsFromOutlines(object->GetOutlinesCopies());
+            FillPointsFromOutlinesCopies(object->GetOutlinesCopies());
         }
         else if (object->GetNumberOfOutlines() > 0)// local corner outline with repeat
         {
@@ -2961,11 +2969,11 @@ std::vector<std::vector<Marking::Point3D>> Marking::GetMarkingsPoints(RMObject* 
     return markingsPoints_;
 }
 
-void RMObject::CreateRepeatScales( Repeat* rep, int r_id )
+void RMObject::CreateRepeatScales( Repeat& rep, int r_id )
 {
     double repeatLength =
-        GetLengthOfVector2D(rep->GetLength(), (rep->GetTEnd() - rep->GetTStart())) + SMALL_NUMBER;  // add small number to round double value
-    repeatLength         = MIN(repeatLength, rep->roadLength_ - rep->GetS());  // either repeat length or reminaing road length
+        GetLengthOfVector2D(rep.GetLength(), (rep.GetTEnd() - rep.GetTStart())) + SMALL_NUMBER;  // add small number to round double value
+    repeatLength         = MIN(repeatLength, rep.roadLength_ - rep.GetS());  // either repeat length or reminaing road length
     double   orientation = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0;
     Position pos;
     double   cur_s = 0.0;
@@ -2975,29 +2983,29 @@ void RMObject::CreateRepeatScales( Repeat* rep, int r_id )
         double scale_y               = 1.0;
         double scale_z               = 1.0;
         double factor                = cur_s / repeatLength;
-        double h_offset              = atan2(rep->GetTEnd() - rep->GetTStart(), rep->GetLength());  // use original length to find angle
+        double h_offset              = atan2(rep.GetTEnd() - rep.GetTStart(), rep.GetLength());  // use original length to find angle
         double object_length_dynamic = GetLength();
-        if (rep->GetLengthStart() > SMALL_NUMBER || rep->GetLengthEnd() > SMALL_NUMBER)
+        if (rep.GetLengthStart() > SMALL_NUMBER || rep.GetLengthEnd() > SMALL_NUMBER)
         {
-            scale_x = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset)) / GetLength();
-            object_length_dynamic = ((rep->GetLengthStart() + factor * (rep->GetLengthEnd() - rep->GetLengthStart())) / cos(h_offset));
+            scale_x = ((rep.GetLengthStart() + factor * (rep.GetLengthEnd() - rep.GetLengthStart())) / cos(h_offset)) / GetLength();
+            object_length_dynamic = ((rep.GetLengthStart() + factor * (rep.GetLengthEnd() - rep.GetLengthStart())) / cos(h_offset));
         }
         else
         {
             scale_x = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
         }
-        if (rep->GetWidthStart() > SMALL_NUMBER || rep->GetWidthEnd() > SMALL_NUMBER)
+        if (rep.GetWidthStart() > SMALL_NUMBER || rep.GetWidthEnd() > SMALL_NUMBER)
         {
-            scale_y = (rep->GetWidthStart() + factor * (rep->GetWidthEnd() - rep->GetWidthStart())) / GetWidth();
+            scale_y = (rep.GetWidthStart() + factor * (rep.GetWidthEnd() - rep.GetWidthStart())) / GetWidth();
         }
-        if (rep->GetHeightStart() > SMALL_NUMBER || rep->GetHeightEnd() > SMALL_NUMBER)
+        if (rep.GetHeightStart() > SMALL_NUMBER || rep.GetHeightEnd() > SMALL_NUMBER)
         {
-            scale_z = (rep->GetHeightStart() + factor * (rep->GetHeightEnd() - rep->GetHeightStart())) / GetHeight();
+            scale_z = (rep.GetHeightStart() + factor * (rep.GetHeightEnd() - rep.GetHeightStart())) / GetHeight();
         }
 
-        double t       = rep->GetTStart() + factor * (rep->GetTEnd() - rep->GetTStart());
-        double s       = rep->GetS() + cur_s;
-        double zOffset = rep->GetZOffsetStart() + factor * (rep->GetZOffsetEnd() - rep->GetZOffsetStart());
+        double t       = rep.GetTStart() + factor * (rep.GetTEnd() - rep.GetTStart());
+        double s       = rep.GetS() + cur_s;
+        double zOffset = rep.GetZOffsetStart() + factor * (rep.GetZOffsetEnd() - rep.GetZOffsetStart());
 
         // position mode relative for aligning to road heading
         pos.SetTrackPosMode(r_id,
@@ -3007,9 +3015,9 @@ void RMObject::CreateRepeatScales( Repeat* rep, int r_id )
         pos.SetHeadingRelative(h_offset);
 
         // increase current s according to distance
-        if (rep->GetDistance() > SMALL_NUMBER)
+        if (rep.GetDistance() > SMALL_NUMBER)
         {
-            cur_s += rep->GetDistance();
+            cur_s += rep.GetDistance();
         }
         else
         {
@@ -3030,11 +3038,11 @@ void RMObject::CreateRepeatScales( Repeat* rep, int r_id )
         scale.scale_y = scale_y;
         scale.scale_z = scale_z;
 
-        rep->repeatScales_.push_back(scale);
+        rep.repeatScales_.push_back(scale);
     }
 }
 
-void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double factor,  double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id )
+void RMObject::CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor,  double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id )
 {
     unsigned int k = 0;
     double cur_length = lengthOutline;
@@ -3046,19 +3054,18 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
     double scale_v       = 1.0;
     double scale_z        = 1.0;
     double scale_h       = 1.0;
-    repeat->GetBBDetails(factor,  cur_length, cur_width, cur_z, cur_height);
+    repeat.GetBBDetails(factor,  cur_length, cur_width, cur_z, cur_height);
+    std::vector<Outline> outlineCopies;
     for (size_t i = 0; i < GetNumberOfOutlines(); i++)
     {
-        const auto outlineOriginal = GetOutline(i);
-        std::shared_ptr<Outline> outline = std::make_shared<Outline>(k,
-                                                Outline::FillType::FILL_TYPE_UNDEFINED,
-                                                outlineOriginal->GetAreaType());  // new outline for each segment
-        for (size_t j = 0; j < outlineOriginal->corner_.size(); j++)
+        auto outlineOriginal = GetOutline(i);
+        Outline outline (k,Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal.GetAreaType());  // new outline for each segment
+        for (size_t j = 0; j < outlineOriginal.corner_.size(); j++)
         {
-            const auto corner_original = outlineOriginal->corner_[j];
+            const auto corner_original = outlineOriginal.corner_[j];
             double x_to_add = localPoints[i][j].x;
             // calculate how much to add based on local dimension
-            if (repeat->GetLengthStart() > SMALL_NUMBER || repeat->GetLengthEnd() > SMALL_NUMBER)
+            if (repeat.GetLengthStart() > SMALL_NUMBER || repeat.GetLengthEnd() > SMALL_NUMBER)
             {
                 if (localPoints[i][j].x == 0.0 && lengthOutline == 0.0)  // avoid 0/0
                 {
@@ -3071,7 +3078,7 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                 }
             }
             double y_to_add = localPoints[i][j].y;
-            if (repeat->GetWidthEnd() > SMALL_NUMBER || repeat->GetWidthStart() > SMALL_NUMBER)
+            if (repeat.GetWidthEnd() > SMALL_NUMBER || repeat.GetWidthStart() > SMALL_NUMBER)
             {
                 if (localPoints[i][j].y == 0.0 && widthOutline == 0.0)  // avoid 0/0
                 {
@@ -3084,7 +3091,7 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                 }
             }
             double z_to_add = localPoints[i][j].z;
-            if (repeat->GetZOffsetEnd() > SMALL_NUMBER || repeat->GetZOffsetStart() > SMALL_NUMBER)
+            if (repeat.GetZOffsetEnd() > SMALL_NUMBER || repeat.GetZOffsetStart() > SMALL_NUMBER)
             {
                 if (localPoints[i][j].z == 0.0 && zOutline == 0.0)  // avoid 0/0
                 {
@@ -3097,7 +3104,7 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                 }
             }
             double h_to_add = localPoints[i][j].h;
-            if (repeat->GetHeightStart() > SMALL_NUMBER || repeat->GetHeightEnd() > SMALL_NUMBER)
+            if (repeat.GetHeightStart() > SMALL_NUMBER || repeat.GetHeightEnd() > SMALL_NUMBER)
             {
                 if (localPoints[i][j].h == 0.0 && heightOutline == 0.0)  // avoid 0/0
                 {
@@ -3110,8 +3117,8 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                 }
             }
 
-            double start_s = repeat->GetS() + cur_s + x_to_add;
-            double start_t = repeat->GetTStart() + y_to_add;
+            double start_s = repeat.GetS() + cur_s + x_to_add;
+            double start_t = repeat.GetTStart() + y_to_add;
             double start_z = z_to_add;
             double start_h = h_to_add;
             OutlineCorner* corner = 0;
@@ -3123,7 +3130,7 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                                                                             start_z,
                                                                             start_h,
                                                                             cur_s,
-                                                                            repeat->GetTStart(),
+                                                                            repeat.GetTStart(),
                                                                             GetHOffset(),
                                                                             corner_original->GetCornerId()));
             }
@@ -3141,11 +3148,12 @@ void RMObject::CreateOutlineCopies(  Repeat* repeat, double cur_s,  double facto
                                                                     localCorner->GetCornerId()));
             }
 
-            outline->AddCorner(corner);
+            outline.AddCorner(corner);
             k += 1;
         }
-        AddOutlineCopy(outline);
+        outlineCopies.emplace_back(std::move(outline));
     }
+    AddOutlineCopy(std::move(outlineCopies));
 }
 
 void RMObject::CheckAndCreateRepeatDetails(int r_id)
@@ -3155,11 +3163,11 @@ void RMObject::CheckAndCreateRepeatDetails(int r_id)
 
         for (auto& rep : GetRepeats())
         {
-            if (rep->repeatScales_.size() > 0)
+            if (rep.repeatScales_.size() > 0)
             {
                 continue;  // repeat points already availble
             }
-            if (rep->GetLength() < SMALL_NUMBER)
+            if (rep.GetLength() < SMALL_NUMBER)
             {
                 continue;  // no length to repeat
             }
@@ -3215,7 +3223,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
     }
     for (auto& repeat : GetRepeats())
     {
-        if(repeat->repeatScales_.size() > 0) // repeat scales already created
+        if(repeat.repeatScales_.size() > 0) // repeat scales already created
         {
             break;
         }
@@ -3225,9 +3233,9 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
         for (auto& outlineOriginal : GetOutlines())
         {
             std::vector<Outline::point> localPoints;  // store corners of one outline
-            localPoints.reserve(outlineOriginal->corner_.size());
-            OutlineCorner::CornerType cornerType = outlineOriginal->corner_[0]->GetCornerType();
-            for (const auto& corner : outlineOriginal->corner_)
+            localPoints.reserve(outlineOriginal.corner_.size());
+            OutlineCorner::CornerType cornerType = outlineOriginal.corner_[0]->GetCornerType();
+            for (const auto& corner : outlineOriginal.corner_)
             {
                 Outline::point       point;
                 if (cornerType == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
@@ -3242,7 +3250,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                 }
                 else
                 {
-                    outlineOriginal->TransformRoadCornerToLocal(localPoints);
+                    outlineOriginal.TransformRoadCornerToLocal(localPoints);
                     createShallowCopy = false; // dont create shallow copy if raod corner present any of outline
                     break;
                 }
@@ -3258,9 +3266,9 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
 
         double cur_s   = 0.0;
         double repeatLength =
-            GetLengthOfVector2D(repeat->GetLength(), (repeat->GetTEnd() - repeat->GetTStart())) + SMALL_NUMBER;  // add small number to round double value
-        repeatLength         = std::min(repeatLength, repeat->roadLength_ - repeat->GetS());  // either repeat length or reminaing road length
-        double h_offset       = atan2(repeat->GetTEnd() - repeat->GetTStart(), repeatLength);
+            GetLengthOfVector2D(repeat.GetLength(), (repeat.GetTEnd() - repeat.GetTStart())) + SMALL_NUMBER;  // add small number to round double value
+        repeatLength         = std::min(repeatLength, repeat.roadLength_ - repeat.GetS());  // either repeat length or reminaing road length
+        double h_offset       = atan2(repeat.GetTEnd() - repeat.GetTStart(), repeatLength);
         double cur_length = lengthOutline;
         double cur_width  = widthOutline;
         double cur_z      = zOutline;
@@ -3275,15 +3283,15 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
             {
                 double factor = cur_s / repeatLength;
                 // find the new length from repeat for the factor
-                repeat->GetBBDetails( factor, cur_length, cur_width, cur_z, cur_height);
+                repeat.GetBBDetails( factor, cur_length, cur_width, cur_z, cur_height);
                 if (createShallowCopy)
                 {
                     double scale_u        = abs(cur_length / lengthOutline);
                     double scale_v       = abs(cur_width / widthOutline);
                     double scale_z        = abs(cur_z / zOutline);
                     pos.SetTrackPosMode(r_id,
-                                        repeat->GetS() + cur_s,
-                                        repeat->GetTStart() + factor * (repeat->GetTEnd() - repeat->GetTStart()),
+                                        repeat.GetS() + cur_s,
+                                        repeat.GetTStart() + factor * (repeat.GetTEnd() - repeat.GetTStart()),
                                         roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
                                             roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
                     pos.SetHeadingRelative(h_offset);
@@ -3294,19 +3302,19 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                     scale.x       = pos.GetX();
                     scale.y       = pos.GetY();
                     scale.z       = pos.GetZ() + GetZOffset();
-                    scale.s       = repeat->GetS() + cur_s;
+                    scale.s       = repeat.GetS() + cur_s;
                     scale.roll    = pos.GetR();
                     scale.pitch   = pos.GetP();
                     scale.heading = pos.GetH();
                     scale.hOffset =
                         (GetOrientation() == roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0) + GetHOffset();
-                    repeat->repeatScales_.emplace_back(std::move(scale));  // store points for shallow copy
+                    repeat.repeatScales_.emplace_back(std::move(scale));  // store points for shallow copy
                 }
                 else
                 {
                     CreateOutlineCopies(repeat, cur_s, factor, lengthOutline, widthOutline, zOutline, heightOutline, localPointsList, r_id);
                 }
-                if (repeat->GetDistance() < SMALL_NUMBER)
+                if (repeat.GetDistance() < SMALL_NUMBER)
                 {
                     if (createShallowCopy)
                     {
@@ -3320,7 +3328,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                 }
                 else
                 {
-                    cur_s += repeat->GetDistance();
+                    cur_s += repeat.GetDistance();
                 }
             }
         }
@@ -5204,9 +5212,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 std::string          type_str = object.attribute("type").value();
                 RMObject::ObjectType type     = RMObject::Str2Type(type_str);
                 double               z_offset = atof(object.attribute("zOffset").value());
-                double               length   = atof(object.attribute("length").value());
-                double               height   = atof(object.attribute("height").value());
-                double               width    = atof(object.attribute("width").value());
                 double               heading  = atof(object.attribute("hdg").value());
                 double               pitch    = atof(object.attribute("pitch").value());
                 double               roll     = atof(object.attribute("roll").value());
@@ -5270,30 +5275,29 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     double rradiusEnd   = (rattr = ReadAttribute(repeat_node, "radiusEnd", false)) == "" ? 0.0 : std::stod(rattr);
 
                     // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
-                    Repeat* repeat =
-                        new Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
+                    Repeat repeat =
+                        Repeat(rs, rlength, rdistance, rtStart, rtEnd, rheightStart, rheightEnd, rzOffsetStart, rzOffsetEnd, r->GetLength());
 
                     if (fabs(rwidthStart) > SMALL_NUMBER)
-                        repeat->SetWidthStart(rwidthStart);
+                        repeat.SetWidthStart(rwidthStart);
                     if (fabs(rwidthEnd) > SMALL_NUMBER)
-                        repeat->SetWidthEnd(rwidthEnd);
+                        repeat.SetWidthEnd(rwidthEnd);
                     if (fabs(rlengthStart) > SMALL_NUMBER)
-                        repeat->SetLengthStart(rlengthStart);
+                        repeat.SetLengthStart(rlengthStart);
                     if (fabs(rlengthEnd) > SMALL_NUMBER)
-                        repeat->SetLengthEnd(rlengthEnd);
+                        repeat.SetLengthEnd(rlengthEnd);
                     if (fabs(rradiusStart) > SMALL_NUMBER)
                         printf("Attribute object/repeat/radiusStart not supported yet\n");
                     if (fabs(rradiusEnd) > SMALL_NUMBER)
                         printf("Attribute object/repeat/radiusEnd not supported yet\n");
-                    obj->AddRepeat(repeat);
+                    obj->AddRepeat(std::move(repeat));
 
                     pugi::xml_node outlines_node_ = object.child("outlines");
                     if (rdistance < SMALL_NUMBER &&
                         outlines_node_ == NULL)  // create outline when no outline in the object with repeat. Outline with repeat handed separately/
                     {
                         // inter-distance is zero, treat as outline
-                        std::shared_ptr<Outline> outline =
-                            std::make_shared<Outline>(ids, Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
+                        Outline outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
                         const double max_segment_length = 10.0;
 
                         // find smallest value of length and rlength, but between SMALL_NUMBER and max_segment_length
@@ -5342,10 +5346,12 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     heading,
                                     j + (i * n_segments)));
 
-                                outline->AddCorner(corner);
+                                outline.AddCorner(corner);
                             }
                         }
-                        obj->AddOutlineCopy(outline);
+                        std::vector<Outline> outlineCopies;
+                        outlineCopies.emplace_back(std::move(outline));
+                        obj->AddOutlineCopy(std::move(outlineCopies));
                     }
                 }
 
@@ -5357,7 +5363,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         int               id = atoi(outline_node.attribute("id").value());
                         Outline::AreaType areaType =
                             !strcmp(outline_node.attribute("closed").value(), "true") ? Outline::AreaType::CLOSED : Outline::AreaType::OPEN;
-                        std::shared_ptr<Outline> outline = std::make_shared<Outline>(id, Outline::FillType::FILL_TYPE_UNDEFINED, areaType);
+                        Outline outline(id, Outline::FillType::FILL_TYPE_UNDEFINED, areaType);
 
                         for (pugi::xml_node corner_node = outline_node.first_child(); corner_node; corner_node = corner_node.next_sibling())
                         {
@@ -5391,9 +5397,9 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                                                                  heading,
                                                                                  cornerId));
                             }
-                            outline->AddCorner(corner);
+                            outline.AddCorner(corner);
                         }
-                        obj->AddOutline(outline);
+                        obj->AddOutline(std::move(outline));
                     }
                 }
                 pugi::xml_node parking_space_node = object.child("parkingSpace");
@@ -5412,17 +5418,15 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         Marking marking;
                         if (!strcmp(marking_node.name(), "marking"))
                         {
-                            std::string color_str_ = marking_node.attribute("color").value();
-
                             LaneRoadMark laneRoadMark;
                             RoadMarkColor color = laneRoadMark.ParseColor(marking_node);
-
-                            if (obj->GetNumberOfOutlines() == 0 && (marking_node.attribute("side").value() != "left" || marking_node.attribute("side").value() != "right"))
+                            std::string          side_str = marking_node.attribute("side").value();
+                            if (obj->GetNumberOfOutlines() == 0 && !(side_str.compare("left") || side_str.compare("right")))
                             {
                                 LOG("Side attribute is mandatory in marking with no outline, skiping");
                                 break;
                             }
-                            Marking::RoadSide      side        = marking_node.attribute("side").value() == "left" ? Marking::RoadSide::LEFT : Marking::RoadSide::RIGHT; //deafult right side
+                            Marking::RoadSide      side        = side_str == "left" ? Marking::RoadSide::LEFT : Marking::RoadSide::RIGHT; //deafult right side
                             double width = atof(marking_node.attribute("width").value());
                             double z_offset = atof(marking_node.attribute("zOffset").value());
                             double spaceLength = atof(marking_node.attribute("spaceLength").value());
@@ -5597,11 +5601,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
     }
 
     return true;
-}
-
-void RMObject::SetRepeat(Repeat* repeat)
-{
-    repeat_ = repeat;
 }
 
 Connection::Connection(Road* incoming_road, Road* connecting_road, ContactPointType contact_point)

@@ -636,10 +636,11 @@ namespace viewer
     private:
         bool CreateRoadLines(roadmanager::OpenDrive* od);
         bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
-        int  CreateOutlineObject(roadmanager::Outline* outline, osg::Vec4 color, bool isMarkingAvailable);
-        void CreateOutline(std::vector<std::shared_ptr<roadmanager::Outline>> Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
-        int  CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale>      localCornerScales,
-                                                  std::vector<std::shared_ptr<roadmanager::Outline>> outlines,
+        int  CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
+        void CreateOutline(std::vector<roadmanager::Outline>& Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
+        void CreateOutlineCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies, std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
+        int  CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale>      repeatScales,
+                                                  std::vector<roadmanager::Outline>& outlines,
                                                   osg::Vec4                                          color,
                                                   bool                                               isMarkingAvailable);
         int  DrawMarking(roadmanager::Marking marking, roadmanager::RMObject* object);
