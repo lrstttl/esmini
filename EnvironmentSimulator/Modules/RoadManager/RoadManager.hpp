@@ -1742,7 +1742,7 @@ namespace roadmanager
         }
         bool IsCalculated()
         {
-            return std::isnan(x_) && std::isnan(y_) && std::isnan(z_);
+            return !(std::isnan(x_) && std::isnan(y_) && std::isnan(z_));
         }
 
 
@@ -2170,9 +2170,6 @@ namespace roadmanager
                  Orientation orientation,
                  double      z_offset,
                  ObjectType  type,
-                 double      length,
-                 double      height,
-                 double      width,
                  double      heading,
                  double      pitch,
                  double      roll,
@@ -2187,9 +2184,6 @@ namespace roadmanager
               orientation_(orientation),
               z_offset_(z_offset),
               type_(type),
-              length_(length),
-              height_(height),
-              width_(width),
               heading_(heading),
               pitch_(pitch),
               roll_(roll),
@@ -2297,37 +2291,34 @@ namespace roadmanager
             repeats_.emplace_back(std::move(repeat));
         };
 
+        size_t GetNumberOfOutlines() const
+        {
+            return outlines_.size();
+        }
+        size_t GetNumberOfOutlinesCopies() const
+        {
+            return outlinesCopies_.size();
+        }
+        size_t GetNumberOfRepeats() const
+        {
+            return repeats_.size();
+        }
+        size_t GetNumberOfMarkings() const
+        {
+            return markings_.size();
+        }
         std::vector<Repeat>& GetRepeats()
         {
             return repeats_;
         }
-
-        int GetNumberOfOutlines() const
+        std::vector<Outline>& GetOutlines()
         {
-            return (int)outlines_.size();
-        }
-        int GetNumberOfOutlinesCopies() const
-        {
-            return (int)outlinesCopies_.size();
+            return outlines_;
         }
         std::vector<std::vector<Outline>>& GetOutlinesCopies()
         {
             return outlinesCopies_;
         }
-        int GetNumberOfRepeats() const
-        {
-            return (int)repeats_.size();
-        }
-
-        std::vector<Outline>& GetOutlines()
-        {
-            return outlines_;
-        }
-        Outline& GetOutline(size_t i)
-        {
-            return outlines_.at(i);
-        }
-
         ParkingSpace GetParkingSpace()
         {
             return parking_space_;
@@ -2336,30 +2327,31 @@ namespace roadmanager
         {
             return markings_;
         }
-        size_t GetNumberOfMarkings() const
+        Outline& GetOutline(size_t i)
         {
-            return (size_t)markings_.size();
+            return outlines_.at(i);
         }
-        void CheckAndCreateRepeatDetails(int r_id);
-        void CreateRepeatScales(Repeat& repeat, int r_id);
+
+        void CheckAndCreateRepeatDetails(double dim_x, double dim_y, double dim_z, int r_id);
+        void CreateRepeatScales(double dim_x, double dim_y, double dim_z, Repeat& repeat, int r_id);
         void CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
         int  checkAndCreateOutlineRepeatDetails(int r_id);
 
     private:
         std::string name_;
-        ObjectType  type_;
-        int         id_;
+        ObjectType  type_ = ObjectType::NONE;
+        int         id_ = -1;
         double      s_;
         double      t_;
         double      z_offset_;
-        Orientation orientation_;
-        double      length_;  // make some default
-        double      height_;
-        double      width_;
-        double      heading_;
-        double      pitch_;
-        double      roll_;
-        // std::vector<Outline *> outlines_;
+        Orientation orientation_ = Orientation::NONE;
+        double      length_ = std::nan("");  // make some default, nan indicate not set yet
+        double      height_ = std::nan("");
+        double      width_ = std::nan("");
+        double      heading_ = 0.0;
+        double      pitch_ = 0.0;
+        double      roll_ = 0.0;
+
         std::vector<Outline> outlines_;
         std::vector<std::vector<Outline>> outlinesCopies_;
         std::vector<Repeat>                 repeats_;

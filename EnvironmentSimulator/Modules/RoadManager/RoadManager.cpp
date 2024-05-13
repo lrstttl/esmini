@@ -2969,7 +2969,7 @@ std::vector<std::vector<Marking::Point3D>> Marking::GetMarkingsPoints(RMObject* 
     return markingsPoints_;
 }
 
-void RMObject::CreateRepeatScales( Repeat& rep, int r_id )
+void RMObject::CreateRepeatScales( double dim_x, double dim_y, double dim_z, Repeat& rep, int r_id )
 {
     double repeatLength =
         GetLengthOfVector2D(rep.GetLength(), (rep.GetTEnd() - rep.GetTStart())) + SMALL_NUMBER;  // add small number to round double value
@@ -2985,7 +2985,7 @@ void RMObject::CreateRepeatScales( Repeat& rep, int r_id )
         double factor                = cur_s / repeatLength;
         double h_offset              = atan2(rep.GetTEnd() - rep.GetTStart(), rep.GetLength());  // use original length to find angle
         double object_length_dynamic = GetLength();
-        if (rep.GetLengthStart() > SMALL_NUMBER || rep.GetLengthEnd() > SMALL_NUMBER)
+        if ((rep.GetLengthStart() > SMALL_NUMBER || rep.GetLengthEnd() > SMALL_NUMBER) && GetLength() < SMALL_NUMBER)
         {
             scale_x = ((rep.GetLengthStart() + factor * (rep.GetLengthEnd() - rep.GetLengthStart())) / cos(h_offset)) / GetLength();
             object_length_dynamic = ((rep.GetLengthStart() + factor * (rep.GetLengthEnd() - rep.GetLengthStart())) / cos(h_offset));
@@ -2994,11 +2994,11 @@ void RMObject::CreateRepeatScales( Repeat& rep, int r_id )
         {
             scale_x = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
         }
-        if (rep.GetWidthStart() > SMALL_NUMBER || rep.GetWidthEnd() > SMALL_NUMBER)
+        if ((rep.GetWidthStart() > SMALL_NUMBER || rep.GetWidthEnd() > SMALL_NUMBER) && GetWidth() < SMALL_NUMBER)
         {
             scale_y = (rep.GetWidthStart() + factor * (rep.GetWidthEnd() - rep.GetWidthStart())) / GetWidth();
         }
-        if (rep.GetHeightStart() > SMALL_NUMBER || rep.GetHeightEnd() > SMALL_NUMBER)
+        if ((rep.GetHeightStart() > SMALL_NUMBER || rep.GetHeightEnd() > SMALL_NUMBER) && GetHeight() < SMALL_NUMBER)
         {
             scale_z = (rep.GetHeightStart() + factor * (rep.GetHeightEnd() - rep.GetHeightStart())) / GetHeight();
         }
@@ -3156,7 +3156,7 @@ void RMObject::CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor,
     AddOutlineCopy(std::move(outlineCopies));
 }
 
-void RMObject::CheckAndCreateRepeatDetails(int r_id)
+void RMObject::CheckAndCreateRepeatDetails(double dim_x, double dim_y, double dim_z, int r_id)
 {
     if (GetNumberOfOutlines() == 0)
     {  // create repeat information only for non outline object.
@@ -3171,7 +3171,7 @@ void RMObject::CheckAndCreateRepeatDetails(int r_id)
             {
                 continue;  // no length to repeat
             }
-            CreateRepeatScales(rep, r_id);
+            CreateRepeatScales(dim_x, dim_y, dim_z, rep, r_id);
         }
     }
     else
@@ -5180,7 +5180,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
         {
             for (pugi::xml_node object = objects.child("object"); object; object = object.next_sibling("object"))
             {
-                RMObject* obj = nullptr;
                 Position  pos;
 
                 double      s    = atof(object.attribute("s").value());
@@ -5216,35 +5215,16 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 double               pitch    = atof(object.attribute("pitch").value());
                 double               roll     = atof(object.attribute("roll").value());
 
-                double               length   = NAN; // default values for missing attribute
-                double               height   = NAN;
-                double               width    = NAN;
-                if (!object.attribute("length").empty())
-                {
-                    length   = atof(object.attribute("length").value());
-                }
-                if (!object.attribute("height").empty())
-                {
-                    height   = atof(object.attribute("height").value());
-                }
-                if (!object.attribute("width").empty())
-                {
-                    width   = atof(object.attribute("width").value());
-                }
-
                 // create object with position of the object main element
                 pos.SetTrackPos(rid, s, t);
 
-                obj = new RMObject(s,
+                auto obj = new RMObject(s,
                                     t,
                                     ids,
                                     name,
                                     orientation,
                                     z_offset,
                                     type,
-                                    length,
-                                    height,
-                                    width,
                                     heading,
                                     pitch,
                                     roll,
@@ -5252,6 +5232,19 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     pos.GetY(),
                                     pos.GetZ(),
                                     pos.GetHRoad());
+
+                if ( const auto& val = object.attribute("length"); !val.empty())
+                {
+                    obj->SetLength(atof(val.value()));
+                }
+                if ( const auto& val = object.attribute("width"); !val.empty())
+                {
+                    obj->SetWidth(atof(val.value()));
+                }
+                if ( const auto& val = object.attribute("height"); !val.empty())
+                {
+                    obj->SetHeight(atof(val.value()));
+                }
 
                 // Read any repeat elements
                 for (pugi::xml_node repeat_node = object.child("repeat"); repeat_node; repeat_node = repeat_node.next_sibling("repeat"))
@@ -5302,9 +5295,9 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
 
                         // find smallest value of length and rlength, but between SMALL_NUMBER and max_segment_length
                         double segment_length = max_segment_length;
-                        if (length > SMALL_NUMBER && length < segment_length)
+                        if (obj->GetLength() > SMALL_NUMBER && obj->GetLength() < segment_length)
                         {
-                            segment_length = length;
+                            segment_length = obj->GetLength();
                         }
                         if (rlength > SMALL_NUMBER && rlength < segment_length)
                         {

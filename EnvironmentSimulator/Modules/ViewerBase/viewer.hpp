@@ -638,12 +638,12 @@ namespace viewer
         bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
         int  CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
         void CreateOutline(std::vector<roadmanager::Outline>& Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
-        void CreateOutlineCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies, std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
+        void CreateOutlineObjectCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies, std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
         int  CreateLocalCornerOutlineRepeatObject(std::vector<roadmanager::Repeat::RepeatScale>      repeatScales,
                                                   std::vector<roadmanager::Outline>& outlines,
                                                   osg::Vec4                                          color,
                                                   bool                                               isMarkingAvailable);
-        int  DrawMarking(roadmanager::Marking marking, roadmanager::RMObject* object);
+        int  DrawMarking(roadmanager::Marking& marking, roadmanager::RMObject* object);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(roadmanager::Road* road, std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
         int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road* road_);

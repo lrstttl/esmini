@@ -2952,7 +2952,7 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::DrawMarking(roadmanager::Marking marking, roadmanager::RMObject* object)
+int Viewer::DrawMarking(roadmanager::Marking& marking, roadmanager::RMObject* object)
 {
 
     for (const auto& points : marking.GetMarkingsPoints(object))
@@ -3288,7 +3288,7 @@ void Viewer::CreateOutline(std::vector<roadmanager::Outline>& Outlines,  std::ve
     }
 }
 
-void Viewer::CreateOutlineCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
+void Viewer::CreateOutlineObjectCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
 {
     for (auto& outlines : OutlinesCopies)
     {
@@ -3315,7 +3315,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             if (object->GetNumberOfOutlines() > 0 && object->GetNumberOfRepeats() == 0)  // if repeats are defined, wait and see if outline should replace failed 3D model or not
             {
                 CreateOutline(object->GetOutlines(), object->GetMarkings(), color);
-                for (const auto& marking : object->GetMarkings())
+                for (auto& marking : object->GetMarkings())
                 {
                     DrawMarking(marking, object);
                 }
@@ -3329,10 +3329,12 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             double orientation = object->GetOrientation() == roadmanager::Signal::Orientation::NEGATIVE ? M_PI : 0.0;
             // absolute path or relative to current directory
             std::string filename = object->GetName();
+            bool modelFound = false;
             // Assume name is representing a 3D model filename
             if (!filename.empty())
             {
                 std::vector<std::string> file_name_candidates;
+                modelFound = true;
 
                 if (FileNameExtOf(filename) == "")
                 {
@@ -3343,6 +3345,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
 
                 if (tx == nullptr)
                 {
+                    modelFound = false;
                     LOG("Failed to load road object model file: %s (%s). Creating a bounding box as stand in.",
                         filename.c_str(),
                         object->GetName().c_str());
@@ -3363,15 +3366,15 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 dim_z = boundingBox._max.z() - boundingBox._min.z();
 
                 // respect dimension from model in case no dimension from user
-                if (object->GetLength() == NAN)
+                if (std::isnan(object->GetLength()))
                 {
                     object->SetLength(dim_x);
                 }
-                if (object->GetWidth() == NAN)
+                if (std::isnan(object->GetWidth()))
                 {
                     object->SetWidth(dim_y);
                 }
-                if (object->GetHeight() == NAN)
+                if (std::isnan(object->GetHeight()))
                 {
                     object->SetHeight(dim_z);
                 }
@@ -3398,8 +3401,8 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             {
                 if (object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
                 {
-                    CreateOutlineCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
-                    for (const auto& marking : object->GetMarkings())
+                    CreateOutlineObjectCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                    for (auto& marking : object->GetMarkings())
                     {
                         DrawMarking(marking, object);
                     }
@@ -3407,20 +3410,35 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
                 else
                 {
-                    if (object->GetLength() < SMALL_NUMBER || std::isnan(object->GetLength()))
+                    if (std::isnan(object->GetLength()) || object->GetLength() < SMALL_NUMBER )
                     {
-                        object->SetLength(0.05);
+                        object->SetLength(0.0);
+                        dim_x = 0.05;
                         LOG("Object %s missing or zero length, set to bounding box length %.2f for viewer purpose", object->GetName().c_str(), defalutDimValue);
+                    }
+                    else
+                    {
+                        dim_x =object->GetLength();
                     }
                     if (object->GetWidth() < SMALL_NUMBER  ||  std::isnan(object->GetWidth()))
                     {
-                        object->SetWidth(0.05);
+                        object->SetWidth(0.0);
+                        dim_y = 0.05;
                         LOG("Object %s missing or zero width, set to bounding box width %.2f for viewer purpose", object->GetName().c_str(), defalutDimValue);
+                    }
+                    else
+                    {
+                        dim_y = object->GetWidth();
                     }
                     if (object->GetHeight() < SMALL_NUMBER || std::isnan(object->GetHeight()))
                     {
-                        object->SetHeight(0.05);
+                        object->SetHeight(0.0);
+                        dim_z = 0.05;
                         LOG("Object %s missing or zero height, set to bounding box height %.2f for viewer purpose", object->GetName().c_str(), defalutDimValue);
+                    }
+                    else
+                    {
+                        dim_z = object->GetHeight();
                     }
 
                     // create a bounding box to represent the object
@@ -3475,11 +3493,11 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             }
             else  // single object
             {
-                object->CheckAndCreateRepeatDetails(road->GetId()); // create deatils
-                if (object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
+                object->CheckAndCreateRepeatDetails(dim_x, dim_y, dim_z, road->GetId()); // create deatils
+                if (!modelFound && object->GetNumberOfOutlinesCopies() > 0) // use copies if availble. Copies aleady created for all repeats
                 {
-                    CreateOutlineCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
-                    for (const auto& marking : object->GetMarkings())
+                    CreateOutlineObjectCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                    for (auto& marking : object->GetMarkings())
                     {
                         DrawMarking(marking, object);
                     }
@@ -3521,7 +3539,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                             lod->addChild(LODGroup);
                             lod->setRange(0,
                                         0,
-                                        LOD_DIST_ROAD_FEATURES + MAX(boundingBox.xMax() - boundingBox.xMin(), boundingBox.yMax() - boundingBox.yMin()));
+                                        LOD_DIST_ROAD_FEATURES + MAX(dim_x, dim_y));
                             objGroup->addChild(lod);
                             lastLODs = s;
                         }
@@ -3536,7 +3554,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
             }
             // draw marking
-            for (const auto& marking : object->GetMarkings())
+            for (auto& marking : object->GetMarkings())
             {
                 DrawMarking(marking, object);
             }

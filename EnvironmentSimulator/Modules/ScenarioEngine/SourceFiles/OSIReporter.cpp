@@ -581,7 +581,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
 {
     if (object->GetNumberOfRepeats() > 0)
     {
-        object->CheckAndCreateRepeatDetails(road_id);  // create repeat details
+        object->CheckAndCreateRepeatDetails(object->GetLength(), object->GetWidth(), object->GetHeight(), road_id);  // create repeat details
         if  (object->GetNumberOfOutlines() == 0) // non outline repeat
         {
             for (const auto &repeat : object->GetRepeats()) // check repeat scale
