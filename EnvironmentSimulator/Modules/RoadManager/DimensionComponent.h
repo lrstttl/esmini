@@ -50,11 +50,6 @@ public:
         return (!std::isnan(value_));
     }
 
-    DimensionType GetType() const
-    {
-        return type_;
-    }
-
 //! private data
 private:
     double      value_ = std::nan("");

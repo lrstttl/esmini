@@ -3014,11 +3014,10 @@ std::vector<std::vector<Marking::Point3D>> Marking::GetMarkingsPoints(RMObject* 
     return markingsPoints_;
 }
 
-void RMObject::CreateRepeatScales(Repeat& rep, int r_id )
+int RMObject::CreateRepeatScales(Repeat& rep, int r_id )
 {
     double repeatLength =
         GetLengthOfVector2D(rep.GetLength(), (rep.GetTEnd() - rep.GetTStart())) + SMALL_NUMBER;  // add small number to round double value
-    repeatLength         = MIN(repeatLength, rep.roadLength_ - rep.GetS());  // either repeat length or reminaing road length
     double   orientation = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0;
     Position pos;
     double   cur_s = 0.0;
@@ -3030,7 +3029,6 @@ void RMObject::CreateRepeatScales(Repeat& rep, int r_id )
         double height_repeat = 0.0;
         double z_repeat = 0.0;
         rep.GetBBDetails(factor, length_repeat, width_repeat, z_repeat, height_repeat);
-
         double h_offset              = atan2(rep.GetTEnd() - rep.GetTStart(), rep.GetLength());  // use original length to find angle
         double t       = rep.GetTStart() + factor * (rep.GetTEnd() - rep.GetTStart());
         double s       = rep.GetS() + cur_s;
@@ -3066,6 +3064,7 @@ void RMObject::CreateRepeatScales(Repeat& rep, int r_id )
         dimensionDetail.height = height_repeat;
         rep.AddDimensionDetail(std::move(dimensionDetail));
     }
+    return 1;
 }
 
 void RMObject::CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor,  double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id )
@@ -3182,28 +3181,25 @@ void RMObject::CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor,
     AddOutlineCopy(std::move(outlineCopies));
 }
 
-void RMObject::CheckAndCreateRepeatDetails(int r_id)
+int RMObject::CheckAndCreateRepeatDetails(int r_id)
 {
     if (GetNumberOfOutlines() == 0)
     {  // create repeat information only for non outline object.
 
         for (auto& rep : GetRepeats())
         {
-            if (rep.repeatScales_.size() > 0)
-            {
-                continue;  // repeat points already availble
+            if (rep.repeatScales_.size() > 0 || rep.GetLength() < SMALL_NUMBER)
+            { // repeat points already availble,  no length to repeat
+                continue;
             }
-            if (rep.GetLength() < SMALL_NUMBER)
-            {
-                continue;  // no length to repeat
-            }
-            CreateRepeatScales(r_id);
+            return CreateRepeatScales(rep, r_id);
         }
     }
     else
     {
-        checkAndCreateOutlineRepeatDetails(r_id);
+        return checkAndCreateOutlineRepeatDetails(r_id);
     }
+    return 0;
 }
 
 void CreateBoundingBoxFromCorners(const std::vector<std::vector<Outline::point>>& cornerPointsVector,
@@ -3245,7 +3241,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
 {
     if (GetNumberOfOutlinesCopies() > 0) // copies already created
     {
-        return 0;
+        return 1;
     }
     for (auto& repeat : GetRepeats())
     {
@@ -3293,7 +3289,6 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
         double cur_s   = 0.0;
         double repeatLength =
             GetLengthOfVector2D(repeat.GetLength(), (repeat.GetTEnd() - repeat.GetTStart())) + SMALL_NUMBER;  // add small number to round double value
-        repeatLength         = std::min(repeatLength, repeat.roadLength_ - repeat.GetS());  // either repeat length or reminaing road length
         double h_offset       = atan2(repeat.GetTEnd() - repeat.GetTStart(), repeatLength);
         double cur_length = lengthOutline;
         double cur_width  = widthOutline;
@@ -3358,7 +3353,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
             }
         }
     }
-    return 0;
+    return 1;
 }
 
 RMObject::Orientation RMObject::ParseOrientation(pugi::xml_node node, int road_id)
@@ -3418,20 +3413,10 @@ void Repeat::GetBBDetails(double factor,  double& length, double& width, double&
     repeatLength         = std::min(repeatLength, roadLength_ - GetS());  // either repeat length or reminaing road length
     double h_offset       = atan2(GetTEnd() - GetTStart(), repeatLength);
 
-
-
-
-
-
     if (GetLengthEnd() > SMALL_NUMBER || GetLengthStart() > SMALL_NUMBER)
     {
         length = ((GetLengthStart() + factor * (GetLengthEnd() - GetLengthStart())) / cos(h_offset));
     }
-    else if ((IsEqualDouble(GetLengthEnd(), SMALL_NUMBER)) && (IsEqualDouble(GetLengthStart(), SMALL_NUMBER)))
-    {
-        length = 0.0;
-    }
-
     if (GetWidthStart() > SMALL_NUMBER || GetWidthEnd() > SMALL_NUMBER)
     {
         width = (GetWidthStart() + (factor * (GetWidthEnd() - GetWidthStart())));
@@ -5269,7 +5254,9 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     pos.GetX(),
                                     pos.GetY(),
                                     pos.GetZ(),
-                                    pos.GetHRoad());
+                                    pos.GetH(),
+                                    pos.GetP(),
+                                    pos.GetR());
 
                 obj->SetOrientation(obj->ParseOrientation(object, r->GetId()));
 

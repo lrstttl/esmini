@@ -1256,7 +1256,7 @@ namespace roadmanager
         RoadObject() : x_(0.0), y_(0.0), z_(0.0), h_(0.0)
         {
         }
-        RoadObject(double x, double y, double z, double h) : x_(x), y_(y), z_(z), h_(h)
+        RoadObject(double x, double y, double z, double h, double p, double r) : x_(x), y_(y), z_(z), h_(h), p_(p), r_(r)
         {
         }
 
@@ -1275,13 +1275,25 @@ namespace roadmanager
         double GetH() const
         {
             return h_;
-        }  // sign yaw rotation including "orientation" (+/-) but excluding h_offset
+        }  // sign yaw rotation (+/-) but excluding h_offset
+
+        double GetP() const
+        {
+            return p_;
+        }  // sign pitch rotation
+
+        double GetR() const
+        {
+            return r_;
+        }  // sign roll rotation
 
         std::vector<ValidityRecord> validity_;
         double                      x_;
         double                      y_;
         double                      z_;
         double                      h_;
+        double                      p_;
+        double                      r_;
     };
 
     class Signal : public RoadObject
@@ -2224,7 +2236,9 @@ namespace roadmanager
                  double      x,
                  double      y,
                  double      z,
-                 double      h)
+                 double      h,
+                 double      p,
+                 double      r)
             : s_(s),
               t_(t),
               id_(id),
@@ -2234,7 +2248,7 @@ namespace roadmanager
               heading_(heading),
               pitch_(pitch),
               roll_(roll),
-              RoadObject(x, y, z, h)
+              RoadObject(x, y, z, h, p, r)
         {
         }
 
@@ -2400,8 +2414,8 @@ namespace roadmanager
             }
         }
 
-        void CheckAndCreateRepeatDetails(int r_id);
-        void CreateRepeatScales(Repeat& repeat, int r_id);
+        int CheckAndCreateRepeatDetails(int r_id);
+        int CreateRepeatScales(Repeat& repeat, int r_id);
         void CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
         int  checkAndCreateOutlineRepeatDetails(int r_id);
 
