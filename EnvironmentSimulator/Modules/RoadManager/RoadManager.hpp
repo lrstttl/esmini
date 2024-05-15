@@ -13,6 +13,9 @@
 #ifndef OPENDRIVE_HH_
 #define OPENDRIVE_HH_
 
+
+#include "DimensionComponent.h"
+
 #include <cmath>
 #include <string>
 #include <map>
@@ -1786,7 +1789,7 @@ namespace roadmanager
         }
         bool IsCalculated()
         {
-            return x_ == NAN && y_ == NAN && z_ == NAN;
+            return !(std::isnan(x_) && std::isnan(y_) && std::isnan(z_));
         }
 
     private:
@@ -2033,7 +2036,18 @@ namespace roadmanager
             return radiusEnd_;
         }
 
-        struct RepeatScale
+        struct Point2D
+        {
+            double x = 0.0;
+            double y = 0.0;
+        };
+
+        struct Point3D : public Point2D
+        {
+            double z = 0.0;
+        };
+
+        struct RepeatDetails
         {
             double x;
             double y;
@@ -2043,11 +2057,44 @@ namespace roadmanager
             double pitch;
             double heading;
             double hOffset;
+        };
+
+        struct RepeatDimension : public RepeatDetails
+        {
+            double length;
+            double width;
+            double height;
+        };
+
+        struct RepeatScale : public RepeatDetails
+        {
             double scale_x;
             double scale_y;
             double scale_z;
         };
+
+        void AddDimensionDetail(RepeatDimension repeatDimension)
+        {
+            repeatDimensions_.emplace_back(std::move(repeatDimension));
+        }
+
+        void AddScaleDetail(RepeatScale repeatScale) // for local corner repeats
+        {
+            repeatScales_.emplace_back(std::move(repeatScale));
+        }
+
+        const std::vector<RepeatDimension>& GetRepeatDimensions() const
+        {
+            return repeatDimensions_;
+        }
+
+        const std::vector<RepeatScale>& GetRepeatScales() const
+        {
+            return repeatScales_;
+        }
+
         std::vector<RepeatScale> repeatScales_;
+        std::vector<RepeatDimension> repeatDimensions_;
         void GetBBDetails(double factor, double& length, double& width, double& z, double& height);
 
     };
@@ -2111,7 +2158,7 @@ namespace roadmanager
         std::vector<std::vector<Point3D>> GetMarkingsPoints(RMObject* object);
         void                              CreateMarkingsPoints(RMObject* object);
         void                              FillPointsFromOutlines(std::vector<Outline>& outlines);
-         void                             FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& outlines);
+        void                              FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& outlines);
         void                              FillPointsFromLocalOutlineRepeat(std::vector<Outline>& outlines, std::vector<Repeat>& repeats);
         void                              FillPointsFromScales(Outline& outline, Repeat::RepeatScale repeatScales);
         void                              FillPointsFromRepeatsScales(std::vector<Repeat>& repeats, double length, double width);
@@ -2129,6 +2176,8 @@ namespace roadmanager
         int           roadId_;
         RoadSide side_ = RoadSide::RIGHT;  // 0 left , 1 right
     };
+
+
 
     class RMObject : public RoadObject
     {
@@ -2167,7 +2216,6 @@ namespace roadmanager
                  double      t,
                  int         id,
                  std::string name,
-                 Orientation orientation,
                  double      z_offset,
                  ObjectType  type,
                  double      heading,
@@ -2181,7 +2229,6 @@ namespace roadmanager
               t_(t),
               id_(id),
               name_(name),
-              orientation_(orientation),
               z_offset_(z_offset),
               type_(type),
               heading_(heading),
@@ -2197,6 +2244,8 @@ namespace roadmanager
 
         static std::string Type2Str(ObjectType type);
         static ObjectType  Str2Type(std::string type);
+
+        RMObject::Orientation ParseOrientation(pugi::xml_node node, int id);
 
         std::string GetName() const
         {
@@ -2242,33 +2291,13 @@ namespace roadmanager
         {
             return z_offset_;
         }
-        double GetHeight() const
-        {
-            return height_;
-        }
-        double GetLength() const
-        {
-            return length_;
-        }
-        double GetWidth() const
-        {
-            return width_;
-        }
-        void SetHeight(double height)
-        {
-            height_ = height;
-        }
-        void SetLength(double length)
-        {
-            length_ = length;
-        }
-        void SetWidth(double width)
-        {
-            width_ = width;
-        }
         void SetParkingSpace(ParkingSpace parking_space)
         {
             parking_space_ = std::move(parking_space);
+        }
+        void SetOrientation(Orientation orientation)
+        {
+            orientation_ = orientation;
         }
         Orientation GetOrientation() const
         {
@@ -2331,9 +2360,48 @@ namespace roadmanager
         {
             return outlines_.at(i);
         }
+        esmini::DimensionComponent GetLength() const
+        {
+            return length_;
+        }
+        void SetLength(const esmini::DimensionComponent& length)
+        {
+            length_ = length;
+        }
+        esmini::DimensionComponent GetWidth() const
+        {
+            return width_;
+        }
+        void SetWidth(const esmini::DimensionComponent& width)
+        {
+            width_ = width;
+        }
+        esmini::DimensionComponent GetHeight() const
+        {
+            return height_;
+        }
+        void SetHeight(const esmini::DimensionComponent& height)
+        {
+            height_ = height;
+        }
+        void ValidateDimensions() const
+        {
+            if (IsEqualDouble(GetLength().Get(), 0.0))
+            {
+                LOG("Object %s missing length, set to %.2f for viewer purpose", GetName(),  0.01);
+            }
+            if (IsEqualDouble(GetWidth().Get(), 0.0))
+            {
+                LOG("Object %s missing width, set to %.2f for viewer purpose", GetName(),  0.01);
+            }
+            if (IsEqualDouble(GetHeight().Get(), 0.0))
+            {
+                LOG("Object %s missing height, set to %.2f for viewer purpose", GetName(),  0.01);
+            }
+        }
 
-        void CheckAndCreateRepeatDetails(double dim_x, double dim_y, double dim_z, int r_id);
-        void CreateRepeatScales(double dim_x, double dim_y, double dim_z, Repeat& repeat, int r_id);
+        void CheckAndCreateRepeatDetails(int r_id);
+        void CreateRepeatScales(Repeat& repeat, int r_id);
         void CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
         int  checkAndCreateOutlineRepeatDetails(int r_id);
 
@@ -2345,9 +2413,9 @@ namespace roadmanager
         double      t_;
         double      z_offset_;
         Orientation orientation_ = Orientation::NONE;
-        double      length_ = std::nan("");  // make some default, nan indicate not set yet
-        double      height_ = std::nan("");
-        double      width_ = std::nan("");
+        esmini::DimensionComponent      length_;
+        esmini::DimensionComponent      height_;
+        esmini::DimensionComponent      width_ ;
         double      heading_ = 0.0;
         double      pitch_ = 0.0;
         double      roll_ = 0.0;

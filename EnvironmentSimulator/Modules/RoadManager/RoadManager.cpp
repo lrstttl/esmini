@@ -2771,7 +2771,7 @@ void Marking::FillPointsFromRepeatsScales(std::vector<Repeat>& repeats, double l
 {
     for (const auto& repeat : repeats)
     {
-        for (const auto& repeatScale : repeat.repeatScales_)
+        for (const auto& repeatScale : repeat.GetRepeatScales())
         {
             Point2D point1;
             Point2D point2;
@@ -2813,6 +2813,51 @@ void Marking::FillPointsFromRepeatsScales(std::vector<Repeat>& repeats, double l
                 point1.y = repeatScale.y + point1.y;
                 point2.x = repeatScale.x + point2.x;
                 point2.y = repeatScale.y + point2.y;
+                FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
+            }
+        }
+        for (const auto& repeatDimension : repeat.GetRepeatDimensions())
+        {
+            Point2D point1;
+            Point2D point2;
+            if (GetSide() == RoadSide::LEFT)
+            {
+                // find local lower left corner
+                RotateVec2D(-repeatDimension.length / 2,
+                            -repeatDimension.width / 2,
+                            repeatDimension.heading + repeatDimension.hOffset,
+                            point1.x,
+                            point1.y);
+                // find local upper left corner
+                RotateVec2D(-repeatDimension.length/ 2,
+                            repeatDimension.width / 2,
+                            repeatDimension.heading + repeatDimension.hOffset,
+                            point2.x,
+                            point2.y);
+                point1.x = repeatDimension.x + point1.x;
+                point1.y = repeatDimension.y + point1.y;
+                point2.x = repeatDimension.x + point2.x;
+                point2.y = repeatDimension.y + point2.y;
+                FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
+            }
+            else
+            {
+                // find local lower right corner
+                RotateVec2D(repeatDimension.length / 2,
+                            -repeatDimension.width / 2,
+                            repeatDimension.heading + repeatDimension.hOffset,
+                            point1.x,
+                            point1.y);
+                // find local upper right corner
+                RotateVec2D(repeatDimension.length / 2,
+                            repeatDimension.width / 2,
+                            repeatDimension.heading + repeatDimension.hOffset,
+                            point2.x,
+                            point2.y);
+                point1.x = repeatDimension.x + point1.x;
+                point1.y = repeatDimension.y + point1.y;
+                point2.x = repeatDimension.x + point2.x;
+                point2.y = repeatDimension.y + point2.y;
                 FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
             }
         }
@@ -2969,7 +3014,7 @@ std::vector<std::vector<Marking::Point3D>> Marking::GetMarkingsPoints(RMObject* 
     return markingsPoints_;
 }
 
-void RMObject::CreateRepeatScales( double dim_x, double dim_y, double dim_z, Repeat& rep, int r_id )
+void RMObject::CreateRepeatScales(Repeat& rep, int r_id )
 {
     double repeatLength =
         GetLengthOfVector2D(rep.GetLength(), (rep.GetTEnd() - rep.GetTStart())) + SMALL_NUMBER;  // add small number to round double value
@@ -2979,34 +3024,16 @@ void RMObject::CreateRepeatScales( double dim_x, double dim_y, double dim_z, Rep
     double   cur_s = 0.0;
     while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
     {
-        double scale_x               = 1.0;
-        double scale_y               = 1.0;
-        double scale_z               = 1.0;
         double factor                = cur_s / repeatLength;
-        double h_offset              = atan2(rep.GetTEnd() - rep.GetTStart(), rep.GetLength());  // use original length to find angle
-        double object_length_dynamic = GetLength();
-        if ((rep.GetLengthStart() > SMALL_NUMBER || rep.GetLengthEnd() > SMALL_NUMBER) && GetLength() < SMALL_NUMBER)
-        {
-            scale_x = ((rep.GetLengthStart() + factor * (rep.GetLengthEnd() - rep.GetLengthStart())) / cos(h_offset)) / GetLength();
-            object_length_dynamic = ((rep.GetLengthStart() + factor * (rep.GetLengthEnd() - rep.GetLengthStart())) / cos(h_offset));
-        }
-        else
-        {
-            scale_x = (abs(h_offset) < M_PI_2 - SMALL_NUMBER) ? scale_x / cos(h_offset) : LARGE_NUMBER;
-        }
-        if ((rep.GetWidthStart() > SMALL_NUMBER || rep.GetWidthEnd() > SMALL_NUMBER) && GetWidth() < SMALL_NUMBER)
-        {
-            scale_y = (rep.GetWidthStart() + factor * (rep.GetWidthEnd() - rep.GetWidthStart())) / GetWidth();
-        }
-        if ((rep.GetHeightStart() > SMALL_NUMBER || rep.GetHeightEnd() > SMALL_NUMBER) && GetHeight() < SMALL_NUMBER)
-        {
-            scale_z = (rep.GetHeightStart() + factor * (rep.GetHeightEnd() - rep.GetHeightStart())) / GetHeight();
-        }
+        double length_repeat = 0.0;
+        double width_repeat = 0.0;
+        double height_repeat = 0.0;
+        double z_repeat = 0.0;
+        rep.GetBBDetails(factor, length_repeat, width_repeat, z_repeat, height_repeat);
 
+        double h_offset              = atan2(rep.GetTEnd() - rep.GetTStart(), rep.GetLength());  // use original length to find angle
         double t       = rep.GetTStart() + factor * (rep.GetTEnd() - rep.GetTStart());
         double s       = rep.GetS() + cur_s;
-        double zOffset = rep.GetZOffsetStart() + factor * (rep.GetZOffsetEnd() - rep.GetZOffsetStart());
-
         // position mode relative for aligning to road heading
         pos.SetTrackPosMode(r_id,
                             s,
@@ -3022,23 +3049,22 @@ void RMObject::CreateRepeatScales( double dim_x, double dim_y, double dim_z, Rep
         else
         {
             // for continuous objects, move along s wrt to road curvature
-            cur_s += pos.DistanceToDS(object_length_dynamic);
+            cur_s += pos.DistanceToDS(length_repeat);
         }
 
-        Repeat::RepeatScale scale;
-        scale.x       = pos.GetX();
-        scale.y       = pos.GetY();
-        scale.z       = pos.GetZ() + zOffset;
-        scale.s       = s;
-        scale.roll    = pos.GetR();
-        scale.pitch   = pos.GetP();
-        scale.heading = pos.GetH();
-        scale.hOffset = orientation + GetHOffset();
-        scale.scale_x = scale_x;
-        scale.scale_y = scale_y;
-        scale.scale_z = scale_z;
-
-        rep.repeatScales_.push_back(scale);
+        Repeat::RepeatDimension dimensionDetail;
+        dimensionDetail.x       = pos.GetX();
+        dimensionDetail.y       = pos.GetY();
+        dimensionDetail.z       = pos.GetZ() + z_repeat;
+        dimensionDetail.s       = s;
+        dimensionDetail.roll    = pos.GetR();
+        dimensionDetail.pitch   = pos.GetP();
+        dimensionDetail.heading = pos.GetH();
+        dimensionDetail.hOffset = orientation + GetHOffset();
+        dimensionDetail.length = length_repeat;
+        dimensionDetail.width = width_repeat;
+        dimensionDetail.height = height_repeat;
+        rep.AddDimensionDetail(std::move(dimensionDetail));
     }
 }
 
@@ -3156,7 +3182,7 @@ void RMObject::CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor,
     AddOutlineCopy(std::move(outlineCopies));
 }
 
-void RMObject::CheckAndCreateRepeatDetails(double dim_x, double dim_y, double dim_z, int r_id)
+void RMObject::CheckAndCreateRepeatDetails(int r_id)
 {
     if (GetNumberOfOutlines() == 0)
     {  // create repeat information only for non outline object.
@@ -3171,7 +3197,7 @@ void RMObject::CheckAndCreateRepeatDetails(double dim_x, double dim_y, double di
             {
                 continue;  // no length to repeat
             }
-            CreateRepeatScales(dim_x, dim_y, dim_z, rep, r_id);
+            CreateRepeatScales(r_id);
         }
     }
     else
@@ -3288,7 +3314,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                 {
                     double scale_u        = abs(cur_length / lengthOutline);
                     double scale_v       = abs(cur_width / widthOutline);
-                    double scale_z        = abs(cur_z / zOutline);
+                    double scale_z        = abs(cur_height / heightOutline);
                     pos.SetTrackPosMode(r_id,
                                         repeat.GetS() + cur_s,
                                         repeat.GetTStart() + factor * (repeat.GetTEnd() - repeat.GetTStart()),
@@ -3301,7 +3327,7 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                     scale.scale_z = scale_z;
                     scale.x       = pos.GetX();
                     scale.y       = pos.GetY();
-                    scale.z       = pos.GetZ() + GetZOffset();
+                    scale.z       = pos.GetZ() + cur_z;
                     scale.s       = repeat.GetS() + cur_s;
                     scale.roll    = pos.GetR();
                     scale.pitch   = pos.GetP();
@@ -3324,7 +3350,6 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                     {
                         cur_s += cur_length;
                     }
-
                 }
                 else
                 {
@@ -3336,6 +3361,30 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
     return 0;
 }
 
+RMObject::Orientation RMObject::ParseOrientation(pugi::xml_node node, int road_id)
+{
+    RMObject::Orientation orientation = RMObject::Orientation::NONE;
+    if ( const auto& val = node.attribute("orientation"); !val.empty())
+    {
+        if (!strcmp(val.value(), "none"))
+        {
+            orientation = RMObject::Orientation::NONE;
+        }
+        else if (!!strcmp(val.value(), "+"))
+        {
+            orientation = RMObject::Orientation::POSITIVE;
+        }
+        else if (!!strcmp(val.value(), "-"))
+        {
+            orientation = RMObject::Orientation::NEGATIVE;
+        }
+        else
+        {
+            LOG("unknown road object orientation: %s (road ids=%d)", node.attribute("orientation").value(), road_id);
+        }
+    }
+    return orientation;
+}
 void Outline::TransformRoadCornerToLocal(std::vector<Outline::point>& localPoints)
 {
     for (const auto& corner :corner_)
@@ -3368,11 +3417,22 @@ void Repeat::GetBBDetails(double factor,  double& length, double& width, double&
         GetLengthOfVector2D(GetLength(), (GetTEnd() - GetTStart())) + SMALL_NUMBER;  // add small number to round double value
     repeatLength         = std::min(repeatLength, roadLength_ - GetS());  // either repeat length or reminaing road length
     double h_offset       = atan2(GetTEnd() - GetTStart(), repeatLength);
-    if (GetLengthStart() > SMALL_NUMBER || GetLengthStart() > SMALL_NUMBER)
+
+
+
+
+
+
+    if (GetLengthEnd() > SMALL_NUMBER || GetLengthStart() > SMALL_NUMBER)
     {
         length = ((GetLengthStart() + factor * (GetLengthEnd() - GetLengthStart())) / cos(h_offset));
     }
-    if (GetWidthEnd() > SMALL_NUMBER || GetWidthStart() > SMALL_NUMBER)
+    else if ((IsEqualDouble(GetLengthEnd(), SMALL_NUMBER)) && (IsEqualDouble(GetLengthStart(), SMALL_NUMBER)))
+    {
+        length = 0.0;
+    }
+
+    if (GetWidthStart() > SMALL_NUMBER || GetWidthEnd() > SMALL_NUMBER)
     {
         width = (GetWidthStart() + (factor * (GetWidthEnd() - GetWidthStart())));
     }
@@ -5187,27 +5247,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 int         ids  = atoi(object.attribute("id").value());
                 std::string name = object.attribute("name").value();
 
-                // orientation
-                RMObject::Orientation orientation = RMObject::Orientation::NONE;
-                if (object.attribute("orientation") != 0 && strcmp(object.attribute("orientation").value(), ""))
-                {
-                    if (!strcmp(object.attribute("orientation").value(), "none"))
-                    {
-                        orientation = RMObject::Orientation::NONE;
-                    }
-                    else if (!strcmp(object.attribute("orientation").value(), "+"))
-                    {
-                        orientation = RMObject::Orientation::POSITIVE;
-                    }
-                    else if (!strcmp(object.attribute("orientation").value(), "-"))
-                    {
-                        orientation = RMObject::Orientation::NEGATIVE;
-                    }
-                    else
-                    {
-                        LOG("unknown road object orientation: %s (road ids=%d)", object.attribute("orientation").value(), r->GetId());
-                    }
-                }
                 std::string          type_str = object.attribute("type").value();
                 RMObject::ObjectType type     = RMObject::Str2Type(type_str);
                 double               z_offset = atof(object.attribute("zOffset").value());
@@ -5222,7 +5261,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     t,
                                     ids,
                                     name,
-                                    orientation,
                                     z_offset,
                                     type,
                                     heading,
@@ -5233,17 +5271,22 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     pos.GetZ(),
                                     pos.GetHRoad());
 
+                obj->SetOrientation(obj->ParseOrientation(object, r->GetId()));
+
                 if ( const auto& val = object.attribute("length"); !val.empty())
                 {
-                    obj->SetLength(atof(val.value()));
+                    esmini::DimensionComponent length(atof(val.value()));
+                    obj->SetLength( std::move(length));
                 }
                 if ( const auto& val = object.attribute("width"); !val.empty())
                 {
-                    obj->SetWidth(atof(val.value()));
+                    esmini::DimensionComponent width(atof(val.value()));
+                    obj->SetLength( std::move(width));
                 }
                 if ( const auto& val = object.attribute("height"); !val.empty())
                 {
-                    obj->SetHeight(atof(val.value()));
+                    esmini::DimensionComponent height(atof(val.value()));
+                    obj->SetLength( std::move(height));
                 }
 
                 // Read any repeat elements
@@ -5255,17 +5298,17 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     double      rdistance     = (rattr = ReadAttribute(repeat_node, "distance", true)) == "" ? 0.0 : std::stod(rattr);
                     double      rtStart       = (rattr = ReadAttribute(repeat_node, "tStart", true)) == "" ? 0.0 : std::stod(rattr);
                     double      rtEnd         = (rattr = ReadAttribute(repeat_node, "tEnd", true)) == "" ? 0.0 : std::stod(rattr);
-                    double      rheightStart  = (rattr = ReadAttribute(repeat_node, "heightStart", true)) == "" ? 0.0 : std::stod(rattr);
-                    double      rheightEnd    = (rattr = ReadAttribute(repeat_node, "heightEnd", true)) == "" ? 0.0 : std::stod(rattr);
-                    double      rzOffsetStart = (rattr = ReadAttribute(repeat_node, "zOffsetStart", true)) == "" ? 0.0 : std::stod(rattr);
-                    double      rzOffsetEnd   = (rattr = ReadAttribute(repeat_node, "zOffsetEnd", true)) == "" ? 0.0 : std::stod(rattr);
+                    double      rheightStart  = (rattr = ReadAttribute(repeat_node, "heightStart", true)) == "" ?  std::nan("") : std::stod(rattr);
+                    double      rheightEnd    = (rattr = ReadAttribute(repeat_node, "heightEnd", true)) == "" ?  std::nan("") : std::stod(rattr);
+                    double      rzOffsetStart = (rattr = ReadAttribute(repeat_node, "zOffsetStart", true)) == "" ?  std::nan("") : std::stod(rattr);
+                    double      rzOffsetEnd   = (rattr = ReadAttribute(repeat_node, "zOffsetEnd", true)) == "" ?  std::nan("") : std::stod(rattr);
 
-                    double rwidthStart  = (rattr = ReadAttribute(repeat_node, "widthStart", false)) == "" ? 0.0 : std::stod(rattr);
-                    double rwidthEnd    = (rattr = ReadAttribute(repeat_node, "widthEnd", false)) == "" ? 0.0 : std::stod(rattr);
-                    double rlengthStart = (rattr = ReadAttribute(repeat_node, "lengthStart", false)) == "" ? 0.0 : std::stod(rattr);
-                    double rlengthEnd   = (rattr = ReadAttribute(repeat_node, "lengthEnd", false)) == "" ? 0.0 : std::stod(rattr);
-                    double rradiusStart = (rattr = ReadAttribute(repeat_node, "radiusStart", false)) == "" ? 0.0 : std::stod(rattr);
-                    double rradiusEnd   = (rattr = ReadAttribute(repeat_node, "radiusEnd", false)) == "" ? 0.0 : std::stod(rattr);
+                    double rwidthStart  = (rattr = ReadAttribute(repeat_node, "widthStart", false)) == "" ?  std::nan("") : std::stod(rattr);
+                    double rwidthEnd    = (rattr = ReadAttribute(repeat_node, "widthEnd", false)) == "" ?  std::nan("") : std::stod(rattr);
+                    double rlengthStart = (rattr = ReadAttribute(repeat_node, "lengthStart", false)) == "" ?  std::nan("") : std::stod(rattr);
+                    double rlengthEnd   = (rattr = ReadAttribute(repeat_node, "lengthEnd", false)) == "" ?  std::nan("") : std::stod(rattr);
+                    double rradiusStart = (rattr = ReadAttribute(repeat_node, "radiusStart", false)) == "" ?  std::nan("") : std::stod(rattr);
+                    double rradiusEnd   = (rattr = ReadAttribute(repeat_node, "radiusEnd", false)) == "" ?  std::nan("") : std::stod(rattr);
 
                     // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
                     Repeat repeat =
