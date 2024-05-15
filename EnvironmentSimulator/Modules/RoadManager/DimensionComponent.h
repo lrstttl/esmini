@@ -12,6 +12,7 @@ class DimensionComponent
 
 public:
 
+    DimensionComponent(){}
     //!Constructor
     DimensionComponent( double value)
         : value_(value)

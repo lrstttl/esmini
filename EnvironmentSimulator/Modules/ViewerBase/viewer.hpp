@@ -645,7 +645,7 @@ namespace viewer
                                                   bool                                               isMarkingAvailable);
         int  DrawMarking(roadmanager::Marking& marking, roadmanager::RMObject* object);
         double GetViewerDimension( const esmini::DimensionComponent& component) const;
-        osg::ref_ptr<osg::PositionAttitudeTransform> Viewer::GetModel(std::string filename);
+        osg::ref_ptr<osg::PositionAttitudeTransform> GetModel(std::string filename);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
         int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road* road);

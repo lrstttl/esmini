@@ -180,34 +180,6 @@ enum class GhostMode
     RESTARTING  // ghost restart is ongoing, including the final restart timestep
 };
 
-//! Type of dimension
-enum class DimensionType
-{
-    NONE,
-    LENGTH,
-    WIDTH,
-    HEIGHT
-};
-
-//! Returns component type in string
-std::string ToStr(DimensionType type)
-{
-    switch(type){
-        case DimensionType::LENGTH:
-            return "length";
-            break;
-        case DimensionType::WIDTH:
-            return "width";
-            break;
-        case DimensionType::HEIGHT:
-            return "height";
-            break;
-        default:
-            return "none";
-            break;
-    }
-}
-
 class SE_Vector
 {
 public:

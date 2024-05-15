@@ -1256,6 +1256,9 @@ namespace roadmanager
         RoadObject() : x_(0.0), y_(0.0), z_(0.0), h_(0.0)
         {
         }
+        RoadObject(double x, double y, double z, double h) : x_(x), y_(y), z_(z), h_(h)
+        {
+        }
         RoadObject(double x, double y, double z, double h, double p, double r) : x_(x), y_(y), z_(z), h_(h), p_(p), r_(r)
         {
         }
@@ -2048,6 +2051,107 @@ namespace roadmanager
             return radiusEnd_;
         }
 
+        double GetLengthStartResolved() const
+        {
+            if (!std::isnan(GetLengthStart()))
+            {
+                return GetLengthStart();
+            }
+            return 0;
+        }
+        double GetLengthEndResolved() const
+        {
+            if (!std::isnan(GetLengthEnd()))
+            {
+                return GetLengthEnd();
+            }
+            return 0;
+        }
+
+        double GetWidthStartResolved() const
+        {
+            if (!std::isnan(GetWidthStart()))
+            {
+                return GetWidthStart();
+            }
+            return 0;
+        }
+        double GetWidthEndResolved() const
+        {
+            if (!std::isnan(GetWidthEnd()))
+            {
+                return GetWidthEnd();
+            }
+            return 0;
+        }
+
+        double GetZOffsetStartResolved() const
+        {
+            if (!std::isnan(GetZOffsetStart()))
+            {
+                return GetZOffsetStart();
+            }
+            return 0;
+        }
+        double GetZOffsetEndResolved() const
+        {
+            if (!std::isnan(GetZOffsetEnd()))
+            {
+                return GetZOffsetEnd();
+            }
+            return 0;
+        }
+
+        double GetHeightStartResolved() const
+        {
+            if (!std::isnan(GetHeightStart()))
+            {
+                return GetHeightStart();
+            }
+            return 0;
+        }
+        double GetHeightEndResolved() const
+        {
+            if (!std::isnan(GetHeightEnd()))
+            {
+                return GetHeightEnd();
+            }
+            return 0;
+        }
+
+        double GetTotalLength() const //! calculate and return total length of repeat
+        {
+            return GetLengthOfVector2D(GetLength(), (GetTEnd() - GetTStart())) + SMALL_NUMBER;
+        }
+        double GetHOffset() const //! calculate and return heading offset of repeat. use original length to find angle
+        {
+           return atan2(GetTEnd() - GetTStart(), GetTotalLength());
+        }
+        double GetTWithFactor(double factor) const //! calculate and return t position for given factor
+        {
+           return GetTStart() + factor * (GetTEnd() - GetTStart());
+        }
+
+        bool IsLengthSet() const //! return true any start and end are set otherwise false
+        {
+           return (!std::isnan(GetLengthStart()) || !std::isnan(GetLengthEnd()));
+        }
+
+        bool IsWidthSet() const //! return true any start and end are set otherwise false
+        {
+           return (!std::isnan(GetWidthStart()) || !std::isnan(GetWidthEnd()));
+        }
+
+        bool IsZOffsetSet() const //! return true any start and end are set otherwise false
+        {
+           return (!std::isnan(GetZOffsetStart()) || !std::isnan(GetZOffsetEnd()));
+        }
+
+        bool IsHeightSet() const //! return true any start and end are set otherwise false
+        {
+           return (!std::isnan(GetHeightStart()) || !std::isnan(GetHeightEnd()));
+        }
+
         struct Point2D
         {
             double x = 0.0;
@@ -2107,6 +2211,10 @@ namespace roadmanager
 
         std::vector<RepeatScale> repeatScales_;
         std::vector<RepeatDimension> repeatDimensions_;
+        double GetRepeatLengthWithFactor(double factor); //! Return length if available else return 0 length
+        double GetRepeatWidthWithFactor(double factor); //! Return width if available else return 0 width
+        double GetRepeatZOffsetWithFactor(double factor); //! Return z if available else return 0 z
+        double GetRepeatHeightWithFactor(double factor); //! Return height if available else return 0 height
         void GetBBDetails(double factor, double& length, double& width, double& z, double& height);
 
     };
@@ -2417,6 +2525,8 @@ namespace roadmanager
         int CheckAndCreateRepeatDetails(int r_id);
         int CreateRepeatScales(Repeat& repeat, int r_id);
         void CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
+        std::vector<std::vector<Outline::point>> GetLocalPointsFromOutlines();
+        bool IsAllCornersLocal();
         int  checkAndCreateOutlineRepeatDetails(int r_id);
 
     private:
