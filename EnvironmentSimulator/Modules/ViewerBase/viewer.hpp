@@ -634,6 +634,16 @@ namespace viewer
         void Frame();
 
     private:
+        const osg::BoundingBox CalculateBoundingBox(osg::Node* node);
+        void CreateObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, double scale_x, double scale_y, double scale_z);
+        void CreateObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> clone, const roadmanager::Repeat::RepeatDimension repeatDimension); // overlaoded
+        void AddObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup, bool isMarkingAvailable);
+        void ValidateDimensionsForViewing(const roadmanager::RMObject& object) const;
+        void UpdateObjectDimensionsAndGetScale(const osg::BoundingBox& boundingBox,
+                            roadmanager::RMObject* object,
+                            double& scale_x, double& scale_y, double& scale_z);
+
+        osg::ref_ptr<osg::ShapeDrawable> CreateBoxShape(const roadmanager::RMObject* object) const;
         bool CreateRoadLines(roadmanager::OpenDrive* od);
         bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
         int  CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);

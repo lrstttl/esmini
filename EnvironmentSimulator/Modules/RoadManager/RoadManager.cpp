@@ -2900,7 +2900,6 @@ void Marking::FillPointsFromObject(double s, double t, double length, double wid
     }
 }
 
-
 void Marking::FillPointsFromOutlines(std::vector<Outline>& outlines)
 {
     for (auto& outline : outlines)
@@ -3013,188 +3012,6 @@ std::vector<std::vector<Marking::Point3D>> Marking::GetMarkingsPoints(RMObject* 
     }
     return markingsPoints_;
 }
-
-int RMObject::CreateRepeatScales(Repeat& rep, int r_id )
-{
-    double repeatLength = rep.GetTotalLength();
-    double   orientation = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0;
-    Position pos;
-    double   cur_s = 0.0;
-    while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
-    {
-        double factor                = cur_s / repeatLength;
-        double length_repeat = rep.GetRepeatLengthWithFactor(factor);
-        double s       = rep.GetS() + cur_s;
-        // position mode relative for aligning to road heading
-        pos.SetTrackPosMode(r_id,
-                            s,
-                            rep.GetTWithFactor(factor),
-                            Position::PosMode::H_REL | Position::PosMode::Z_REL | Position::PosMode::P_REL | Position::PosMode::R_REL);
-        pos.SetHeadingRelative(rep.GetHOffset());
-
-        // increase current s according to distance
-        if (rep.GetDistance() > SMALL_NUMBER)
-        {
-            cur_s += rep.GetDistance();
-        }
-        else
-        {
-            // for continuous objects, move along s wrt to road curvature
-            cur_s += pos.DistanceToDS(length_repeat);
-        }
-
-        Repeat::RepeatDimension dimensionDetail;
-        dimensionDetail.x       = pos.GetX();
-        dimensionDetail.y       = pos.GetY();
-        dimensionDetail.z       = pos.GetZ() + rep.GetRepeatZOffsetWithFactor(factor);
-        dimensionDetail.s       = s;
-        dimensionDetail.roll    = pos.GetR();
-        dimensionDetail.pitch   = pos.GetP();
-        dimensionDetail.heading = pos.GetH();
-        dimensionDetail.hOffset = orientation + GetHOffset();
-        dimensionDetail.length = length_repeat;
-        dimensionDetail.width = rep.GetRepeatWidthWithFactor(factor);
-        dimensionDetail.height = rep.GetRepeatHeightWithFactor(factor);
-        rep.AddDimensionDetail(std::move(dimensionDetail));
-    }
-    return 1;
-}
-
-void RMObject::CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor,  double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id )
-{
-    unsigned int k = 0;
-    double cur_length = lengthOutline;
-    double cur_width  = widthOutline;
-    double cur_z      = zOutline;
-    double cur_height = heightOutline;
-
-    double scale_u        = 1.0;
-    double scale_v       = 1.0;
-    double scale_z        = 1.0;
-    double scale_h       = 1.0;
-    repeat.GetBBDetails(factor,  cur_length, cur_width, cur_z, cur_height);
-    std::vector<Outline> outlineCopies;
-    for (size_t i = 0; i < GetNumberOfOutlines(); i++)
-    {
-        auto outlineOriginal = GetOutline(i);
-        Outline outline (k,Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal.GetAreaType());  // new outline for each segment
-        for (size_t j = 0; j < outlineOriginal.corner_.size(); j++)
-        {
-            const auto corner_original = outlineOriginal.corner_[j];
-            double x_to_add = localPoints[i][j].x;
-            // calculate how much to add based on local dimension
-            if (repeat.GetLengthStart() > SMALL_NUMBER || repeat.GetLengthEnd() > SMALL_NUMBER)
-            {
-                if (localPoints[i][j].x == 0.0 && lengthOutline == 0.0)  // avoid 0/0
-                {
-                    x_to_add = cur_length;
-                }
-                else
-                {
-                    x_to_add = cur_length * (localPoints[i][j].x / lengthOutline);
-                    scale_u        = abs(cur_length / lengthOutline);
-                }
-            }
-            double y_to_add = localPoints[i][j].y;
-            if (repeat.GetWidthEnd() > SMALL_NUMBER || repeat.GetWidthStart() > SMALL_NUMBER)
-            {
-                if (localPoints[i][j].y == 0.0 && widthOutline == 0.0)  // avoid 0/0
-                {
-                    y_to_add = cur_width;
-                }
-                else
-                {
-                    y_to_add = cur_width * (localPoints[i][j].y / widthOutline);
-                    scale_v       = abs(cur_width / widthOutline);
-                }
-            }
-            double z_to_add = localPoints[i][j].z;
-            if (repeat.GetZOffsetEnd() > SMALL_NUMBER || repeat.GetZOffsetStart() > SMALL_NUMBER)
-            {
-                if (localPoints[i][j].z == 0.0 && zOutline == 0.0)  // avoid 0/0
-                {
-                    z_to_add = cur_z;
-                }
-                else
-                {
-                    z_to_add = cur_z * (localPoints[i][j].z / zOutline);
-                    scale_z        = abs(cur_z / zOutline);
-                }
-            }
-            double h_to_add = localPoints[i][j].h;
-            if (repeat.GetHeightStart() > SMALL_NUMBER || repeat.GetHeightEnd() > SMALL_NUMBER)
-            {
-                if (localPoints[i][j].h == 0.0 && heightOutline == 0.0)  // avoid 0/0
-                {
-                    h_to_add = cur_height;
-                }
-                else
-                {
-                    h_to_add = cur_height * ( localPoints[i][j].h / zOutline );
-                    scale_h        = abs(cur_height / heightOutline);
-                }
-            }
-
-            double start_s = repeat.GetS() + cur_s + x_to_add;
-            double start_t = repeat.GetTStart() + y_to_add;
-            double start_z = z_to_add;
-            double start_h = h_to_add;
-            OutlineCorner* corner = 0;
-            if ( corner_original->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)
-            {
-                corner = (OutlineCorner*)(new OutlineCornerRoad(r_id,
-                                                                            start_s,
-                                                                            start_t,
-                                                                            start_z,
-                                                                            start_h,
-                                                                            cur_s,
-                                                                            repeat.GetTStart(),
-                                                                            GetHOffset(),
-                                                                            corner_original->GetCornerId()));
-            }
-            else
-            {
-                OutlineCornerLocal* localCorner = static_cast< OutlineCornerLocal*>(corner_original);
-                corner = (OutlineCorner*)(new OutlineCornerLocal(r_id,
-                                                                    GetS() + cur_s,
-                                                                    GetT(),
-                                                                    localCorner->GetU() * scale_u,
-                                                                    localCorner->GetV() * scale_v,
-                                                                    localCorner->GetZ() * scale_z,
-                                                                    localCorner->GetHeight() * scale_h,
-                                                                    GetHOffset(),
-                                                                    localCorner->GetCornerId()));
-            }
-
-            outline.AddCorner(corner);
-            k += 1;
-        }
-        outlineCopies.emplace_back(std::move(outline));
-    }
-    AddOutlineCopy(std::move(outlineCopies));
-}
-
-int RMObject::CheckAndCreateRepeatDetails(int r_id)
-{
-    if (GetNumberOfOutlines() == 0)
-    {  // create repeat information only for non outline object.
-
-        for (auto& rep : GetRepeats())
-        {
-            if (rep.repeatScales_.size() > 0 || rep.GetLength() < SMALL_NUMBER)
-            { // repeat points already availble,  no length to repeat
-                continue;
-            }
-            return CreateRepeatScales(rep, r_id);
-        }
-    }
-    else
-    {
-        return checkAndCreateOutlineRepeatDetails(r_id);
-    }
-    return 0;
-}
-
 void GetBoundingBoxFromCorners(const std::vector<std::vector<Outline::point>>& cornerPointsVector,
                                   double&                                 length,
                                   double&                                 width,
@@ -3228,6 +3045,247 @@ void GetBoundingBoxFromCorners(const std::vector<std::vector<Outline::point>>& c
     width  = maxY - minY;
     height    = maxZ - minZ;
     z = minZ;
+}
+
+int RMObject::CreateRepeatDimensions(int r_id )
+{
+    for (auto& rep : GetRepeats())
+    {
+        if (rep.repeatDimensions_.size() > 0 || rep.GetLength() < SMALL_NUMBER)
+        { // repeat dimensions already availble,  no length to repeat
+            continue;
+        }
+        double repeatLength = rep.GetTotalLength();
+        double   orientation = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0;
+        Position pos;
+        double   cur_s = 0.0;
+        while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
+        {
+            double factor                = cur_s / repeatLength;
+            double length_repeat = GetRepeatLengthWithFactor(rep,factor);
+            if(IsEqualDouble(length_repeat, 0.0))
+            {
+                break; // no length to repeat
+            }
+            double s       = rep.GetS() + cur_s;
+            // position mode relative for aligning to road heading
+            pos.SetTrackPosMode(r_id,
+                                s,
+                                rep.GetTWithFactor(factor),
+                                Position::PosMode::H_REL | Position::PosMode::Z_REL | Position::PosMode::P_REL | Position::PosMode::R_REL);
+            pos.SetHeadingRelative(rep.GetHOffset());
+
+            // increase current s according to distance
+            if (rep.GetDistance() > SMALL_NUMBER)
+            {
+                cur_s += rep.GetDistance();
+            }
+            else
+            {
+                // for continuous objects, move along s wrt to road curvature
+                cur_s += pos.DistanceToDS(length_repeat);
+            }
+
+            Repeat::RepeatDimension dimensionDetail;
+            dimensionDetail.x       = pos.GetX();
+            dimensionDetail.y       = pos.GetY();
+            dimensionDetail.z       = pos.GetZ() + GetRepeatZOffsetWithFactor(rep, factor);
+            dimensionDetail.s       = s;
+            dimensionDetail.roll    = pos.GetR();
+            dimensionDetail.pitch   = pos.GetP();
+            dimensionDetail.heading = pos.GetH();
+            dimensionDetail.hOffset = orientation + GetHOffset();
+            dimensionDetail.length = length_repeat;
+            dimensionDetail.width = GetRepeatWidthWithFactor(rep, factor);
+            dimensionDetail.height = GetRepeatHeightWithFactor(rep, factor);
+            rep.AddDimensionDetail(std::move(dimensionDetail));
+        }
+    }
+    return 1;
+}
+
+int RMObject::CreateOutlineCopies( int r_id )
+{
+    if (GetNumberOfOutlinesCopies() > 0) // copies already created
+    {
+        return 1;
+    }
+    for (auto& repeat : GetRepeats())
+    {
+        double repeatLength = repeat.GetTotalLength();
+        if (repeatLength > SMALL_NUMBER)
+        {
+            double cur_s   = 0.0;
+            // transform all the corner as local to find the combined bb
+            std::vector<std::vector<Outline::point>> localPoints = GetLocalPointsFromOutlines();
+            // Now all local points are availbel, find the bb from the corner
+            double lengthOutline;
+            double widthOutline;
+            double zOutline;
+            double heightOutline;
+            GetBoundingBoxFromCorners(localPoints, lengthOutline, widthOutline, zOutline, heightOutline);
+            double cur_length = lengthOutline;
+            double cur_width  = widthOutline;
+            double cur_z      = zOutline;
+            double cur_height = heightOutline;
+            while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
+            {
+                double factor = cur_s / repeatLength;
+                unsigned int k = 0;
+                double scale_u        = 1.0;
+                double scale_v       = 1.0;
+                double scale_z        = 1.0;
+                double scale_h       = 1.0;
+                if(repeat.IsLengthSet()) // repect length from repeat
+                {
+                    cur_length = repeat.GetLengthWithFactor(factor);
+                }
+                if(repeat.IsWidthSet()) // repect width from repeat
+                {
+                    cur_width = repeat.GetWidthWithFactor(factor);
+                }
+                if(repeat.IsZOffsetSet()) // repect zoffset from repeat
+                {
+                    cur_z = repeat.GetZOffsetWithFactor(factor);
+                }
+                if(repeat.IsHeightSet()) // repect height from repeat
+                {
+                    cur_height = repeat.GetHeightWithFactor(factor);
+                }
+                std::vector<Outline> outlineCopies;
+                for (size_t i = 0; i < GetNumberOfOutlines(); i++)
+                {
+                    auto outlineOriginal = GetOutline(i);
+                    Outline outline (k,Outline::FillType::FILL_TYPE_UNDEFINED, outlineOriginal.GetAreaType());  // new outline for each segment
+                    for (size_t j = 0; j < outlineOriginal.corner_.size(); j++)
+                    {
+                        const auto corner_original = outlineOriginal.corner_[j];
+                        double x_to_add = localPoints[i][j].x;
+                        // calculate how much to add based on local dimension
+                        if(repeat.IsLengthSet())
+                        {
+                            if (localPoints[i][j].x == 0.0 && lengthOutline == 0.0)  // avoid 0/0
+                            {
+                                x_to_add = cur_length;
+                            }
+                            else
+                            {
+                                x_to_add = cur_length * (localPoints[i][j].x / lengthOutline);
+                                scale_u        = abs(cur_length / lengthOutline);
+                            }
+                        }
+                        double y_to_add = localPoints[i][j].y;
+                        if(repeat.IsWidthSet())
+                        {
+                            if (localPoints[i][j].y == 0.0 && widthOutline == 0.0)  // avoid 0/0
+                            {
+                                y_to_add = cur_width;
+                            }
+                            else
+                            {
+                                y_to_add = cur_width * (localPoints[i][j].y / widthOutline);
+                                scale_v       = abs(cur_width / widthOutline);
+                            }
+                        }
+                        double z_to_add = localPoints[i][j].z;
+                       if(repeat.IsZOffsetSet())
+                        {
+                            if (localPoints[i][j].z == 0.0 && zOutline == 0.0)  // avoid 0/0
+                            {
+                                z_to_add = cur_z;
+                            }
+                            else
+                            {
+                                z_to_add = cur_z * (localPoints[i][j].z / zOutline);
+                                scale_z        = abs(cur_z / zOutline);
+                            }
+                        }
+                        double h_to_add = localPoints[i][j].h;
+                        if(repeat.IsHeightSet())
+                        {
+                            if (localPoints[i][j].h == 0.0 && heightOutline == 0.0)  // avoid 0/0
+                            {
+                                h_to_add = cur_height;
+                            }
+                            else
+                            {
+                                h_to_add = cur_height * ( localPoints[i][j].h / zOutline );
+                                scale_h        = abs(cur_height / heightOutline);
+                            }
+                        }
+
+                        double start_s = repeat.GetS() + cur_s + x_to_add;
+                        double start_t = repeat.GetTStart() + y_to_add;
+                        double start_z = z_to_add;
+                        double start_h = h_to_add;
+                        OutlineCorner* corner = 0;
+                        if ( corner_original->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)
+                        {
+                            corner = (OutlineCorner*)(new OutlineCornerRoad(r_id,
+                                                                                        start_s,
+                                                                                        start_t,
+                                                                                        start_z,
+                                                                                        start_h,
+                                                                                        cur_s,
+                                                                                        repeat.GetTStart(),
+                                                                                        GetHOffset(),
+                                                                                        corner_original->GetCornerId()));
+                        }
+                        else
+                        {
+                            OutlineCornerLocal* localCorner = static_cast< OutlineCornerLocal*>(corner_original);
+                            corner = (OutlineCorner*)(new OutlineCornerLocal(r_id,
+                                                                                GetS() + cur_s,
+                                                                                GetT(),
+                                                                                localCorner->GetU() * scale_u,
+                                                                                localCorner->GetV() * scale_v,
+                                                                                localCorner->GetZ() * scale_z,
+                                                                                localCorner->GetHeight() * scale_h,
+                                                                                GetHOffset(),
+                                                                                localCorner->GetCornerId()));
+                        }
+
+                        outline.AddCorner(corner);
+                        k += 1;
+                    }
+                    outlineCopies.emplace_back(std::move(outline));
+                }
+                AddOutlineCopy(std::move(outlineCopies));
+                if (repeat.GetDistance() < SMALL_NUMBER)
+                {
+                    cur_s += cur_length;
+                }
+                else
+                {
+                    cur_s += repeat.GetDistance();
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+int RMObject::CheckAndCreateRepeatDetails(int r_id)
+{
+    if (GetNumberOfRepeats() != 0)
+    {
+        if (GetNumberOfOutlines() == 0)
+        {  // create repeat information only for non outline object.
+            return CreateRepeatDimensions(r_id);
+        }
+        else
+        {
+            if (IsAllCornersLocal())
+            {
+                return CreateRepeatScales(r_id);
+            }
+            else
+            {
+                return CreateOutlineCopies(r_id);
+            }
+        }
+    }
+    return 0;
 }
 
 bool RMObject::IsAllCornersLocal() //! return true only when all corners in all outlines are local otherwise false
@@ -3281,12 +3339,8 @@ std::vector<std::vector<Outline::point>> RMObject::GetLocalPointsFromOutlines()
 }
 
 
-int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
+int RMObject::CreateRepeatScales(int r_id)
 {
-    if (GetNumberOfOutlinesCopies() > 0) // copies already created
-    {
-        return 1;
-    }
     for (auto& repeat : GetRepeats())
     {
         if(repeat.repeatScales_.size() > 0) // repeat scales already created
@@ -3296,7 +3350,6 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
 
         double cur_s   = 0.0;
         double repeatLength = repeat.GetTotalLength();
-
         if (repeatLength > SMALL_NUMBER)
         {
             // transform all the corner as local to find the combined bb
@@ -3319,59 +3372,47 @@ int RMObject::checkAndCreateOutlineRepeatDetails(int r_id)
                 double factor = cur_s / repeatLength;
                 if(repeat.IsLengthSet()) // repect length from repeat
                 {
-                    cur_length = repeat.GetRepeatLengthWithFactor(factor);
+                    cur_length = repeat.GetLengthWithFactor(factor);
                 }
                 if(repeat.IsWidthSet()) // repect width from repeat
                 {
-                    cur_width = repeat.GetRepeatWidthWithFactor(factor);
+                    cur_width = repeat.GetWidthWithFactor(factor);
                 }
                 if(repeat.IsZOffsetSet()) // repect zoffset from repeat
                 {
-                    cur_z = repeat.GetRepeatZOffsetWithFactor(factor);
+                    cur_z = repeat.GetZOffsetWithFactor(factor);
                 }
                 if(repeat.IsHeightSet()) // repect height from repeat
                 {
-                    cur_height = repeat.GetRepeatHeightWithFactor(factor);
+                    cur_height = repeat.GetHeightWithFactor(factor);
                 }
-                if (IsAllCornersLocal())
-                {
-                    double scale_u        = abs(cur_length / lengthOutline);
-                    double scale_v       = abs(cur_width / widthOutline);
-                    double scale_z        = abs(cur_height / heightOutline);
-                    pos.SetTrackPosMode(r_id,
-                                        repeat.GetS() + cur_s,
-                                        repeat.GetTWithFactor(factor),
-                                        roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
-                                            roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
-                    pos.SetHeadingRelative(repeat.GetHOffset());
 
-                    scale.scale_x = scale_u;
-                    scale.scale_y = scale_v;
-                    scale.scale_z = scale_z;
-                    scale.x       = pos.GetX();
-                    scale.y       = pos.GetY();
-                    scale.z       = pos.GetZ() + cur_z;
-                    scale.s       = repeat.GetS() + cur_s;
-                    scale.roll    = pos.GetR();
-                    scale.pitch   = pos.GetP();
-                    scale.heading = pos.GetH();
-                    scale.hOffset = GetOrientation() + GetHOffset();
-                    repeat.repeatScales_.emplace_back(std::move(scale));  // store points for shallow copy
-                }
-                else
-                {
-                    CreateOutlineCopies(repeat, cur_s, factor, lengthOutline, widthOutline, zOutline, heightOutline, localPointsList, r_id);
-                }
+                double scale_u        = abs(cur_length / lengthOutline);
+                double scale_v       = abs(cur_width / widthOutline);
+                double scale_z        = abs(cur_z / zOutline);
+                pos.SetTrackPosMode(r_id,
+                                    repeat.GetS() + cur_s,
+                                    repeat.GetTWithFactor(factor),
+                                    roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
+                                        roadmanager::Position::PosMode::P_REL | roadmanager::Position::PosMode::R_REL);
+                pos.SetHeadingRelative(repeat.GetHOffset());
+
+                scale.scale_x = scale_u;
+                scale.scale_y = scale_v;
+                scale.scale_z = scale_z;
+                scale.x       = pos.GetX();
+                scale.y       = pos.GetY();
+                scale.z       = pos.GetZ();
+                scale.s       = repeat.GetS() + cur_s;
+                scale.roll    = pos.GetR();
+                scale.pitch   = pos.GetP();
+                scale.heading = pos.GetH();
+                scale.hOffset = GetOrientation() + GetHOffset();
+                repeat.repeatScales_.emplace_back(std::move(scale));  // store points for shallow copy
+
                 if (repeat.GetDistance() < SMALL_NUMBER)
                 {
-                    if (IsAllCornersLocal())
-                    {
-                        cur_s += pos.DistanceToDS(cur_length);
-                    }
-                    else
-                    {
-                        cur_s += cur_length;
-                    }
+                    cur_s += pos.DistanceToDS(cur_length);
                 }
                 else
                 {
@@ -3434,51 +3475,84 @@ void Outline::TransformRoadCornerToLocal(std::vector<Outline::point>& localPoint
     }
 }
 
-double Repeat::GetRepeatLengthWithFactor(double factor)
+double RMObject::GetRepeatLengthWithFactor(Repeat& rep,double factor)
+{//! Priority 1.repeat lenght, 2.Object length, 3. Default value if object length zero, 4 deafult value
+
+    if(rep.IsLengthSet())
+    {
+        return rep.GetLengthWithFactor(factor);
+    }
+    else if(GetLength().IsSet())
+    {
+        return GetLength().Get() == 0.0 ? GetDefaultValue() : GetLength().Get();
+    }
+    else
+    {
+        return GetDefaultValue();
+    }
+
+}
+
+double RMObject::GetRepeatWidthWithFactor(Repeat& rep, double factor)
+{//! Priority 1.repeat width, 2.Object width, 3. Default value if object width zero, 4 deafult value
+    if(rep.IsWidthSet())
+    {
+        return rep.GetWidthWithFactor(factor);
+    }
+    else if (GetWidth().IsSet())
+    {
+        return GetWidth().Get() == 0.0 ? GetDefaultValue() : GetWidth().Get();
+    }
+    else
+    {
+        return GetDefaultValue();
+    }
+}
+
+double RMObject::GetRepeatZOffsetWithFactor(Repeat& rep, double factor)
+{
+    return rep.GetZOffsetWithFactor(factor);
+}
+
+double RMObject::GetRepeatHeightWithFactor(Repeat& rep, double factor)
+{ //! Priority 1.repeat height, 2.Object height, 3. Default value if object height zero, 4 deafult value
+    if(rep.IsHeightSet())
+    {
+        return rep.GetHeightWithFactor(factor);
+    }
+    else if (GetHeight().IsSet())
+    {
+        return GetHeight().Get() == 0.0 ? GetDefaultValue() : GetHeight().Get();
+    }
+    else
+    {
+        return GetDefaultValue();
+    }
+
+}
+
+double Repeat::GetLengthWithFactor(double factor)
 {
     double repeatLength =
         GetLengthOfVector2D(GetLength(), (GetTEnd() - GetTStart())) + SMALL_NUMBER;  // add small number to round double value
     double h_offset       = atan2(GetTEnd() - GetTStart(), repeatLength);
     return ((GetLengthStartResolved() + factor * (GetLengthEndResolved() - GetLengthStartResolved())) / cos(h_offset));
+
 }
 
-double Repeat::GetRepeatWidthWithFactor(double factor)
+double Repeat::GetWidthWithFactor(double factor)
 {
     return (GetWidthStartResolved() + (factor * (GetWidthEndResolved() - GetWidthStartResolved())));
 }
 
-double Repeat::GetRepeatZOffsetWithFactor(double factor)
+double Repeat::GetZOffsetWithFactor(double factor)
 {
     return (GetZOffsetStartResolved() + (factor * (GetZOffsetEndResolved() - GetZOffsetStartResolved())));
 }
 
-double Repeat::GetRepeatHeightWithFactor(double factor)
+double Repeat::GetHeightWithFactor(double factor)
 {
     return (GetHeightStart() + (factor * (GetHeightEnd() - GetHeightStart())));
-}
-
-void Repeat::GetBBDetails(double factor,  double& length, double& width, double& z, double& height)
-{
-    double repeatLength =
-        GetLengthOfVector2D(GetLength(), (GetTEnd() - GetTStart())) + SMALL_NUMBER;  // add small number to round double value
-    double h_offset       = atan2(GetTEnd() - GetTStart(), repeatLength);
-
-    if (GetLengthEnd() > SMALL_NUMBER || GetLengthStart() > SMALL_NUMBER)
-    {
-        length = ((GetLengthStart() + factor * (GetLengthEnd() - GetLengthStart())) / cos(h_offset));
-    }
-    if (GetWidthStart() > SMALL_NUMBER || GetWidthEnd() > SMALL_NUMBER)
-    {
-        width = (GetWidthStart() + (factor * (GetWidthEnd() - GetWidthStart())));
-    }
-    if (GetZOffsetEnd() > SMALL_NUMBER || GetZOffsetStart() > SMALL_NUMBER)
-    {
-        z = (GetZOffsetStart() + (factor * (GetZOffsetEnd() - GetZOffsetStart())));
-    }
-    if (GetHeightStart() > SMALL_NUMBER || GetHeightEnd() > SMALL_NUMBER)
-    {
-        height = (GetHeightStart() + (factor * (GetHeightEnd() - GetHeightStart())));
-    }
 }
 
 std::string RMObject::Type2Str(RMObject::ObjectType type)
@@ -5318,12 +5392,12 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                 if ( const auto& val = object.attribute("width"); !val.empty())
                 {
                     esmini::DimensionComponent width(atof(val.value()));
-                    obj->SetLength( std::move(width));
+                    obj->SetWidth( std::move(width));
                 }
                 if ( const auto& val = object.attribute("height"); !val.empty())
                 {
                     esmini::DimensionComponent height(atof(val.value()));
-                    obj->SetLength( std::move(height));
+                    obj->SetHeight( std::move(height));
                 }
 
                 // Read any repeat elements

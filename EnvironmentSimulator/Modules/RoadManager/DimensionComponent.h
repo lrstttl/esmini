@@ -12,14 +12,13 @@ class DimensionComponent
 
 public:
 
-    DimensionComponent(){}
-    //!Constructor
-    DimensionComponent( double value)
+    // Constructor
+    DimensionComponent( double value = std::nan(""))
         : value_(value)
     {
     }
 
-    //! Returns value if present, otherwise 0
+    // Returns value if present, otherwise 0
     double Get() const
     {
         if(IsSet())
@@ -29,12 +28,13 @@ public:
         return 0;
     }
 
-    //! Sets value
+    // Sets value
     void Set(double value)
     {
         value_ = value;
     }
-    //! Sets the value only if it was not already set and returns true, otherwise false
+
+    // Sets the value only if it was not already set and returns true, otherwise false
     bool SetIfNot( double value)
     {
         if(!IsSet())
@@ -45,13 +45,13 @@ public:
         return false;
     }
 
-    //! Returns true if user has set the value
+    // Returns true if user has set the value
     bool IsSet() const
     {
         return (!std::isnan(value_));
     }
 
-//! private data
+// private data
 private:
     double      value_ = std::nan("");
 

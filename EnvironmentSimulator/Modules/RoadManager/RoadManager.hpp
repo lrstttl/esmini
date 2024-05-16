@@ -2211,11 +2211,10 @@ namespace roadmanager
 
         std::vector<RepeatScale> repeatScales_;
         std::vector<RepeatDimension> repeatDimensions_;
-        double GetRepeatLengthWithFactor(double factor); //! Return length if available else return 0 length
-        double GetRepeatWidthWithFactor(double factor); //! Return width if available else return 0 width
-        double GetRepeatZOffsetWithFactor(double factor); //! Return z if available else return 0 z
-        double GetRepeatHeightWithFactor(double factor); //! Return height if available else return 0 height
-        void GetBBDetails(double factor, double& length, double& width, double& z, double& height);
+        double GetLengthWithFactor(double factor);
+        double GetWidthWithFactor(double factor);
+        double GetZOffsetWithFactor(double factor);
+        double GetHeightWithFactor(double factor);
 
     };
 
@@ -2506,28 +2505,17 @@ namespace roadmanager
         {
             height_ = height;
         }
-        void ValidateDimensions() const
-        {
-            if (IsEqualDouble(GetLength().Get(), 0.0))
-            {
-                LOG("Object %s missing length, set to %.2f for viewer purpose", GetName(),  0.01);
-            }
-            if (IsEqualDouble(GetWidth().Get(), 0.0))
-            {
-                LOG("Object %s missing width, set to %.2f for viewer purpose", GetName(),  0.01);
-            }
-            if (IsEqualDouble(GetHeight().Get(), 0.0))
-            {
-                LOG("Object %s missing height, set to %.2f for viewer purpose", GetName(),  0.01);
-            }
-        }
 
         int CheckAndCreateRepeatDetails(int r_id);
-        int CreateRepeatScales(Repeat& repeat, int r_id);
-        void CreateOutlineCopies(Repeat& repeat, double cur_s,  double factor, double lengthOutline, double widthOutline, double zOutline, double heightOutline, std::vector<std::vector<Outline::point>> localPoints, int r_id);
+        int CreateRepeatDimensions(int r_id);
+        int CreateOutlineCopies(int r_id);
         std::vector<std::vector<Outline::point>> GetLocalPointsFromOutlines();
         bool IsAllCornersLocal();
-        int  checkAndCreateOutlineRepeatDetails(int r_id);
+        int  CreateRepeatScales(int r_id);
+        double GetRepeatLengthWithFactor(Repeat& rep, double factor);
+        double GetRepeatWidthWithFactor(Repeat& rep,double factor);
+        double GetRepeatZOffsetWithFactor(Repeat& rep,double factor);
+        double GetRepeatHeightWithFactor(Repeat& rep,double factor);
 
     private:
         std::string name_;
