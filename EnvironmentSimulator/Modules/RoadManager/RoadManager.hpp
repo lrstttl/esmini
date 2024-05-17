@@ -2168,7 +2168,6 @@ namespace roadmanager
             double x;
             double y;
             double z;
-            double s;
             double roll;
             double pitch;
             double heading;

@@ -635,15 +635,17 @@ namespace viewer
 
     private:
         const osg::BoundingBox CalculateBoundingBox(osg::Node* node);
-        void CreateObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, double scale_x, double scale_y, double scale_z);
+        // Update object from given object and scales
+        void UpdateObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, double scale_x, double scale_y, double scale_z);
         void CreateObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> clone, const roadmanager::Repeat::RepeatDimension repeatDimension); // overlaoded
         void AddObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup, bool isMarkingAvailable);
         void ValidateDimensionsForViewing(const roadmanager::RMObject& object) const;
+        // based on what dimensions user has provided, update original object and/or scale for model
         void UpdateObjectDimensionsAndGetScale(const osg::BoundingBox& boundingBox,
                             roadmanager::RMObject* object,
                             double& scale_x, double& scale_y, double& scale_z);
 
-        osg::ref_ptr<osg::ShapeDrawable> CreateBoxShape(const roadmanager::RMObject* object) const;
+        osg::ref_ptr<osg::ShapeDrawable> CreateBoxShapeObject(const roadmanager::RMObject* object) const;
         bool CreateRoadLines(roadmanager::OpenDrive* od);
         bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
         int  CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
@@ -658,7 +660,8 @@ namespace viewer
         osg::ref_ptr<osg::PositionAttitudeTransform> GetModel(std::string filename);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(std::string filename);
         int                                          CreateRoadSignsAndObjects(roadmanager::OpenDrive* od);
-        int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, roadmanager::Signal* signal_, roadmanager::Road* road);
+        // Create signal and add it into group
+        int CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup_, const std::vector<roadmanager::Signal*> signals);
         int CreateRepeatObject(roadmanager::RMObject* object, roadmanager::Road* road, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup);
         int InitTraits(osg::ref_ptr<osg::GraphicsContext::Traits> traits,
                        int                                        x,

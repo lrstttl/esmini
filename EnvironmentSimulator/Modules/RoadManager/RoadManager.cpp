@@ -3090,7 +3090,6 @@ int RMObject::CreateRepeatDimensions(int r_id )
             dimensionDetail.x       = pos.GetX();
             dimensionDetail.y       = pos.GetY();
             dimensionDetail.z       = pos.GetZ() + GetRepeatZOffsetWithFactor(rep, factor);
-            dimensionDetail.s       = s;
             dimensionDetail.roll    = pos.GetR();
             dimensionDetail.pitch   = pos.GetP();
             dimensionDetail.heading = pos.GetH();
@@ -3403,7 +3402,6 @@ int RMObject::CreateRepeatScales(int r_id)
                 scale.x       = pos.GetX();
                 scale.y       = pos.GetY();
                 scale.z       = pos.GetZ();
-                scale.s       = repeat.GetS() + cur_s;
                 scale.roll    = pos.GetR();
                 scale.pitch   = pos.GetP();
                 scale.heading = pos.GetH();
@@ -3475,8 +3473,9 @@ void Outline::TransformRoadCornerToLocal(std::vector<Outline::point>& localPoint
     }
 }
 
+// Priority 1.repeat lenght, 2.Object length
 double RMObject::GetRepeatLengthWithFactor(Repeat& rep,double factor)
-{//! Priority 1.repeat lenght, 2.Object length, 3. Default value if object length zero, 4 deafult value
+{
 
     if(rep.IsLengthSet())
     {
@@ -3484,28 +3483,21 @@ double RMObject::GetRepeatLengthWithFactor(Repeat& rep,double factor)
     }
     else if(GetLength().IsSet())
     {
-        return GetLength().Get() == 0.0 ? GetDefaultValue() : GetLength().Get();
-    }
-    else
-    {
-        return GetDefaultValue();
+        return GetLength().Get();
     }
 
 }
 
+// Priority 1.repeat width, 2.Object width
 double RMObject::GetRepeatWidthWithFactor(Repeat& rep, double factor)
-{//! Priority 1.repeat width, 2.Object width, 3. Default value if object width zero, 4 deafult value
+{
     if(rep.IsWidthSet())
     {
         return rep.GetWidthWithFactor(factor);
     }
     else if (GetWidth().IsSet())
     {
-        return GetWidth().Get() == 0.0 ? GetDefaultValue() : GetWidth().Get();
-    }
-    else
-    {
-        return GetDefaultValue();
+        return GetWidth().Get();
     }
 }
 
@@ -3514,19 +3506,16 @@ double RMObject::GetRepeatZOffsetWithFactor(Repeat& rep, double factor)
     return rep.GetZOffsetWithFactor(factor);
 }
 
+// Priority 1.repeat height, 2.Object height
 double RMObject::GetRepeatHeightWithFactor(Repeat& rep, double factor)
-{ //! Priority 1.repeat height, 2.Object height, 3. Default value if object height zero, 4 deafult value
+{
     if(rep.IsHeightSet())
     {
         return rep.GetHeightWithFactor(factor);
     }
     else if (GetHeight().IsSet())
     {
-        return GetHeight().Get() == 0.0 ? GetDefaultValue() : GetHeight().Get();
-    }
-    else
-    {
-        return GetDefaultValue();
+        return GetHeight().Get();
     }
 
 }
