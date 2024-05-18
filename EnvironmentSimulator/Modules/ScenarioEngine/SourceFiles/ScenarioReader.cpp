@@ -1075,7 +1075,7 @@ roadmanager::Route *ScenarioReader::parseOSCRoute(pugi::xml_node routeNode)
             {
                 roadmanager::Position *p = pos->GetRMPos();
                 p->SetRouteStrategy(rs);
-                route->AddWaypoint(p);
+                route->AddWaypoint(*p);
             }
             else
             {

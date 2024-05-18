@@ -119,7 +119,7 @@ void ControllerECE_ALKS_REF_DRIVER::Step(double timeStep)
 
         // Measure longitudinal distance to all vehicles, don't utilize costly freespace option, instead measure ref point to ref point
         roadmanager::PositionDiff diff;
-        if (object_->pos_.Delta(&entities_->object_[i]->pos_, diff, lookaheadDist) == true)
+        if (object_->pos_.Delta(entities_->object_[i]->pos_, diff, lookaheadDist) == true)
         {
             // path exists between position objects
 

@@ -3043,11 +3043,12 @@ namespace roadmanager
             ALONG_LANE
         };
 
-        explicit Position();
-        explicit Position(int track_id, double s, double t);
-        explicit Position(int track_id, int lane_id, double s, double offset);
-        explicit Position(double x, double y, double z, double h, double p, double r);
-        explicit Position(double x, double y, double z, double h, double p, double r, bool calculateTrackPosition);
+        Position();
+        Position(int track_id, double s, double t);
+        Position(int track_id, int lane_id, double s, double offset);
+        Position(double x, double y, double z, double h, double p, double r);
+        Position(double x, double y, double z, double h, double p, double r, bool calculateTrackPosition);
+        Position(const Position& pos);
         ~Position();
 
         void              Init();
@@ -3205,11 +3206,11 @@ namespace roadmanager
                                 int    roadId                  = -1,
                                 bool   check_overlapping_roads = false);
 
-        int TeleportTo(Position *pos);
+        int TeleportTo(Position& pos);
 
-        ReturnCode MoveToConnectingRoad(RoadLink *road_link, ContactPointType &contact_point_type, double junctionSelectorAngle = -1.0);
+        ReturnCode MoveToConnectingRoad(const RoadLink* road_link, ContactPointType& contact_point_type, double junctionSelectorAngle = -1.0);
 
-        void SetRelativePosition(Position *rel_pos, PositionType type)
+        void SetRelativePosition(Position* rel_pos, PositionType type)
         {
             rel_pos_ = rel_pos;
             type_    = type;
@@ -3248,7 +3249,7 @@ namespace roadmanager
         @param position A regular position created with road, lane or world coordinates
         @return Non zero return value indicates error of some kind
         */
-        int SetRoutePosition(Position *position);
+        int SetRoutePosition(const Position& position);
 
         /**
         Retrieve the S-value of the current route position. Note: This is the S along the
@@ -3337,7 +3338,7 @@ namespace roadmanager
         @param maxDist Don't look further than this
         @return true if position found and parameter values are valid, else false
         */
-        bool Delta(Position *pos_b, PositionDiff &diff, bool bothDirections = true, double maxDist = LARGE_NUMBER) const;
+        bool Delta(Position& pos_b, PositionDiff& diff, bool bothDirections = true, double maxDist = LARGE_NUMBER) const;
 
         /**
         Find out the distance, on specified system and type, between two position objects
@@ -3345,7 +3346,7 @@ namespace roadmanager
         @param dist Distance (output parameter)
         @return 0 if position found and parameter values are valid, else -1
         */
-        int Distance(Position *pos_b, CoordinateSystem cs, RelativeDistanceType relDistType, double &dist, double maxDist = LARGE_NUMBER) const;
+        int Distance(const Position& pos_b, CoordinateSystem cs, RelativeDistanceType relDistType, double &dist, double maxDist = LARGE_NUMBER) const;
 
         /**
         Find out the distance, on specified system and type, to a world x, y position
@@ -3362,7 +3363,7 @@ namespace roadmanager
         @param target_position The position to compare the current to.
         @return true of false
         */
-        bool IsAheadOf(Position target_position) const;
+        bool IsAheadOf(const Position& target_position) const;
 
         /**
         Get information suitable for driver modeling of a point at a specified distance from object along the road ahead
@@ -3380,7 +3381,7 @@ namespace roadmanager
         @param data Struct to fill in calculated values, see typdef for details
         @return 0 if successful, other codes see Position::ErrorCode
         */
-        ReturnCode GetProbeInfo(Position *target_pos, RoadProbeInfo *data) const;
+        ReturnCode GetProbeInfo(const Position& target_pos, RoadProbeInfo *data) const;
 
         /**
         Get information of current lane at a specified distance from object along the road ahead
@@ -3390,8 +3391,8 @@ namespace roadmanager
         enum
         @return 0 if successful, -1 if not
         */
-        int GetRoadLaneInfo(double lookahead_distance, RoadLaneInfo *data, LookAheadMode lookAheadMode) const;
-        int GetRoadLaneInfo(RoadLaneInfo *data) const;
+        int GetRoadLaneInfo(double lookahead_distance, RoadLaneInfo* data, LookAheadMode lookAheadMode) const;
+        int GetRoadLaneInfo(RoadLaneInfo* data) const;
 
         /**
         Get information of current lane at a specified distance from object along the road ahead
@@ -3399,7 +3400,7 @@ namespace roadmanager
         @param data Struct to fill in calculated values, see typdef for details
         @return 0 if successful, -1 if not
         */
-        int CalcProbeTarget(Position *target, RoadProbeInfo *data) const;
+        int CalcProbeTarget(const Position& target, RoadProbeInfo* data) const;
 
         double DistanceToDS(double ds);
 
@@ -3623,7 +3624,7 @@ namespace roadmanager
         */
         double GetDrivingDirection() const;
 
-        PositionType GetType()
+        PositionType GetType() const
         {
             return type_;
         }
@@ -3733,7 +3734,7 @@ namespace roadmanager
         @param along reference parameter returning longitudinal acceleration
         @return -
         */
-        void GetAccLatLong(double &alat, double &along) const;
+        void GetAccLatLong(double& alat, double& along) const;
 
         /**
         Get lateral component of velocity in road coordinate system
@@ -3752,7 +3753,7 @@ namespace roadmanager
         @param vs reference parameter returning longitudinal velocity
         @return -
         */
-        void GetVelTS(double &vt, double &vs) const;
+        void GetVelTS(double& vt, double& vs) const;
 
         /**
         Get lateral component of acceleration in road coordinate system
@@ -3776,7 +3777,7 @@ namespace roadmanager
         @param as reference parameter returning longitudinal acceleration
         @return -
         */
-        void GetAccTS(double &at, double &as) const;
+        void GetAccTS(double& at, double& as) const;
 
         double GetAccX() const
         {
@@ -3890,7 +3891,7 @@ namespace roadmanager
         @param deep skip (false) or include (true) acc, vel and route, fields true = copy all fields including making a unique copy of any route
         @return -
         */
-        void CopyRMPos(const Position *from, bool deep = false);
+        void CopyRMPos(const Position& from, bool deep = false);
 
         void PrintTrackPos() const;
         void PrintLanePos() const;
@@ -4080,7 +4081,7 @@ namespace roadmanager
         @param position A regular position created with road, lane or world coordinates
         @return Non zero return value indicates error of some kind
         */
-        int AddWaypoint(Position *position);
+        int AddWaypoint(Position& position);
 
         /**
         Return direction Adds a waypoint to the route. One waypoint per road. At most one junction between waypoints.
@@ -4159,7 +4160,7 @@ namespace roadmanager
         */
         Position::ReturnCode SetPathS(double s, double *remaining_dist = nullptr);
 
-        Position::ReturnCode CopySFractionOfLength(Position *pos);
+        Position::ReturnCode CopySFractionOfLength(const Position& pos);
 
         void CopyFrom(Route &route)
         {
@@ -4203,12 +4204,12 @@ namespace roadmanager
 
         std::vector<PathNode *> visited_;
         std::vector<PathNode *> unvisited_;
-        const Position         *startPos_;
-        const Position         *targetPos_;
+        Position               startPos_;
+        Position               targetPos_;
         int                     direction_;  // direction of path from starting pos. 0==not set, 1==forward, 2==backward
         PathNode               *firstNode_;
 
-        RoadPath(const Position *startPos, const Position *targetPos)
+        RoadPath(Position& startPos, Position& targetPos)
             : startPos_(startPos),
               targetPos_(targetPos),
               direction_(0),
@@ -4411,7 +4412,7 @@ namespace roadmanager
         class Segment
         {
         public:
-            Segment(Position *posStart, double curvStart, double curvEnd, double length, double h_offset, double time)
+            Segment(const Position* posStart, double curvStart, double curvEnd, double length, double h_offset, double time)
                 : curvStart_(curvStart),
                   curvEnd_(curvEnd),
                   length_(length),
@@ -4442,7 +4443,7 @@ namespace roadmanager
         }
         ~ClothoidSplineShape();
 
-        void   AddSegment(Position *posStart, double curvStart, double curvEnd, double length, double h_offset, double time);
+        void   AddSegment(Position* posStart, double curvStart, double curvEnd, double length, double h_offset, double time);
         int    Evaluate(double p, TrajectoryParamType ptype, TrajVertex &pos);
         int    EvaluateInternal(double s, int segment_idx, TrajVertex &pos);
         void   CalculatePolyLine();
@@ -4460,7 +4461,7 @@ namespace roadmanager
         {
             time_end_ = time;
         }
-        void Freeze(Position *ref_pos);
+        void Freeze(Position* ref_pos);
         int  GetNumberOfSegments()
         {
             return static_cast<int>(segments_.size());
@@ -4534,7 +4535,7 @@ namespace roadmanager
         {
         }
 
-        void   Freeze(FollowingMode following_mode, double current_speed, Position *ref_pos = nullptr);
+        void   Freeze(FollowingMode following_mode, double current_speed, Position* ref_pos = nullptr);
         double GetLength()
         {
             return shape_ ? shape_->GetLength() : 0.0;

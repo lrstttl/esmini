@@ -306,7 +306,7 @@ void ControllerLooming::Step(double timeStep)
         double lookaheadDist = 130;
         // Measure longitudinal distance to all vehicles, don't utilize costly free-space option, instead measure ref point to ref point
         roadmanager::PositionDiff diff;
-        if (object_->pos_.Delta(&pivot_obj->pos_, diff, false, lookaheadDist) == true)  // look only double timeGap ahead
+        if (object_->pos_.Delta(pivot_obj->pos_, diff, false, lookaheadDist) == true)  // look only double timeGap ahead
         {
             // path exists between position objects
             // adjust longitudinal dist wrt bounding boxes

@@ -350,7 +350,7 @@ int ControllerALKS_R157SM::Model::Process(ObjectInfo& info)
     roadmanager::PositionDiff diff;
 
     // Measure longitudinal distance to all vehicles, don't utilize costly freespace option, instead measure ref point to ref point
-    if (veh_->pos_.Delta(&info.obj->pos_, diff, false, GetMaxRange()) == true)
+    if (veh_->pos_.Delta(info.obj->pos_, diff, false, GetMaxRange()) == true)
     {
         // Adjust delta lane id in case vehicles are on either side of center lane
         if (diff.dLaneId == 2 && info.obj->pos_.GetLaneId() == 1 && veh_->pos_.GetLaneId() == -1)
