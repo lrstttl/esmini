@@ -3307,7 +3307,7 @@ void Viewer::CreateOutlineObjectCopies(std::vector<std::vector<roadmanager::Outl
 }
 
 // Gives dimension for viewer
-double Viewer::GetViewerDimension(const esmini::DimensionComponent& component)
+double Viewer::GetViewerDimension(const esmini::DimensionComponent component)
 {
     return std::max(component.Get(), DEFAULT_MIN_DIM);
 }
@@ -3421,7 +3421,7 @@ Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(const roadmanager::R
     return detail;
 }
 
-Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(const roadmanager::RMObject* object, const roadmanager::Repeat::RepeatDimension repeatDimension)
+Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(roadmanager::RMObject* object, const roadmanager::Repeat::RepeatDimension repeatDimension)
 {
     ViewerObjectDetail detail;
     detail.scale_x = GetViewerDimension(repeatDimension.length)/GetViewerDimension(object->GetLength());
@@ -3473,7 +3473,7 @@ void Viewer::UpdateObject(const Viewer::ViewerObjectDetail& objectDetails, osg::
 }
 
 // create object from given object and scales
-void Viewer::AddObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup, bool isMarkingAvailable)
+void Viewer::AddObject(roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup, bool isMarkingAvailable)
 {
     // add current LOD and create a new one
     osg::ref_ptr<osg::LOD> lod = new osg::LOD();
@@ -3610,6 +3610,10 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             else
             {
                 CreateRepeatObject(object, objGroup);
+            }
+            for (auto& marking : object->GetMarkings()) // marking
+            {
+                DrawMarking(marking, object);
             }
         }
     }

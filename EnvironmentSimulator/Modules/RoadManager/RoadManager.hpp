@@ -1956,10 +1956,10 @@ namespace roadmanager
               heightEnd_(heightEnd),
               zOffsetStart_(zOffsetStart),
               zOffsetEnd_(zOffsetEnd),
-              widthStart_(0.0),
-              widthEnd_(0.0),
-              lengthStart_(0.0),
-              lengthEnd_(0.0),
+              widthStart_(),
+              widthEnd_(),
+              lengthStart_(),
+              lengthEnd_(),
               radiusStart_(0.0),
               radiusEnd_(0.0),
               roadLength_(roadLength)
@@ -2367,6 +2367,16 @@ namespace roadmanager
 
         RMObject::Orientation ParseOrientation(pugi::xml_node node, int id);
 
+        void SetObjectPos(double x, double y, double z, double h, double p, double r)
+        {
+           x_ = x;
+           y_ = y;
+           z_ = z;
+           h_ = h;
+           p_ = p;
+           r_ = r;
+        }
+
         std::string GetName() const
         {
             return name_;
@@ -2480,7 +2490,7 @@ namespace roadmanager
         {
             return outlines_.at(i);
         }
-        esmini::DimensionComponent GetLength() const
+        esmini::DimensionComponent& GetLength()
         {
             return length_;
         }
@@ -2488,7 +2498,7 @@ namespace roadmanager
         {
             length_ = length;
         }
-        esmini::DimensionComponent GetWidth() const
+        esmini::DimensionComponent& GetWidth()
         {
             return width_;
         }
@@ -2496,7 +2506,7 @@ namespace roadmanager
         {
             width_ = width;
         }
-        esmini::DimensionComponent GetHeight() const
+        esmini::DimensionComponent& GetHeight()
         {
             return height_;
         }

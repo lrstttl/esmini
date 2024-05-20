@@ -2969,7 +2969,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     const char* gt = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 4);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 3);
 
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 20.0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -12.9);
@@ -2999,9 +2999,6 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -12.5);
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
 
-    EXPECT_EQ(osi_gt.stationary_object(3).base().position().x(), 50.0);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().position().y(), -12.5);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().position().z(), 0.0);
 
     printf("Enter into Viewer\n");
     const char* args[] =
@@ -3015,7 +3012,7 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     const char* gt1 = SE_GetOSIGroundTruth(&sv_size);
     osi_gt.ParseFromArray(gt1, sv_size);
 
-    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 4);
+    EXPECT_EQ(osi_gt.mutable_stationary_object()->size(), 3);
 
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 20.0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -12.9);
@@ -3045,9 +3042,6 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -12.5);
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
 
-    EXPECT_EQ(osi_gt.stationary_object(3).base().position().x(), 50.0);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().position().y(), -12.5);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().position().z(), 0.0);
 }
 
 TEST(TestOsiReporter, CrestCurveRoadObjectTest)

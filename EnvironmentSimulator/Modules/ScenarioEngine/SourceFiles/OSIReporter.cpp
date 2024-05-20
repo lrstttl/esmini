@@ -581,43 +581,13 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
 {
     if (object->GetNumberOfRepeats() > 0)
     {
-        if(object->CheckAndCreateRepeatDetails()) // create repeat details
+        if (object->GetNumberOfOutlines() == 0)
         {
-            if  (object->GetNumberOfOutlines() == 0) // non outline repeat
+            if (object->GetNumberOfOutlinesCopies() > 0) // repeat with zero distance
             {
-                for (const auto &repeat : object->GetRepeats()) // check repeat scale
+                for (const auto &outlineCopies : object->GetOutlinesCopies())
                 {
-                    for (const auto &repeatScale : repeat.repeatScales_)
-                    {
-                        // Create OSI Stationary Object
-                        obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
-                        // Set OSI Stationary Object Mutable ID
-                        obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
-                        // Set OSI Stationary Object Type and Classification
-                        UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
-
-                        // Set OSI Stationary Object Position
-                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z);
-
-                        // Set OSI Stationary Object Boundingbox
-                        obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(repeatScale.scale_z * object->GetHeight().Get());
-                        obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_width(repeatScale.scale_y * object->GetWidth().Get());
-                        obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_length(repeatScale.scale_x * object->GetLength().Get());
-                        // only bounding box
-
-                        // Set OSI Stationary Object Orientation
-                        obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_roll(GetAngleInIntervalMinusPIPlusPI(object->GetRoll()));
-                        obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_pitch(GetAngleInIntervalMinusPIPlusPI(object->GetPitch()));
-                        obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_yaw(
-                            GetAngleInIntervalMinusPIPlusPI(object->GetH() + object->GetHOffset()));
-                    }
-                }
-            }
-            else
-            {
-                for (const auto &outlineCopies : object->GetOutlinesCopies()) // road corners
-                {
-                    for (const auto &outline : outlineCopies) // road corners
+                    for (const auto &outline : outlineCopies)
                     {
                         // Create OSI Stationary Object
                         obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
@@ -642,35 +612,110 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                     }
                 }
-                for (const auto &repeat : object->GetRepeats())
+            }
+            else
+            {
+                for (auto &repeat : object->GetRepeats()) // check repeat scale
                 {
-                    for (const auto &repeatScale : repeat.repeatScales_) // local corners
+                    if(object->GetRepeatDimensions(repeat).size() > 0)
                     {
-                        // Create OSI Stationary Object
-                        obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
-                        // Set OSI Stationary Object Mutable ID
-                        obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
-                        // Set OSI Stationary Object Type and Classification
-                        UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
-
-                        // Set OSI Stationary Object Position
-                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z + repeatScale.hOffset);
-
-                        double height = 0;
-                        for (const auto &outlineCopies : object->GetOutlinesCopies()) // road corners
+                        for (const auto &repeatDim : repeat.repeatDimensions_)
                         {
-                            for (const auto &outline : outlineCopies) // road corners
+                            // Create OSI Stationary Object
+                            obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
+                            // Set OSI Stationary Object Mutable ID
+                            obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+                            // Set OSI Stationary Object Type and Classification
+                            UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
+                            // Set OSI Stationary Object Position
+                            UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatDim.x, repeatDim.y, repeatDim.z);
+
+                            // Set OSI Stationary Object Boundingbox
+                            obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(repeatDim.height);
+                            obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_width(repeatDim.width);
+                            obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_length(repeatDim.length);
+                            // only bounding box
+
+                            // Set OSI Stationary Object Orientation
+                            obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_roll(GetAngleInIntervalMinusPIPlusPI(repeatDim.roll));
+                            obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_pitch(GetAngleInIntervalMinusPIPlusPI(repeatDim.pitch));
+                            obj_osi_internal.sobj->mutable_base()->mutable_orientation()->set_yaw(
+                                GetAngleInIntervalMinusPIPlusPI(repeatDim.heading + repeatDim.hOffset));
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (object->CheckAndCreateRepeatDetails()) // handle repeat with outline
+            {
+                if (object->GetNumberOfOutlinesCopies() > 0) // repeat with road corners
+                {
+                    for (const auto &outlineCopies : object->GetOutlinesCopies())
+                    {
+                        for (const auto &outline : outlineCopies)
+                        {
+                            // Create OSI Stationary Object
+                            obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
+                            // Set OSI Stationary Object Mutable ID
+                            obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+                            // Set OSI Stationary Object Type and Classification
+                            UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
+                            // Set OSI Stationary Object Position
+                            UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
+
+                            double height = 0;
+                            for (const auto &corner : outline.corner_)
                             {
-                                for (const auto &corner : outline.corner_)
+                                double x, y, z;
+                                corner->GetPosLocal(x, y, z);
+                                osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
+                                vec->set_x(x);
+                                vec->set_y(y);
+                                height += corner->GetHeight() / static_cast<double>(outline.corner_.size());
+                            }
+                            obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
+                        }
+                    }
+                }
+                else
+                {
+                    for (auto &repeat : object->GetRepeats())
+                    {
+                        if ( repeat.repeatScales_.size() > 0)  // local corners
+                        {
+                            for (const auto &repeatScale : repeat.repeatScales_)
+                            {
+                                // Create OSI Stationary Object
+                                obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
+                                // Set OSI Stationary Object Mutable ID
+                                obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+                                // Set OSI Stationary Object Type and Classification
+                                UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
+                                // Set OSI Stationary Object Position
+                                UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z + repeatScale.hOffset);
+
+                                double height = 0;
+                                for (const auto &outlineCopies : object->GetOutlinesCopies()) // road corners
                                 {
-                                    roadmanager::OutlineCornerLocal *cornerLocal = static_cast<roadmanager::OutlineCornerLocal *>(
-                                        corner);  // make sure its local corner since only this corner has U and V
-                                    osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
-                                    vec->set_x(cornerLocal->GetU() * repeatScale.scale_x);
-                                    vec->set_y(cornerLocal->GetV() * repeatScale.scale_y);
-                                    height += (cornerLocal->GetHeight() * repeatScale.scale_z) / static_cast<double>(outline.corner_.size());
+                                    for (const auto &outline : outlineCopies) // road corners
+                                    {
+                                        for (const auto &corner : outline.corner_)
+                                        {
+                                            roadmanager::OutlineCornerLocal *cornerLocal = static_cast<roadmanager::OutlineCornerLocal *>(
+                                                corner);  // make sure its local corner since only this corner has U and V
+                                            osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
+                                            vec->set_x(cornerLocal->GetU() * repeatScale.scale_x);
+                                            vec->set_y(cornerLocal->GetV() * repeatScale.scale_y);
+                                            height += (cornerLocal->GetHeight() * repeatScale.scale_z) / static_cast<double>(outline.corner_.size());
+                                        }
+                                        obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
+                                    }
                                 }
-                                obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                             }
                         }
                     }
@@ -723,7 +768,6 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                 GetAngleInIntervalMinusPIPlusPI(object->GetH() + object->GetHOffset()));
         }
     }
-
     if (object->GetMarkings().empty())
     {
         return 0;

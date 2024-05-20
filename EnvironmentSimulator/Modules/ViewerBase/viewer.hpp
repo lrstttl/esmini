@@ -633,7 +633,7 @@ namespace viewer
 
         void Frame();
 
-        static double GetViewerDimension( const esmini::DimensionComponent& component);
+        static double GetViewerDimension( const esmini::DimensionComponent component);
         static double GetViewerDimension( const double val);
         struct ViewerObjectDetail
         {
@@ -648,7 +648,7 @@ namespace viewer
             double scale_y;
             double scale_z;
             ViewerObjectDetail copy(const roadmanager::RMObject* object, double scale_x, double scale_y, double scale_z);
-            ViewerObjectDetail copy(const roadmanager::RMObject* object, const roadmanager::Repeat::RepeatDimension repeatDimension);
+            ViewerObjectDetail copy(roadmanager::RMObject* object, const roadmanager::Repeat::RepeatDimension repeatDimension);
             ViewerObjectDetail copy(const roadmanager::Repeat::RepeatDimension repeatDimension, double dim_x, double dim_y, double dim_z);
         };
 
@@ -656,7 +656,7 @@ namespace viewer
         const osg::BoundingBox CalculateBoundingBox(osg::Node* node);
         // Update object from given object and scales
         void UpdateObject(const Viewer::ViewerObjectDetail& objectDetails, osg::ref_ptr<osg::PositionAttitudeTransform> tx);
-        void AddObject(const roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup, bool isMarkingAvailable);
+        void AddObject(roadmanager::RMObject* object, osg::ref_ptr<osg::PositionAttitudeTransform> tx, osg::ref_ptr<osg::Group> objGroup, bool isMarkingAvailable);
         void ValidateDimensionsForViewing(roadmanager::RMObject& object) const;
         // based on what dimensions user has provided, update original object and/or scale for model
         void UpdateObjectDimensionsAndGetScale(const osg::BoundingBox& boundingBox,
