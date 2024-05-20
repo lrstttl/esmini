@@ -3047,14 +3047,23 @@ void GetBoundingBoxFromCorners(const std::vector<std::vector<Outline::point>>& c
     z = minZ;
 }
 
-int RMObject::CreateRepeatDimensions(int r_id )
+const std::vector<Repeat::RepeatDimension>& RMObject::GetRepeatDimensions(Repeat& repeat)
 {
-    for (auto& rep : GetRepeats())
+    if (repeat.repeatDimensions_.size() > 0)
+    { // repeat dimensions already availble
+        return repeat.GetRepeatDimensions();
+    }
+    else
     {
-        if (rep.repeatDimensions_.size() > 0 || rep.GetLength() < SMALL_NUMBER)
-        { // repeat dimensions already availble,  no length to repeat
-            continue;
-        }
+        CreateRepeatDimensions(repeat);
+        return repeat.GetRepeatDimensions();
+    }
+}
+
+int RMObject::CreateRepeatDimensions(Repeat& rep)
+{
+    if (rep.GetLength() > SMALL_NUMBER)
+    {// no length to repeat
         double repeatLength = rep.GetTotalLength();
         double   orientation = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0;
         Position pos;
@@ -3069,7 +3078,7 @@ int RMObject::CreateRepeatDimensions(int r_id )
             }
             double s       = rep.GetS() + cur_s;
             // position mode relative for aligning to road heading
-            pos.SetTrackPosMode(r_id,
+            pos.SetTrackPosMode(GetRoadId(),
                                 s,
                                 rep.GetTWithFactor(factor),
                                 Position::PosMode::H_REL | Position::PosMode::Z_REL | Position::PosMode::P_REL | Position::PosMode::R_REL);
@@ -3100,10 +3109,11 @@ int RMObject::CreateRepeatDimensions(int r_id )
             rep.AddDimensionDetail(std::move(dimensionDetail));
         }
     }
+
     return 1;
 }
 
-int RMObject::CreateOutlineCopies( int r_id )
+int RMObject::CreateOutlineCopies()
 {
     if (GetNumberOfOutlinesCopies() > 0) // copies already created
     {
@@ -3220,7 +3230,7 @@ int RMObject::CreateOutlineCopies( int r_id )
                         OutlineCorner* corner = 0;
                         if ( corner_original->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)
                         {
-                            corner = (OutlineCorner*)(new OutlineCornerRoad(r_id,
+                            corner = (OutlineCorner*)(new OutlineCornerRoad(GetRoadId(),
                                                                                         start_s,
                                                                                         start_t,
                                                                                         start_z,
@@ -3233,7 +3243,7 @@ int RMObject::CreateOutlineCopies( int r_id )
                         else
                         {
                             OutlineCornerLocal* localCorner = static_cast< OutlineCornerLocal*>(corner_original);
-                            corner = (OutlineCorner*)(new OutlineCornerLocal(r_id,
+                            corner = (OutlineCorner*)(new OutlineCornerLocal(GetRoadId(),
                                                                                 GetS() + cur_s,
                                                                                 GetT(),
                                                                                 localCorner->GetU() * scale_u,
@@ -3264,27 +3274,16 @@ int RMObject::CreateOutlineCopies( int r_id )
     return 1;
 }
 
-int RMObject::CheckAndCreateRepeatDetails(int r_id)
+int RMObject::CheckAndCreateRepeatDetails()
 {
-    if (GetNumberOfRepeats() != 0)
+    if (IsAllCornersLocal())
     {
-        if (GetNumberOfOutlines() == 0)
-        {  // create repeat information only for non outline object.
-            return CreateRepeatDimensions(r_id);
-        }
-        else
-        {
-            if (IsAllCornersLocal())
-            {
-                return CreateRepeatScales(r_id);
-            }
-            else
-            {
-                return CreateOutlineCopies(r_id);
-            }
-        }
+        return CreateRepeatScales();
     }
-    return 0;
+    else
+    {
+        return CreateOutlineCopies();
+    }
 }
 
 bool RMObject::IsAllCornersLocal() //! return true only when all corners in all outlines are local otherwise false
@@ -3337,8 +3336,7 @@ std::vector<std::vector<Outline::point>> RMObject::GetLocalPointsFromOutlines()
     return localPointsList;
 }
 
-
-int RMObject::CreateRepeatScales(int r_id)
+int RMObject::CreateRepeatScales()
 {
     for (auto& repeat : GetRepeats())
     {
@@ -3389,7 +3387,7 @@ int RMObject::CreateRepeatScales(int r_id)
                 double scale_u        = abs(cur_length / lengthOutline);
                 double scale_v       = abs(cur_width / widthOutline);
                 double scale_z        = abs(cur_z / zOutline);
-                pos.SetTrackPosMode(r_id,
+                pos.SetTrackPosMode(GetRoadId(),
                                     repeat.GetS() + cur_s,
                                     repeat.GetTWithFactor(factor),
                                     roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL |
@@ -3474,9 +3472,8 @@ void Outline::TransformRoadCornerToLocal(std::vector<Outline::point>& localPoint
 }
 
 // Priority 1.repeat lenght, 2.Object length
-double RMObject::GetRepeatLengthWithFactor(Repeat& rep,double factor)
+double RMObject::GetRepeatLengthWithFactor(Repeat& rep, double factor)
 {
-
     if(rep.IsLengthSet())
     {
         return rep.GetLengthWithFactor(factor);
@@ -3485,7 +3482,10 @@ double RMObject::GetRepeatLengthWithFactor(Repeat& rep,double factor)
     {
         return GetLength().Get();
     }
-
+    else
+    {
+        return 0;
+    }
 }
 
 // Priority 1.repeat width, 2.Object width
@@ -3498,6 +3498,10 @@ double RMObject::GetRepeatWidthWithFactor(Repeat& rep, double factor)
     else if (GetWidth().IsSet())
     {
         return GetWidth().Get();
+    }
+    else
+    {
+        return 0;
     }
 }
 
@@ -3517,7 +3521,10 @@ double RMObject::GetRepeatHeightWithFactor(Repeat& rep, double factor)
     {
         return GetHeight().Get();
     }
-
+    else
+    {
+        return 0;
+    }
 }
 
 double Repeat::GetLengthWithFactor(double factor)
@@ -5372,6 +5379,7 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                                     pos.GetR());
 
                 obj->SetOrientation(obj->ParseOrientation(object, r->GetId()));
+                obj->SetRoadId(r->GetId());
 
                 if ( const auto& val = object.attribute("length"); !val.empty())
                 {

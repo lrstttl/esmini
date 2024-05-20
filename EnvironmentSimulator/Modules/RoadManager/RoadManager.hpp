@@ -2504,13 +2504,27 @@ namespace roadmanager
         {
             height_ = height;
         }
+        // Set the road id which this object belong
+        void SetRoadId(double val)
+        {
+            road_id_ = val;
+        }
+        // Get the road id which this object belong
+        double GetRoadId() const
+        {
+            return road_id_;
+        }
 
-        int CheckAndCreateRepeatDetails(int r_id);
-        int CreateRepeatDimensions(int r_id);
-        int CreateOutlineCopies(int r_id);
+        // Returns repeat details if available or create and returns it
+        const std::vector<Repeat::RepeatDimension>& GetRepeatDimensions(Repeat& repeat);
+
+        int CheckAndCreateRepeatDetails();
+        // Create repeat dimension and store in itself for given repeat
+        int CreateRepeatDimensions(Repeat& repeat);
+        int CreateOutlineCopies();
         std::vector<std::vector<Outline::point>> GetLocalPointsFromOutlines();
         bool IsAllCornersLocal();
-        int  CreateRepeatScales(int r_id);
+        int  CreateRepeatScales();
         double GetRepeatLengthWithFactor(Repeat& rep, double factor);
         double GetRepeatWidthWithFactor(Repeat& rep,double factor);
         double GetRepeatZOffsetWithFactor(Repeat& rep,double factor);
@@ -2530,6 +2544,7 @@ namespace roadmanager
         double      heading_ = 0.0;
         double      pitch_ = 0.0;
         double      roll_ = 0.0;
+        double      road_id_;
 
         std::vector<Outline> outlines_;
         std::vector<std::vector<Outline>> outlinesCopies_;
