@@ -2529,9 +2529,10 @@ namespace roadmanager
         const std::vector<Repeat::RepeatDimension>& GetRepeatDimensions(Repeat& repeat);
 
         int CheckAndCreateRepeatDetails();
-        // Create repeat dimension and store in itself for given repeat
+        // Create repeat dimension and store itself in given repeat
         int CreateRepeatDimensions(Repeat& repeat);
         int CreateOutlineCopies();
+        int CreateOutlineCopiesZeroDistance();
         std::vector<std::vector<Outline::point>> GetLocalPointsFromOutlines();
         bool IsAllCornersLocal();
         int  CreateRepeatScales();

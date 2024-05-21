@@ -3505,19 +3505,23 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             // create a bounding box to represent the object
             tx = new osg::PositionAttitudeTransform;
             tx->addChild(CreateBoxShapeObject(object));
+            object->CreateOutlineCopiesZeroDistance();  // repeat with zero distance
+            if (object->GetNumberOfOutlinesCopies() > 0)
+            {
+                CreateOutlineObjectCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+            }
             for (auto& repeat : object->GetRepeats())
             {
-                if (object->GetNumberOfOutlinesCopies() > 0) // repeat with zero distance
+                if(repeat.GetDistance() > SMALL_NUMBER)
                 {
-                    CreateOutlineObjectCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
-                }
-                else if(object->GetRepeatDimensions(repeat).size() > 0)  // repeat with distance more than zero
-                {
-                    for (const auto& repeatDimension : repeat.GetRepeatDimensions())
+                    if(object->GetRepeatDimensions(repeat).size() > 0)
                     {
-                        osg::ref_ptr<osg::PositionAttitudeTransform> clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr; // create shollow copy
-                        UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
-                        AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
+                        for (const auto& repeatDimension : repeat.GetRepeatDimensions())
+                        {
+                            osg::ref_ptr<osg::PositionAttitudeTransform> clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr; // create shollow copy
+                            UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
+                            AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
+                        }
                     }
                 }
             }

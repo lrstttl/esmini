@@ -3060,6 +3060,77 @@ const std::vector<Repeat::RepeatDimension>& RMObject::GetRepeatDimensions(Repeat
     }
 }
 
+int RMObject::CreateOutlineCopiesZeroDistance()
+{
+    if (GetNumberOfOutlinesCopies() > 0) //already created
+    {
+        return 0;
+    }
+    for (auto& rep : GetRepeats())
+    {
+        if (rep.GetDistance() < SMALL_NUMBER )
+        {
+            // inter-distance is zero, treat as outline
+            Outline outline(GetId(), Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
+            const double max_segment_length = 10.0;
+
+            // find smallest value of length and rlength, but between SMALL_NUMBER and max_segment_length
+            double segment_length = max_segment_length;
+            if (GetLength().Get() > SMALL_NUMBER && GetLength().Get() < segment_length)
+            {
+                segment_length = GetLength().Get();
+            }
+            if (rep.GetLength() > SMALL_NUMBER && rep.GetLength() < segment_length)
+            {
+                segment_length = rep.GetLength();
+            }
+
+            unsigned int n_segments = static_cast<int>((MAX(1.0, rep.GetLength() / segment_length)));
+
+            // Create outline polygon, visiting corners counter clockwise
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                for (unsigned int j = 0; j < n_segments + 1; j++)
+                {
+                    double       factor  = static_cast<double>((i == 0 ? j : (n_segments - j))) / n_segments;
+                    const double min_dim = 0.05;
+                    double       w_start = rep.GetWidthStartResolved();
+                    double       w_end   = rep.GetWidthEndResolved();
+                    double       h_start = rep.GetHeightStartResolved();
+                    double       h_end   = rep.GetHeightEndResolved();
+
+                    if (w_start < SMALL_NUMBER && w_end < SMALL_NUMBER)
+                    {
+                        w_start = w_end = min_dim;
+                    }
+                    if (h_start < SMALL_NUMBER && h_end < SMALL_NUMBER)
+                    {
+                        h_start = h_end = min_dim;
+                    }
+
+                    double         w_local = w_start + factor * (w_end - w_start);
+                    OutlineCorner* corner  = (OutlineCorner*)(new OutlineCornerRoad(
+                        GetRoadId(),
+                        rep.GetS() + factor * rep.GetLength(),
+                        rep.GetTStart() + factor * (rep.GetTEnd() - rep.GetTStart()) + (i == 0 ? -w_local / 2.0 : w_local / 2.0),
+                        rep.GetZOffsetStartResolved() + factor * (rep.GetZOffsetEndResolved() - rep.GetZOffsetStartResolved()),
+                        h_start + factor * (h_end - h_start),
+                        GetS(),
+                        GetT(),
+                        GetHOffset(),
+                        j + (i * n_segments)));
+
+                    outline.AddCorner(corner);
+                }
+            }
+            std::vector<Outline> outlineCopies;
+            outlineCopies.emplace_back(std::move(outline));
+            AddOutlineCopy(std::move(outlineCopies));
+        }
+    }
+    return 0;
+}
+
 int RMObject::CreateRepeatDimensions(Repeat& rep)
 {
     if (rep.GetLength() > SMALL_NUMBER)
@@ -5449,67 +5520,6 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                         printf("Attribute object/repeat/radiusEnd not supported yet\n");
                     obj->AddRepeat(std::move(repeat));
 
-                    pugi::xml_node outlines_node_ = object.child("outlines");
-                    if (rdistance < SMALL_NUMBER &&
-                        outlines_node_ == NULL)  // create outline when no outline in the object with repeat. Outline with repeat handed separately/
-                    {
-                        // inter-distance is zero, treat as outline
-                        Outline outline(ids, Outline::FillType::FILL_TYPE_UNDEFINED, Outline::AreaType::CLOSED);
-                        const double max_segment_length = 10.0;
-
-                        // find smallest value of length and rlength, but between SMALL_NUMBER and max_segment_length
-                        double segment_length = max_segment_length;
-                        if (obj->GetLength().Get() > SMALL_NUMBER && obj->GetLength().Get() < segment_length)
-                        {
-                            segment_length = obj->GetLength().Get();
-                        }
-                        if (rlength > SMALL_NUMBER && rlength < segment_length)
-                        {
-                            segment_length = rlength;
-                        }
-
-                        unsigned int n_segments = static_cast<int>((MAX(1.0, rlength / segment_length)));
-
-                        // Create outline polygon, visiting corners counter clockwise
-                        for (unsigned int i = 0; i < 2; i++)
-                        {
-                            for (unsigned int j = 0; j < n_segments + 1; j++)
-                            {
-                                double       factor  = static_cast<double>((i == 0 ? j : (n_segments - j))) / n_segments;
-                                const double min_dim = 0.05;
-                                double       w_start = rwidthStart;
-                                double       w_end   = rwidthEnd;
-                                double       h_start = rheightStart;
-                                double       h_end   = rheightEnd;
-
-                                if (w_start < SMALL_NUMBER && w_end < SMALL_NUMBER)
-                                {
-                                    w_start = w_end = min_dim;
-                                }
-                                if (h_start < SMALL_NUMBER && h_end < SMALL_NUMBER)
-                                {
-                                    h_start = h_end = min_dim;
-                                }
-
-                                double         w_local = w_start + factor * (w_end - w_start);
-                                OutlineCorner* corner  = (OutlineCorner*)(new OutlineCornerRoad(
-                                    r->GetId(),
-                                    rs + factor * rlength,
-                                    rtStart + factor * (rtEnd - rtStart) + (i == 0 ? -w_local / 2.0 : w_local / 2.0),
-                                    rzOffsetStart + factor * (rzOffsetEnd - rzOffsetStart),
-                                    h_start + factor * (h_end - h_start),
-                                    s,
-                                    t,
-                                    heading,
-                                    j + (i * n_segments)));
-
-                                outline.AddCorner(corner);
-                            }
-                        }
-                        std::vector<Outline> outlineCopies;
-                        outlineCopies.emplace_back(std::move(outline));
-                        obj->AddOutlineCopy(std::move(outlineCopies));
-                    }
                 }
 
                 pugi::xml_node outlines_node = object.child("outlines");
