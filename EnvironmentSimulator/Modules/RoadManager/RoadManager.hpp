@@ -2439,7 +2439,7 @@ namespace roadmanager
         }
         void AddOutlineCopy(std::vector<Outline> outlineCopies)
         {
-            outlinesCopies_.emplace_back(std::move(outlineCopies));
+            uniqueOutlines_.emplace_back(std::move(outlineCopies));
         }
         void AddMarking(Marking marking)
         {
@@ -2454,9 +2454,9 @@ namespace roadmanager
         {
             return outlines_.size();
         }
-        size_t GetNumberOfOutlinesCopies() const
+        size_t GetNumberOfUniqueOutlines() const
         {
-            return outlinesCopies_.size();
+            return uniqueOutlines_.size();
         }
         size_t GetNumberOfRepeats() const
         {
@@ -2474,10 +2474,8 @@ namespace roadmanager
         {
             return outlines_;
         }
-        std::vector<std::vector<Outline>>& GetOutlinesCopies()
-        {
-            return outlinesCopies_;
-        }
+        std::vector<std::vector<Outline>>& GetUniqueOutlines();
+
         ParkingSpace GetParkingSpace()
         {
             return parking_space_;
@@ -2527,19 +2525,18 @@ namespace roadmanager
 
         // Returns repeat details if available or create and returns it
         const std::vector<Repeat::RepeatDimension>& GetRepeatDimensions(Repeat& repeat);
-
-        int CheckAndCreateRepeatDetails();
         // Create repeat dimension and store itself in given repeat
         int CreateRepeatDimensions(Repeat& repeat);
-        int CreateOutlineCopies();
-        int CreateOutlineCopiesZeroDistance();
+        int CalculateUniqueOutlines();
+        int CreateUniqueOutlineZeroDistance();
         std::vector<std::vector<Outline::point>> GetLocalPointsFromOutlines();
         bool IsAllCornersLocal();
-        int  CreateRepeatScales();
+        void  CalculateLocalOutlineTransformationInfo(Repeat& repeat);
         double GetRepeatLengthWithFactor(Repeat& rep, double factor);
         double GetRepeatWidthWithFactor(Repeat& rep,double factor);
         double GetRepeatZOffsetWithFactor(Repeat& rep,double factor);
         double GetRepeatHeightWithFactor(Repeat& rep,double factor);
+        const std::vector<Repeat::RepeatScale>& GetRepeatLocalOutlineTransformationInfo(Repeat& repeat);
 
     private:
         std::string name_;
@@ -2558,7 +2555,7 @@ namespace roadmanager
         double      road_id_;
 
         std::vector<Outline> outlines_;
-        std::vector<std::vector<Outline>> outlinesCopies_;
+        std::vector<std::vector<Outline>> uniqueOutlines_;
         std::vector<Repeat>                 repeats_;
         ParkingSpace                          parking_space_;
         std::vector<Marking>                    markings_;

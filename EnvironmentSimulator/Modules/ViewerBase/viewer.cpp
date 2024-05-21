@@ -2999,6 +2999,10 @@ int Viewer::CreateLocalCornerObject(std::vector<roadmanager::Repeat::RepeatScale
                                                  osg::Vec4                                          color,
                                                  bool                                               isMarkingAvailable)
 {
+    if (repeatScales.size() == 0)
+    {
+        return 0;
+    }
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
     // Set vertices
     for (auto& outline : outlines)
@@ -3505,10 +3509,10 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             // create a bounding box to represent the object
             tx = new osg::PositionAttitudeTransform;
             tx->addChild(CreateBoxShapeObject(object));
-            object->CreateOutlineCopiesZeroDistance();  // repeat with zero distance
-            if (object->GetNumberOfOutlinesCopies() > 0)
+            object->CreateUniqueOutlineZeroDistance();  // repeat with zero distance
+            if (object->GetNumberOfUniqueOutlines() > 0)
             {
-                CreateOutlineObjectCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                CreateOutlineObjectCopies(object->GetUniqueOutlines(), object->GetMarkings(), color);
             }
             for (auto& repeat : object->GetRepeats())
             {
@@ -3548,25 +3552,19 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
     }
     else
     {
-        if (object->CheckAndCreateRepeatDetails()) // handle repeat with outline
+        if (object->IsAllCornersLocal()) // any one corner as road corners outlines
         {
-            if (object->GetNumberOfOutlinesCopies() > 0) // any one corner as road corners outlines
+            for (auto& repeat : object->GetRepeats())  // all corner as local corner outlines
             {
-                CreateOutlineObjectCopies(object->GetOutlinesCopies(), object->GetMarkings(), color);
+                CreateLocalCornerObject(object->GetRepeatLocalOutlineTransformationInfo(repeat),
+                                                        object->GetOutlines(),
+                                                        color,
+                                                        !object->GetNumberOfMarkings() == 0);
             }
-            else
-            {
-                for (const auto& repeat : object->GetRepeats())
-                {
-                    if (repeat.repeatScales_.size() > 0 && object->GetNumberOfOutlines() > 0)  // all corner as local corner outlines
-                    {
-                        CreateLocalCornerObject(repeat.GetRepeatScales(),
-                                                                object->GetOutlines(),
-                                                                color,
-                                                                !object->GetNumberOfMarkings() == 0);
-                    }
-                }
-            }
+        }
+        else
+        {
+            CreateOutlineObjectCopies(object->GetUniqueOutlines(), object->GetMarkings(), color);
         }
     }
 }
