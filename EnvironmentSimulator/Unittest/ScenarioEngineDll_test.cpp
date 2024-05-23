@@ -3051,7 +3051,7 @@ TEST(TestOsiReporter, CrestCurveRoadObjectTest)
 
     printf("Enter into Viewer\n");
     const char* args[] =
-        {"--osc", "../../resources/xosc/test_crest-curve.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
+        {"--osc", "../../../resources/xosc/test_crest-curve.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
     ASSERT_EQ(SE_InitWithArgs(sizeof(args) / sizeof(char*), args), 0);
 
     SE_StepDT(0.001f);

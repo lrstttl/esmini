@@ -648,8 +648,8 @@ namespace viewer
             double scale_y;
             double scale_z;
             ViewerObjectDetail copy(const roadmanager::RMObject* object, double scale_x, double scale_y, double scale_z);
-            ViewerObjectDetail copy(roadmanager::RMObject* object, const roadmanager::Repeat::RepeatDimension repeatDimension);
-            ViewerObjectDetail copy(const roadmanager::Repeat::RepeatDimension repeatDimension, double dim_x, double dim_y, double dim_z);
+            ViewerObjectDetail copy(roadmanager::RMObject* object, const roadmanager::Repeat::RepeatTransformationInfoDimension repeatDimension);
+            ViewerObjectDetail copy(const roadmanager::Repeat::RepeatTransformationInfoDimension repeatDimension, double dim_x, double dim_y, double dim_z);
         };
 
     private:
@@ -668,8 +668,8 @@ namespace viewer
         bool CreateRoadMarkLines(roadmanager::OpenDrive* od);
         int  CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
         void CreateOutline(std::vector<roadmanager::Outline>& Outlines,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
-        void CreateOutlineObjectCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies, std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
-        int  CreateLocalCornerObject(std::vector<roadmanager::Repeat::RepeatScale>      repeatScales,
+        void CreateUniqueOutlineObject(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies, std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
+        int  CreateLocalCornerObject(std::vector<roadmanager::Repeat::RepeatTransformationInfoScale>      repeatScales,
                                                   std::vector<roadmanager::Outline>& outlines,
                                                   osg::Vec4                                          color,
                                                   bool                                               isMarkingAvailable);

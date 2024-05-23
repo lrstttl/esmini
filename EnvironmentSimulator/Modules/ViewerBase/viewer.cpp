@@ -2994,7 +2994,7 @@ int Viewer::DrawMarking(roadmanager::Marking& marking, roadmanager::RMObject* ob
     }
     return 0;
 }
-int Viewer::CreateLocalCornerObject(std::vector<roadmanager::Repeat::RepeatScale>      repeatScales,
+int Viewer::CreateLocalCornerObject(std::vector<roadmanager::Repeat::RepeatTransformationInfoScale>      repeatScales,
                                                  std::vector<roadmanager::Outline>& outlines,
                                                  osg::Vec4                                          color,
                                                  bool                                               isMarkingAvailable)
@@ -3299,7 +3299,7 @@ void Viewer::CreateOutline(std::vector<roadmanager::Outline>& Outlines,  std::ve
     }
 }
 
-void Viewer::CreateOutlineObjectCopies(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
+void Viewer::CreateUniqueOutlineObject(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,  std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
 {
     for (auto& outlines : OutlinesCopies)
     {
@@ -3425,7 +3425,7 @@ Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(const roadmanager::R
     return detail;
 }
 
-Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(roadmanager::RMObject* object, const roadmanager::Repeat::RepeatDimension repeatDimension)
+Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(roadmanager::RMObject* object, const roadmanager::Repeat::RepeatTransformationInfoDimension repeatDimension)
 {
     ViewerObjectDetail detail;
     detail.scale_x = GetViewerDimension(repeatDimension.length)/GetViewerDimension(object->GetLength());
@@ -3441,7 +3441,7 @@ Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(roadmanager::RMObjec
     return detail;
 }
 
-Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(const roadmanager::Repeat::RepeatDimension repeatDimension, double dim_x, double dim_y, double dim_z)
+Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(const roadmanager::Repeat::RepeatTransformationInfoDimension repeatDimension, double dim_x, double dim_y, double dim_z)
 {
     ViewerObjectDetail detail;
     detail.scale_x = GetViewerDimension(repeatDimension.length)/GetViewerDimension(dim_y);
@@ -3509,16 +3509,15 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             // create a bounding box to represent the object
             tx = new osg::PositionAttitudeTransform;
             tx->addChild(CreateBoxShapeObject(object));
-            object->CreateUniqueOutlineZeroDistance();  // repeat with zero distance
-            if (object->GetNumberOfUniqueOutlines() > 0)
+            if (object->GetUniqueOutlinesZeroDistance().size() > 0) // repeat with zero distance
             {
-                CreateOutlineObjectCopies(object->GetUniqueOutlines(), object->GetMarkings(), color);
+                CreateOutline(object->GetUniqueOutlinesZeroDistance(), object->GetMarkings(), color);
             }
             for (auto& repeat : object->GetRepeats())
             {
                 if(repeat.GetDistance() > SMALL_NUMBER)
                 {
-                    if(object->GetRepeatDimensions(repeat).size() > 0)
+                    if(object->GetRepeatTransformationInfoDimensions(repeat).size() > 0)
                     {
                         for (const auto& repeatDimension : repeat.GetRepeatDimensions())
                         {
@@ -3538,7 +3537,7 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             object->GetHeight().SetIfNot(boundingBox._max.z() - boundingBox._min.z());
             for (auto& repeat : object->GetRepeats())
             {
-                if(object->GetRepeatDimensions(repeat).size() > 0)
+                if(object->GetRepeatTransformationInfoDimensions(repeat).size() > 0)
                 {
                     for (const auto& repeatDimension : repeat.GetRepeatDimensions()) // use repeat dimensions
                     {
@@ -3564,7 +3563,7 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
         }
         else
         {
-            CreateOutlineObjectCopies(object->GetUniqueOutlines(), object->GetMarkings(), color);
+            CreateUniqueOutlineObject(object->GetUniqueOutlines(), object->GetMarkings(), color);
         }
     }
 }
@@ -3591,13 +3590,13 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                         // create a bounding box to represent the object
                         tx = new osg::PositionAttitudeTransform;
                         tx->addChild(CreateBoxShapeObject(object));
-                        // ValidateDimensionsForViewing(*object);
                     }
                     else  //model loaded
                     {
                         osg::BoundingBox boundingBox = CalculateBoundingBox(tx.get());
                         UpdateObjectDimensionsAndGetScale(boundingBox, object, scale_x, scale_y, scale_z);
                     }
+                    ValidateDimensionsForViewing(*object);
                     UpdateObject(objectDeatil.copy(object, scale_x, scale_y, scale_z), tx); // update object with position and scale
                     AddObject(object, tx, objGroup, !object->GetNumberOfMarkings() == 0);
                 }
