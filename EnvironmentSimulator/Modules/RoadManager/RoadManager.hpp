@@ -2224,6 +2224,17 @@ namespace roadmanager
 	    // calculate and return segment height of repeat for given factor
         double GetHeightWithFactor(double factor);
 
+        void AddUniqueOutline(std::vector<Outline> UniqueOutline)
+        {
+            uniqueOutlines_.emplace_back(std::move(UniqueOutline));
+        }
+        void AddUniqueOutlineZeroDistance(Outline UniqueOutline)
+        {
+            uniqueOutlinesZeroDistance_.emplace_back(std::move(UniqueOutline));
+        }
+        std::vector<std::vector<Outline>> uniqueOutlines_;
+        std::vector<Outline> uniqueOutlinesZeroDistance_;
+
     };
 
     class RMObject;  // forward declaration
@@ -2286,9 +2297,9 @@ namespace roadmanager
         void                              CreateMarkingsPoints(RMObject* object);
         void                              FillPointsFromOutlines(std::vector<Outline>& outlines);
         void                              FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& outlines);
-        void                              FillPointsFromLocalOutlineRepeat(std::vector<Outline>& outlines, std::vector<Repeat>& repeats);
+        void                              FillPointsFromLocalOutlineRepeat(std::vector<Outline>& outlines, Repeat& repeats);
         void                              FillPointsFromScales(Outline& outline, Repeat::RepeatTransformationInfoScale repeatScales);
-        void                              FillPointsFromRepeatsScales(std::vector<Repeat>& repeats, double length, double width);
+        void                              FillPointsFromRepeatsScales(Repeat& repeat, double length, double width);
         void                              FillPointsFromObject(double s, double t, double length, double width, double objHOffset);
         void                              FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
         Point3D                           GetPoint(const Point2D &point, OutlineCorner::CornerType cornerType);
@@ -2446,14 +2457,6 @@ namespace roadmanager
         {
             outlines_.emplace_back(std::move(outline));
         }
-        void AddUniqueOutline(std::vector<Outline> UniqueOutline)
-        {
-            uniqueOutlines_.emplace_back(std::move(UniqueOutline));
-        }
-        void AddUniqueOutlineZeroDistance(Outline UniqueOutline)
-        {
-            uniqueOutlinesZeroDistance_.emplace_back(std::move(UniqueOutline));
-        }
         void AddMarking(Marking marking)
         {
             markings_.emplace_back(std::move(marking));
@@ -2467,13 +2470,13 @@ namespace roadmanager
         {
             return outlines_.size();
         }
-        size_t GetNumberOfUniqueOutlines() const
+        size_t GetNumberOfUniqueOutlines(Repeat& repeat) const
         {
-            return uniqueOutlines_.size();
+            return repeat.uniqueOutlines_.size();
         }
-        size_t GetNumberOfUniqueOutlinesZeroDistance() const
+        size_t GetNumberOfUniqueOutlinesZeroDistance(Repeat& repeat) const
         {
-            return uniqueOutlinesZeroDistance_.size();
+            return repeat.uniqueOutlinesZeroDistance_.size();
         }
         size_t GetNumberOfRepeats() const
         {
@@ -2491,8 +2494,8 @@ namespace roadmanager
         {
             return outlines_;
         }
-        std::vector<std::vector<Outline>>& GetUniqueOutlines();
-        std::vector<Outline>& GetUniqueOutlinesZeroDistance();
+        std::vector<std::vector<Outline>>& GetUniqueOutlines(Repeat& repeat);
+        std::vector<Outline>& GetUniqueOutlinesZeroDistance(Repeat& repeat);
 
         ParkingSpace GetParkingSpace()
         {
@@ -2545,8 +2548,8 @@ namespace roadmanager
         const std::vector<Repeat::RepeatTransformationInfoDimension>& GetRepeatTransformationInfoDimensions(Repeat& repeat);
         // Create repeat dimension and store itself in given repeat
         int CreateRepeatDimensions(Repeat& repeat);
-        int CalculateUniqueOutlines();
-        int CalculateUniqueOutlineZeroDistance();
+        int CalculateUniqueOutlines(Repeat& repeat);
+        int CalculateUniqueOutlineZeroDistance(Repeat& repeat);
         std::vector<std::vector<Outline::point>> GetLocalPointsFromOutlines();
         bool IsAllCornersLocal();
         void  CalculateLocalOutlineTransformationInfo(Repeat& repeat);
@@ -2573,8 +2576,6 @@ namespace roadmanager
         double      road_id_;
 
         std::vector<Outline> outlines_;
-        std::vector<std::vector<Outline>> uniqueOutlines_;
-        std::vector<Outline> uniqueOutlinesZeroDistance_;
         std::vector<Repeat>                 repeats_;
         ParkingSpace                          parking_space_;
         std::vector<Marking>                    markings_;

@@ -3509,10 +3509,7 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             // create a bounding box to represent the object
             tx = new osg::PositionAttitudeTransform;
             tx->addChild(CreateBoxShapeObject(object));
-            if (object->GetUniqueOutlinesZeroDistance().size() > 0) // repeat with zero distance
-            {
-                CreateOutline(object->GetUniqueOutlinesZeroDistance(), object->GetMarkings(), color);
-            }
+
             for (auto& repeat : object->GetRepeats())
             {
                 if(repeat.GetDistance() > SMALL_NUMBER)
@@ -3525,6 +3522,13 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
                             UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
                             AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
                         }
+                    }
+                }
+                else
+                {
+                    if (object->GetUniqueOutlinesZeroDistance(repeat).size() > 0) // repeat with zero distance
+                    {
+                        CreateOutline(object->GetUniqueOutlinesZeroDistance(repeat), object->GetMarkings(), color);
                     }
                 }
             }
@@ -3563,7 +3567,10 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
         }
         else
         {
-            CreateUniqueOutlineObject(object->GetUniqueOutlines(), object->GetMarkings(), color);
+            for (auto& repeat : object->GetRepeats())  // all corner as local corner outlines
+            {
+                CreateUniqueOutlineObject(object->GetUniqueOutlines(repeat), object->GetMarkings(), color);
+            }
         }
     }
 }
