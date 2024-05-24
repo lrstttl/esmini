@@ -626,13 +626,20 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         // Set OSI Stationary Object Type and Classification
                         UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
+                        // UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
+
+                        roadmanager::Position pos;
+                        double x, y, z;
+                        pos.SetTrackPos(road_id, repeat.GetS(), repeat.GetTStart());
+                        x = pos.GetX();
+                        y = pos.GetY();
+                        z = pos.GetZ() + repeat.GetZOffsetEndResolved();
                         // Set OSI Stationary Object Position
-                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
+                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, x, y, z);
 
                         double height = 0;
                         for (const auto &corner : outline.corner_)
                         {
-                            double x, y, z;
                             corner->GetPosLocal(x, y, z);
                             osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
                             vec->set_x(x);
@@ -694,18 +701,23 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                             // Set OSI Stationary Object Type and Classification
                             UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
-                            // Set OSI Stationary Object Position
-                            UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
-
                             double height = 0;
+                            int k = 0;
                             for (const auto &corner : outline.corner_)
                             {
                                 double x, y, z;
+                                if ( k == 0) // update position only once
+                                {
+                                    // Set OSI Stationary Object Position
+                                    corner->GetPos(x, y, z);
+                                    UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, x, y, z + object->GetZOffset());
+                                }
                                 corner->GetPosLocal(x, y, z);
                                 osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
                                 vec->set_x(x);
                                 vec->set_y(y);
                                 height += corner->GetHeight() / static_cast<double>(outline.corner_.size());
+
                             }
                             obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                         }
