@@ -3514,22 +3514,16 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             {
                 if(repeat.GetDistance() > SMALL_NUMBER)
                 {
-                    if(object->GetRepeatTransformationInfoDimensions(repeat).size() > 0)
+                    for (const auto& repeatDimension : object->GetRepeatTransformationInfoDimensions(repeat))
                     {
-                        for (const auto& repeatDimension : repeat.GetRepeatDimensions())
-                        {
-                            osg::ref_ptr<osg::PositionAttitudeTransform> clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr; // create shollow copy
-                            UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
-                            AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
-                        }
+                        osg::ref_ptr<osg::PositionAttitudeTransform> clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr; // create shollow copy
+                        UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
+                        AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
                     }
                 }
-                else
+                else // repeat with zero distance
                 {
-                    if (object->GetUniqueOutlinesZeroDistance(repeat).size() > 0) // repeat with zero distance
-                    {
-                        CreateOutline(object->GetUniqueOutlinesZeroDistance(repeat), object->GetMarkings(), color);
-                    }
+                    CreateOutline(object->GetUniqueOutlinesZeroDistance(repeat), object->GetMarkings(), color);
                 }
             }
         }
@@ -3541,23 +3535,20 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
             object->GetHeight().SetIfNot(boundingBox._max.z() - boundingBox._min.z());
             for (auto& repeat : object->GetRepeats())
             {
-                if(object->GetRepeatTransformationInfoDimensions(repeat).size() > 0)
+                for (const auto& repeatDimension : object->GetRepeatTransformationInfoDimensions(repeat)) // use repeat dimensions
                 {
-                    for (const auto& repeatDimension : repeat.GetRepeatDimensions()) // use repeat dimensions
-                    {
-                        osg::ref_ptr<osg::PositionAttitudeTransform> clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr; // create shollow copy
-                        UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
-                        AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
-                    }
+                    osg::ref_ptr<osg::PositionAttitudeTransform> clone = tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY)) : nullptr; // create shollow copy
+                    UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
+                    AddObject(object, clone, objGroup, !object->GetNumberOfMarkings() == 0);
                 }
             }
         }
     }
     else
     {
-        if (object->IsAllCornersLocal()) // any one corner as road corners outlines
+        if (object->IsAllCornersLocal())  // all corner as local corner outlines
         {
-            for (auto& repeat : object->GetRepeats())  // all corner as local corner outlines
+            for (auto& repeat : object->GetRepeats())
             {
                 CreateLocalCornerObject(object->GetRepeatLocalOutlineTransformationInfo(repeat),
                                                         object->GetOutlines(),
@@ -3565,9 +3556,9 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
                                                         !object->GetNumberOfMarkings() == 0);
             }
         }
-        else
+        else  // any one corner as road corners outlines
         {
-            for (auto& repeat : object->GetRepeats())  // all corner as local corner outlines
+            for (auto& repeat : object->GetRepeats())
             {
                 CreateUniqueOutlineObject(object->GetUniqueOutlines(repeat), object->GetMarkings(), color);
             }

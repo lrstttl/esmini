@@ -3050,15 +3050,11 @@ void GetBoundingBoxFromCorners(const std::vector<std::vector<Outline::point>>& c
 
 const std::vector<Repeat::RepeatTransformationInfoDimension>& RMObject::GetRepeatTransformationInfoDimensions(Repeat& repeat)
 {
-    if (repeat.transformationInfoDimensions_.size() > 0)
+    if (repeat.transformationInfoDimensions_.size() == 0)
     { // repeat dimensions already availble
-        return repeat.GetRepeatDimensions();
-    }
-    else
-    {
         CreateRepeatDimensions(repeat);
-        return repeat.GetRepeatDimensions();
     }
+    return repeat.GetRepeatDimensions();
 }
 
 int RMObject::CalculateUniqueOutlineZeroDistance(Repeat& rep)
@@ -3129,15 +3125,11 @@ int RMObject::CalculateUniqueOutlineZeroDistance(Repeat& rep)
 
 std::vector<Outline>& RMObject::GetUniqueOutlinesZeroDistance(Repeat& repeat)
 {
-    if(GetNumberOfUniqueOutlinesZeroDistance(repeat) > 0)
-    {
-        return repeat.uniqueOutlinesZeroDistance_;
-    }
-    else
+    if(GetNumberOfUniqueOutlinesZeroDistance(repeat) == 0)
     {
         CalculateUniqueOutlineZeroDistance(repeat);
-        return repeat.uniqueOutlinesZeroDistance_;
     }
+    return repeat.uniqueOutlinesZeroDistance_;
 }
 
 int RMObject::CreateRepeatDimensions(Repeat& rep)
@@ -3195,15 +3187,11 @@ int RMObject::CreateRepeatDimensions(Repeat& rep)
 
 std::vector<std::vector<Outline>>& RMObject::GetUniqueOutlines(Repeat& repeat)
 {
-    if(GetNumberOfUniqueOutlines(repeat) > 0)
-    {
-        return repeat.uniqueOutlines_;
-    }
-    else
+    if(GetNumberOfUniqueOutlines(repeat) == 0)
     {
         CalculateUniqueOutlines(repeat);
-        return repeat.uniqueOutlines_;
     }
+    return repeat.uniqueOutlines_;
 }
 int RMObject::CalculateUniqueOutlines(Repeat& repeat)
 {
@@ -3380,16 +3368,11 @@ bool RMObject::IsAllCornersLocal() //! return true only when all corners in all 
 
 const std::vector<Repeat::RepeatTransformationInfoScale>& RMObject::GetRepeatLocalOutlineTransformationInfo(Repeat& repeat)
 {
-    if(repeat.transformationInfoScales_.size() > 0) // repeat scales already created
-    {
-        return repeat.transformationInfoScales_;
-    }
-    else
+    if(repeat.transformationInfoScales_.size() == 0) // repeat scales already created
     {
         CalculateLocalOutlineTransformationInfo(repeat);
-        return repeat.transformationInfoScales_;
     }
-
+    return repeat.transformationInfoScales_;
 }
 
 void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
@@ -3435,7 +3418,7 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
 
             double scale_u        = abs(cur_length / lengthOutline);
             double scale_v       = abs(cur_width / widthOutline);
-            double scale_z        = abs(cur_z / zOutline);
+            double scale_z        = abs(cur_height / zOutline);
             pos.SetTrackPosMode(GetRoadId(),
                                 repeat.GetS() + cur_s,
                                 repeat.GetTWithFactor(factor),
@@ -5500,14 +5483,14 @@ bool OpenDrive::LoadOpenDriveFile(const char* filename, bool replace)
                     double rradiusStart = (rattr = ReadAttribute(repeat_node, "radiusStart", false)) == "" ?  std::nan("") : std::stod(rattr);
                     double rradiusEnd   = (rattr = ReadAttribute(repeat_node, "radiusEnd", false)) == "" ?  std::nan("") : std::stod(rattr);
 
-                    // set obj poisition as repeat position
-                    pos.SetTrackPos(rid, rs, t);
-                    obj->SetObjectPos( pos.GetX(),
-                                    pos.GetY(),
-                                    pos.GetZ(),
-                                    pos.GetH(),
-                                    pos.GetP(),
-                                    pos.GetR());
+                    // // set obj poisition as repeat position
+                    // pos.SetTrackPos(rid, rs, t);
+                    // obj->SetObjectPos( pos.GetX(),
+                    //                 pos.GetY(),
+                    //                 pos.GetZ(),
+                    //                 pos.GetH(),
+                    //                 pos.GetP(),
+                    //                 pos.GetR());
 
                     // Always add the repeat object, even if treated as outline - in case 3D model should be used in visualization
                     Repeat repeat =
