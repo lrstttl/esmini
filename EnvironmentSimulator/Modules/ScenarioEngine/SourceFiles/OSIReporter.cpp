@@ -583,11 +583,11 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     {
         if (object->GetNumberOfOutlines() == 0)
         {
-            for (auto &repeat : object->GetRepeats()) // check repeat scale
+            for (auto &repeat : object->GetRepeats())  // check repeat scale
             {
-                if(repeat.GetDistance() > SMALL_NUMBER)
+                if (repeat.GetDistance() > SMALL_NUMBER)
                 {
-                    if(object->GetRepeatTransformationInfoDimensions(repeat).size() > 0)
+                    if (object->GetRepeatTransformationInfoDimensions(repeat).size() > 0)
                     {
                         for (const auto &repeatDim : repeat.transformationInfoDimensions_)
                         {
@@ -617,7 +617,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                 }
                 else
                 {
-                    for (const auto &outline : object->GetUniqueOutlinesZeroDistance(repeat)) // repeat with zero distance
+                    for (const auto &outline : object->GetUniqueOutlinesZeroDistance(repeat))  // repeat with zero distance
                     {
                         // Create OSI Stationary Object
                         obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
@@ -626,10 +626,11 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         // Set OSI Stationary Object Type and Classification
                         UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
-                        // UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
+                        // UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() +
+                        // object->GetZOffset());
 
                         roadmanager::Position pos;
-                        double x, y, z;
+                        double                x, y, z;
                         pos.SetTrackPos(road_id, repeat.GetS(), repeat.GetTStart());
                         x = pos.GetX();
                         y = pos.GetY();
@@ -653,7 +654,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
         }
         else
         {
-            if (object->IsAllCornersLocal()) // handle repeat with outline
+            if (object->IsAllCornersLocal())  // handle repeat with outline
             {
                 for (auto &repeat : object->GetRepeats())
                 {
@@ -667,7 +668,10 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                         UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
                         // Set OSI Stationary Object Position
-                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeatScale.x, repeatScale.y, repeatScale.z + repeatScale.hOffset);
+                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj,
+                                                             repeatScale.x,
+                                                             repeatScale.y,
+                                                             repeatScale.z + repeatScale.hOffset);
 
                         double height = 0;
                         for (const auto &outline : object->GetOutlines())
@@ -702,11 +706,11 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                             UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
                             double height = 0;
-                            int k = 0;
+                            int    k      = 0;
                             for (const auto &corner : outline.corner_)
                             {
                                 double x, y, z;
-                                if ( k == 0) // update position only once
+                                if (k == 0)  // update position only once
                                 {
                                     // Set OSI Stationary Object Position
                                     corner->GetPos(x, y, z);
@@ -717,7 +721,6 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                                 vec->set_x(x);
                                 vec->set_y(y);
                                 height += corner->GetHeight() / static_cast<double>(outline.corner_.size());
-
                             }
                             obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                         }
@@ -777,7 +780,7 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
     }
     for (auto &marking : object->GetMarkings())
     {
-        for (const auto& markingsPoints_ : marking.GetMarkingsPoints(object))
+        for (const auto &markingsPoints_ : marking.GetMarkingsPoints(object))
         {
             UpdateOSIStationaryObjectODRMarking(obj_osi_internal.rm, obj_osi_internal.gt, markingsPoints_);
         }

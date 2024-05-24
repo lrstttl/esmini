@@ -2999,7 +2999,6 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -12.5);
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
 
-
     printf("Enter into Viewer\n");
     const char* args[] =
         {"--osc", "../../../resources/xosc/test_stationary_object_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
@@ -3041,7 +3040,6 @@ TEST(TestOsiReporter, StationaryObjectWithRepeatTest)
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().x(), 45);
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().y(), -12.5);
     EXPECT_EQ(osi_gt.stationary_object(2).base().position().z(), 0.0);
-
 }
 
 TEST(TestOsiReporter, CrestCurveRoadObjectTest)
@@ -3309,7 +3307,6 @@ TEST(TestOsiReporter, StationaryObjectTest)
     EXPECT_EQ(osi_gt.stationary_object(14).base().position().x(), 205.0);
     EXPECT_EQ(osi_gt.stationary_object(14).base().position().y(), 5.0);
     EXPECT_EQ(osi_gt.stationary_object(14).base().position().z(), 0.0);
-
 }
 
 TEST(TestOsiReporter, ObjectAsOutlineRepeat)

@@ -6,55 +6,51 @@
 namespace esmini
 {
 
-
-class DimensionComponent
-{
-
-public:
-
-    // Constructor
-    DimensionComponent( double value = std::nan(""))
-        : value_(value)
+    class DimensionComponent
     {
-    }
-
-    // Returns value if present, otherwise 0
-    double Get() const
-    {
-        if(IsSet())
+    public:
+        // Constructor
+        DimensionComponent(double value = std::nan("")) : value_(value)
         {
-            return value_;
         }
-        return 0;
-    }
 
-    // Sets value
-    void Set(double value)
-    {
-        value_ = value;
-    }
+        // Returns value if present, otherwise 0
+        double Get() const
+        {
+            if (IsSet())
+            {
+                return value_;
+            }
+            return 0;
+        }
 
-    // Sets the value only if it was not already set and returns true, otherwise false
-    bool SetIfNot( double value)
-    {
-        if(!IsSet())
+        // Sets value
+        void Set(double value)
         {
             value_ = value;
-            return true;
         }
-        return false;
-    }
 
-    // Returns true if user has set the value
-    bool IsSet() const
-    {
-        return (!std::isnan(value_));
-    }
+        // Sets the value only if it was not already set and returns true, otherwise false
+        bool SetIfNot(double value)
+        {
+            if (!IsSet())
+            {
+                value_ = value;
+                return true;
+            }
+            return false;
+        }
 
-// private data
-private:
-    double      value_ = std::nan("");
+        // Returns true if user has set the value
+        bool IsSet() const
+        {
+            return (!std::isnan(value_));
+        }
 
-};      //class DimensionComponent
+        // private data
+    private:
+        double value_ = std::nan("");
 
-}       //namespace esmini
+    };  // class DimensionComponent
+
+}  // namespace esmini
