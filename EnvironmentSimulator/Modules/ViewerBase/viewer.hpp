@@ -659,9 +659,6 @@ namespace viewer
         const osg::BoundingBox CalculateBoundingBox(osg::Node* node);
         // Update object from given object and scales
         void UpdateObject(const Viewer::ViewerObjectDetail& objectDetails, osg::ref_ptr<osg::PositionAttitudeTransform> tx);
-        // Update object from given object and scales
-        void ChangeViewerObjectAsWireframe(const osg::ref_ptr<osg::Group> group, const bool isMarkingAvailable);
-        // Add created model(tx) to the viewer object group
         void AddObject(roadmanager::RMObject*                       object,
                        osg::ref_ptr<osg::PositionAttitudeTransform> tx,
                        osg::ref_ptr<osg::Group>                     objGroup);
@@ -677,11 +674,17 @@ namespace viewer
         bool                             CreateRoadLines(roadmanager::OpenDrive* od);
         bool                             CreateRoadMarkLines(roadmanager::OpenDrive* od);
         int                              CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
-        void CreateOutlinesObject(std::vector<roadmanager::Outline>& Outlines, osg::Vec4 color, bool IsMarkingsAvailable);
         // create unique objects
-        void CreateUniqueObjects(roadmanager::RMObject* object);
+        void CreateOutline(std::vector<roadmanager::Outline>& Outlines, std::vector<roadmanager::Marking>& markings, osg::Vec4 color);
+        void CreateUniqueOutlineObject(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,
+                                       std::vector<roadmanager::Marking>&              markings,
+                                       osg::Vec4                                       color);
         // create one unique object and remaining as shallow copies
         void  CreateShallowCopyModels(roadmanager::RMObject* object);
+        // create one unique object with local coordinates or world coordinates depends on UseLocalDim
+        void CreateOutlineModel(roadmanager::Outline& outline, osg::Vec4 color, bool UseLocalDim, osg::ref_ptr<osg::Geode> geode);
+        // change viewer object as wireframe for better marking view
+        void ChangeObjectAsWireFrame(osg::ref_ptr<osg::Geode> geode, bool isMarkingAvailable);
         int  DrawMarking(roadmanager::Marking& marking, roadmanager::RMObject* object);
         osg::ref_ptr<osg::PositionAttitudeTransform> GetModel(std::string filename);
         osg::ref_ptr<osg::PositionAttitudeTransform> LoadRoadFeature(std::string filename);
