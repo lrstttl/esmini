@@ -3361,13 +3361,13 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
     return 1;
 }
 
-bool RMObject::IsAllCornersLocal()  //! return true only when all corners in all outlines are local otherwise false
+bool RMObject::IsAllCornersLocal()
 {
     for (auto& outlineOriginal : GetOutlines())
     {
         for (const auto& corner : outlineOriginal.corner_)
         {
-            if (corner->GetCornerType() == OutlineCorner::CornerType::ROAD_CORNER)
+            if (corner->GetCornerType() != OutlineCorner::CornerType::LOCAL_CORNER)
             {
                 return false;
             }

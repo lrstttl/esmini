@@ -2556,6 +2556,7 @@ namespace roadmanager
         int                                                       CalculateUniqueOutlines(Repeat &repeat);
         int                                                       CalculateUniqueOutlineZeroDistance(Repeat &repeat);
         std::vector<std::vector<Outline::point>>                  GetLocalPointsFromOutlines();
+        // check whether all corners in all outlines are local, In which each all outlines shall have same shape. Hence e.g. shallow copies is possible
         bool                                                      IsAllCornersLocal();
         void                                                      CalculateLocalOutlineTransformationInfo(Repeat &repeat);
         double                                                    GetRepeatLengthWithFactor(Repeat &rep, double factor);
