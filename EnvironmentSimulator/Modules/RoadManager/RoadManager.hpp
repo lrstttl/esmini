@@ -2303,11 +2303,11 @@ namespace roadmanager
         std::vector<std::vector<Point3D>> GetMarkingsPoints(RMObject *object);
         void                              CreateMarkingsPoints(RMObject *object);
         void                              FillPointsFromOutlines(std::vector<Outline> &outlines);
-        void                              FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>> &outlines);
-        void                              FillPointsFromLocalOutlineRepeat(std::vector<Outline> &outlines, Repeat &repeats);
+        void                              FillPointsFromUniqueOutlines(std::vector<std::vector<Outline>> &outlines);
+        void                              FillPointsFromLocalOutlineTransformationInfo(std::vector<Outline> &outlines, Repeat &repeats);
         void                              FillPointsFromScales(Outline &outline, Repeat::RepeatTransformationInfoScale repeatScales);
-        void                              FillPointsFromRepeatsScales(Repeat &repeat, double length, double width);
-        void                              FillPointsFromObject(double s, double t, double length, double width, double objHOffset);
+        void                              FillPointsFromRepeatTransformationInfoDimensions(Repeat &repeat, const double length, const double width);
+        void                              FillPointsFromObject(RMObject *object);
         void                              FillMarkingPoints(const Point2D &point1, const Point2D &point2, OutlineCorner::CornerType cornerType);
         Point3D                           GetPoint(const Point2D &point, OutlineCorner::CornerType cornerType);
 

@@ -2959,41 +2959,44 @@ bool Viewer::CreateRoadLines(roadmanager::OpenDrive* od)
     return true;
 }
 
-int Viewer::DrawMarking(roadmanager::Marking& marking, roadmanager::RMObject* object)
+int Viewer::DrawMarking(roadmanager::RMObject* object)
 {
-    for (const auto& points : marking.GetMarkingsPoints(object))
+    for (auto& marking : object->GetMarkings())  // marking
     {
-        osg::ref_ptr<osg::Group>     group        = new osg::Group();
-        osg::ref_ptr<osg::Vec3Array> vertices_top = new osg::Vec3Array(static_cast<unsigned int>(points.size()));  // one set at bottom and one at top
-
-        for (int i = 0; i < points.size(); i += 4)
+        for (const auto& points : marking.GetMarkingsPoints(object))
         {
-            (*vertices_top)[i + 0].set(static_cast<float>(points[i + 0].x), static_cast<float>(points[i + 0].y), static_cast<float>(points[i + 0].z));
-            (*vertices_top)[i + 1].set(static_cast<float>(points[i + 1].x), static_cast<float>(points[i + 1].y), static_cast<float>(points[i + 1].z));
-            (*vertices_top)[i + 2].set(static_cast<float>(points[i + 2].x), static_cast<float>(points[i + 2].y), static_cast<float>(points[i + 2].z));
-            (*vertices_top)[i + 3].set(static_cast<float>(points[i + 3].x), static_cast<float>(points[i + 3].y), static_cast<float>(points[i + 3].z));
+            osg::ref_ptr<osg::Group>     group        = new osg::Group();
+            osg::ref_ptr<osg::Vec3dArray> vertices_top = new osg::Vec3dArray(points.size());  // one set at bottom and one at top
+
+            for (int i = 0; i < points.size(); i += 4)
+            {
+                (*vertices_top)[i + 0].set(points[i + 0].x, points[i + 0].y, points[i + 0].z);
+                (*vertices_top)[i + 1].set(points[i + 1].x, points[i + 1].y, points[i + 1].z);
+                (*vertices_top)[i + 2].set(points[i + 2].x, points[i + 2].y, points[i + 2].z);
+                (*vertices_top)[i + 3].set(points[i + 3].x, points[i + 3].y, points[i + 3].z);
+            }
+
+            // Finally create and add geometry
+            osg::ref_ptr<osg::Geode>    geode = new osg::Geode;
+            osg::ref_ptr<osg::Geometry> geom  = new osg::Geometry;
+
+            geom->setVertexArray(vertices_top.get());
+            geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, points.size()));
+
+            // osgUtil::SmoothingVisitor::smooth(*geom, 0.5);
+            geom->setDataVariance(osg::Object::STATIC);
+            geom->setUseDisplayList(true);
+            geode->addDrawable(geom);
+
+            osg::Vec4                   color     = ODR2OSGColor(marking.GetColor());
+            osg::ref_ptr<osg::Material> material_ = new osg::Material;
+            material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+            material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
+            geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
+
+            group->addChild(geode);
+            envTx_->addChild(group);
         }
-
-        // Finally create and add geometry
-        osg::ref_ptr<osg::Geode>    geode = new osg::Geode;
-        osg::ref_ptr<osg::Geometry> geom  = new osg::Geometry;
-
-        geom->setVertexArray(vertices_top.get());
-        geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, points.size()));
-
-        // osgUtil::SmoothingVisitor::smooth(*geom, 0.5);
-        geom->setDataVariance(osg::Object::STATIC);
-        geom->setUseDisplayList(true);
-        geode->addDrawable(geom);
-
-        osg::Vec4                   color     = ODR2OSGColor(marking.GetColor());
-        osg::ref_ptr<osg::Material> material_ = new osg::Material;
-        material_->setDiffuse(osg::Material::FRONT_AND_BACK, color);
-        material_->setAmbient(osg::Material::FRONT_AND_BACK, color);
-        geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
-
-        group->addChild(geode);
-        envTx_->addChild(group);
     }
     return 0;
 }
@@ -3102,18 +3105,12 @@ void Viewer::CreateShallowCopyModels(roadmanager::RMObject* object)
     osg::Vec4          color = GetObjectColor(object->GetType());
     for (auto& repeat : object->GetRepeats())
     {
-        if (!repeat.GetRepeatScales().empty())
-        {
-            continue;
-        }
         osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-        // Set vertices
         for (auto& outline : object->GetOutlines())
         {
-            CreateOutlineModel(outline, color, true, geode);
+            CreateOutlineModel(outline, color, true, geode); // create outline model
         }
-
-        for (const auto& repeatScale : object->GetRepeatLocalOutlineTransformationInfo(repeat))
+        for (const auto& repeatScale : object->GetRepeatLocalOutlineTransformationInfo(repeat)) // scale the model as per repeat info
         {
             // position mode relative for aligning to road heading
             osg::ref_ptr<osg::PositionAttitudeTransform> xform = new osg::PositionAttitudeTransform();
@@ -3139,7 +3136,7 @@ void Viewer::CreateShallowCopyModels(roadmanager::RMObject* object)
 int Viewer::CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable)
 {
     osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
-    CreateOutlineModel(outline, color, false, geode);
+    CreateOutlineModel(outline, color, false, geode); // create outline model
     osg::ref_ptr<osg::Group> group    = new osg::Group();
     group->addChild(geode);
     envTx_->addChild(group);
@@ -3246,23 +3243,21 @@ int Viewer::CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup, std::vector<roa
     return 0;
 }
 
-void Viewer::CreateOutline(std::vector<roadmanager::Outline>& Outlines, std::vector<roadmanager::Marking>& markings, osg::Vec4 color)
+void Viewer::CreateOutlinesObject(std::vector<roadmanager::Outline>& Outlines, osg::Vec4 color, bool isMarkingAvailable)
 {
     for (auto& outline : Outlines)
     {
-        CreateOutlineObject(outline, color, !markings.size() == 0);
+        CreateOutlineObject(outline, color, isMarkingAvailable);
     }
 }
 
-void Viewer::CreateUniqueOutlineObject(std::vector<std::vector<roadmanager::Outline>>& OutlinesCopies,
-                                       std::vector<roadmanager::Marking>&              markings,
-                                       osg::Vec4                                       color)
+void Viewer::CreateUniqueModels(roadmanager::RMObject* object)
 {
-    for (auto& outlines : OutlinesCopies)
+    for (auto& repeat : object->GetRepeats())
     {
-        for (auto& outline : outlines)
+        for (auto& outlines : object->GetUniqueOutlines(repeat))
         {
-            CreateOutlineObject(outline, color, !markings.size() == 0);
+            CreateOutlinesObject(outlines, GetObjectColor(object->GetType()), object->GetNumberOfMarkings() > 0);
         }
     }
 }
@@ -3486,7 +3481,7 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
                 }
                 else  // repeat with zero distance
                 {
-                    CreateOutline(object->GetUniqueOutlinesZeroDistance(repeat), object->GetMarkings(), color);
+                    CreateOutlinesObject(object->GetUniqueOutlinesZeroDistance(repeat), color, object->GetNumberOfMarkings() > 0);
                 }
             }
         }
@@ -3517,10 +3512,7 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
         }
         else  // any corner is road corner in any of outlines
         {
-            for (auto& repeat : object->GetRepeats())
-            {
-                CreateUniqueOutlineObject(object->GetUniqueOutlines(repeat), object->GetMarkings(), color);
-            }
+            CreateUniqueModels(object);
         }
     }
 }
@@ -3559,7 +3551,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                 }
                 else  // outlines
                 {
-                    CreateOutline(object->GetOutlines(), object->GetMarkings(), color);
+                    CreateOutlinesObject(object->GetOutlines(), color, object->GetNumberOfMarkings() > 0);
                     LOG("Created outline geometry for object %s.", object->GetName().c_str());
                     LOG("  if it looks strange, e.g.faces too dark or light color, ");
                     LOG("  check that corners are defined counter-clockwise (as OpenGL default).");
@@ -3569,10 +3561,7 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
             {
                 CreateRepeatObject(object, objGroup);
             }
-            for (auto& marking : object->GetMarkings())  // marking
-            {
-                DrawMarking(marking, object);
-            }
+            DrawMarking(object);
         }
     }
     osgUtil::Optimizer optimizer;

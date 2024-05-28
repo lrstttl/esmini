@@ -2681,6 +2681,7 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
         double deltaP0Far = sin(beata) * width_;
 
         std::vector<Point3D> points;
+        points.reserve(nrOfPoints);
 
         // add first block immediate after start offset for line length
         Point2D pointTemp;
@@ -2689,18 +2690,18 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
             point.x += deltaP0StartOffset;
             point.y += deltaP1StartOffset;
 
-            points.push_back(GetPoint(point, cornerType));  // point_ A
+            points.emplace_back(std::move(GetPoint(point, cornerType)));  // point_ A
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            points.push_back(GetPoint(pointTemp, cornerType));  // point_ B
+            points.emplace_back(std::move(GetPoint(pointTemp, cornerType)));  // point_ B
 
             point.x += deltaP0Line;
             point.y += deltaP1Line;
 
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            points.push_back(GetPoint(pointTemp, cornerType));  // point_ C
-            points.push_back(GetPoint(point, cornerType));      // point_ D
+            points.emplace_back(std::move(GetPoint(pointTemp, cornerType)));  // point_ C
+            points.emplace_back(std::move(GetPoint(point, cornerType)));      // point_ D
         }
 
         for (int i = 4; i < nrOfPoints; i += 4)  // loop from second block
@@ -2708,20 +2709,21 @@ void Marking::FillMarkingPoints(const Point2D& point1, const Point2D& point2, Ou
             point.x += deltaP0Gap;
             point.y += deltaP1Gap;
 
-            points.push_back(GetPoint(point, cornerType));  // point_ A
+            points.emplace_back(std::move(GetPoint(point, cornerType)));  // point_ A
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            points.push_back(GetPoint(pointTemp, cornerType));  // point_ B
+            points.emplace_back(std::move(GetPoint(pointTemp, cornerType)));  // point_ B
 
             point.x += deltaP0Line;
             point.y += deltaP1Line;
 
             pointTemp.x = point.x + deltaP0Far;
             pointTemp.y = point.y + deltaP1Far;
-            points.push_back(GetPoint(pointTemp, cornerType));  // point_ D
-            points.push_back(GetPoint(point, cornerType));      // point_ C
+            points.emplace_back(std::move(GetPoint(pointTemp, cornerType)));  // point_ D
+            points.emplace_back(std::move(GetPoint(point, cornerType)));      // point_ C
         }
-        markingsPoints_.push_back(points);
+        markingsPoints_.emplace_back(std::move(points));
+
     }
 }
 
@@ -2755,9 +2757,11 @@ void Marking::FillPointsFromScales(Outline& outline, roadmanager::Repeat::Repeat
             for (size_t i = 0; i < cornerReferences.size() - 1; i++)
             {
                 double total_heading = GetAngleSum(repeatScales.hOffset, repeatScales.heading);
+                double x , y , z;
+                cornerReferences[i]->GetPosLocal(x, y, z);
                 double u2, v2;
-                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i])->GetU() * repeatScales.scale_x,
-                            static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i])->GetV() * repeatScales.scale_y,
+                RotateVec2D(x * repeatScales.scale_x,
+                            y * repeatScales.scale_y,
                             total_heading,
                             u2,
                             v2);
@@ -2766,8 +2770,9 @@ void Marking::FillPointsFromScales(Outline& outline, roadmanager::Repeat::Repeat
                 point1.y = repeatScales.y + v2;
 
                 double u3, v3;
-                RotateVec2D(static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i + 1])->GetU() * repeatScales.scale_x,
-                            static_cast<roadmanager::OutlineCornerLocal*>(cornerReferences[i + 1])->GetV() * repeatScales.scale_y,
+                cornerReferences[i + 1]->GetPosLocal(x, y, z);
+                RotateVec2D(x * repeatScales.scale_x,
+                            y * repeatScales.scale_y,
                             total_heading,
                             u3,
                             v3);
@@ -2781,53 +2786,8 @@ void Marking::FillPointsFromScales(Outline& outline, roadmanager::Repeat::Repeat
     }
 }
 
-void Marking::FillPointsFromRepeatsScales(Repeat& repeat, double length, double width)
+void Marking::FillPointsFromRepeatTransformationInfoDimensions(Repeat& repeat, const double length, const double width)
 {
-    for (const auto& repeatScale : repeat.GetRepeatScales())
-    {
-        Point2D point1;
-        Point2D point2;
-        if (GetSide() == RoadSide::LEFT)
-        {
-            // find local lower left corner
-            RotateVec2D(-(length * repeatScale.scale_x) / 2,
-                        -(width * repeatScale.scale_y) / 2,
-                        repeatScale.heading + repeatScale.hOffset,
-                        point1.x,
-                        point1.y);
-            // find local upper left corner
-            RotateVec2D(-(length * repeatScale.scale_x) / 2,
-                        (width * repeatScale.scale_y) / 2,
-                        repeatScale.heading + repeatScale.hOffset,
-                        point2.x,
-                        point2.y);
-            point1.x = repeatScale.x + point1.x;
-            point1.y = repeatScale.y + point1.y;
-            point2.x = repeatScale.x + point2.x;
-            point2.y = repeatScale.y + point2.y;
-            FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
-        }
-        else
-        {
-            // find local lower right corner
-            RotateVec2D((length * repeatScale.scale_x) / 2,
-                        -(width * repeatScale.scale_y) / 2,
-                        repeatScale.heading + repeatScale.hOffset,
-                        point1.x,
-                        point1.y);
-            // find local upper right corner
-            RotateVec2D((length * repeatScale.scale_x) / 2,
-                        (width * repeatScale.scale_y) / 2,
-                        repeatScale.heading + repeatScale.hOffset,
-                        point2.x,
-                        point2.y);
-            point1.x = repeatScale.x + point1.x;
-            point1.y = repeatScale.y + point1.y;
-            point2.x = repeatScale.x + point2.x;
-            point2.y = repeatScale.y + point2.y;
-            FillMarkingPoints(point1, point2, OutlineCorner::CornerType::LOCAL_CORNER);
-        }
-    }
     for (const auto& repeatDimension : repeat.GetRepeatDimensions())
     {
         Point2D point1;
@@ -2871,22 +2831,22 @@ void Marking::FillPointsFromRepeatsScales(Repeat& repeat, double length, double 
     }
 }
 
-void Marking::FillPointsFromObject(double s, double t, double length, double width, double objHOffset)
+void Marking::FillPointsFromObject(RMObject *object)
 {
     Point2D               point1;
     Point2D               point2;
     roadmanager::Position pos;
     pos.SetTrackPosMode(roadId_,
-                        s,
-                        t,
+                        object->GetS(),
+                        object->GetT(),
                         roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::P_REL |
                             roadmanager::Position::PosMode::R_REL);
     if (GetSide() == RoadSide::LEFT)
     {
         // find local lower left corner
-        RotateVec2D(-length / 2, -width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
+        RotateVec2D(-object->GetLength().Get() / 2, -object->GetWidth().Get() / 2, pos.GetH() + object->GetHOffset(), point1.x, point1.y);
         // find local upper left corner
-        RotateVec2D(-length / 2, width / 2, pos.GetH() + objHOffset, point2.x, point2.y);
+        RotateVec2D(-object->GetLength().Get() / 2, object->GetWidth().Get() / 2, pos.GetH() + object->GetHOffset(), point2.x, point2.y);
         point1.x = pos.GetX() + point1.x;
         point1.y = pos.GetY() + point1.y;
         point2.x = pos.GetX() + point2.x;
@@ -2896,9 +2856,9 @@ void Marking::FillPointsFromObject(double s, double t, double length, double wid
     else
     {
         // find local lower right corner
-        RotateVec2D(length / 2, -width / 2, pos.GetH() + objHOffset, point1.x, point1.y);
+        RotateVec2D(object->GetLength().Get() / 2, -object->GetWidth().Get() / 2, pos.GetH() + object->GetHOffset(), point1.x, point1.y);
         // find local upper right corner
-        RotateVec2D(length / 2, width / 2, pos.GetH() + objHOffset, point2.x, point2.y);
+        RotateVec2D(object->GetLength().Get() / 2, object->GetWidth().Get() / 2, pos.GetH() + object->GetHOffset(), point2.x, point2.y);
         point1.x = pos.GetX() + point1.x;
         point1.y = pos.GetY() + point1.y;
         point2.x = pos.GetX() + point2.x;
@@ -2962,7 +2922,7 @@ void Marking::FillPointsFromOutlines(std::vector<Outline>& outlines)
     }
 }
 
-void Marking::FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& outlinescopies)
+void Marking::FillPointsFromUniqueOutlines(std::vector<std::vector<Outline>>& outlinescopies)
 {
     for (auto& outlines : outlinescopies)
     {
@@ -2970,7 +2930,7 @@ void Marking::FillPointsFromOutlinesCopies(std::vector<std::vector<Outline>>& ou
     }
 }
 
-void Marking::FillPointsFromLocalOutlineRepeat(std::vector<Outline>& outlines, roadmanager::Repeat& repeat)
+void Marking::FillPointsFromLocalOutlineTransformationInfo(std::vector<Outline>& outlines, roadmanager::Repeat& repeat)
 {
     for (auto& outline : outlines)
     {
@@ -2989,11 +2949,11 @@ void Marking::CreateMarkingsPoints(RMObject* object)
         {
             if (object->GetNumberOfUniqueOutlines(repeat) > 0)  // road corner outline with repeat
             {
-                FillPointsFromOutlinesCopies(object->GetUniqueOutlines(repeat));
+                FillPointsFromUniqueOutlines(object->GetUniqueOutlines(repeat));
             }
             else if (object->GetNumberOfOutlines() > 0)  // local corner outline with repeat
             {
-                FillPointsFromLocalOutlineRepeat(object->GetOutlines(), repeat);
+                FillPointsFromLocalOutlineTransformationInfo(object->GetOutlines(), repeat);
             }
             else if (object->GetNumberOfUniqueOutlinesZeroDistance(repeat))  // non outline object with repeat distance 0 with no model
             {
@@ -3001,7 +2961,7 @@ void Marking::CreateMarkingsPoints(RMObject* object)
             }
             else  // non outline object with repeat distance greater than 0
             {
-                FillPointsFromRepeatsScales(repeat, object->GetLength().Get(), object->GetWidth().Get());
+                FillPointsFromRepeatTransformationInfoDimensions(repeat, object->GetLength().Get(), object->GetWidth().Get());
             }
         }
     }
@@ -3011,7 +2971,7 @@ void Marking::CreateMarkingsPoints(RMObject* object)
     }
     else  // no outline, no repeat
     {
-        FillPointsFromObject(object->GetS(), object->GetT(), object->GetLength().Get(), object->GetWidth().Get(), object->GetHOffset());
+        FillPointsFromObject(object);
     }
 }
 
@@ -3023,6 +2983,7 @@ std::vector<std::vector<Marking::Point3D>> Marking::GetMarkingsPoints(RMObject* 
     }
     return markingsPoints_;
 }
+
 void GetBoundingBoxFromCorners(const std::vector<std::vector<Outline::point>>& cornerPointsVector,
                                double&                                         length,
                                double&                                         width,
@@ -3428,7 +3389,7 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
 
             double scale_u = abs(cur_length / lengthOutline);
             double scale_v = abs(cur_width / widthOutline);
-            double scale_z = abs(cur_height / zOutline);
+            double scale_z = abs((cur_height + cur_z) / (zOutline + heightOutline));
             pos.SetTrackPosMode(GetRoadId(),
                                 repeat.GetS() + cur_s,
                                 repeat.GetTWithFactor(factor),
