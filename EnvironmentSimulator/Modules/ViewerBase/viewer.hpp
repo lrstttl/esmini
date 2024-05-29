@@ -632,8 +632,9 @@ namespace viewer
         }
 
         void Frame();
-
+        // Gives dimension for viewer
         static double GetViewerDimension(const esmini::DimensionComponent component);
+        // Gives dimension for viewer
         static double GetViewerDimension(const double val);
         struct ViewerObjectDetail
         {
@@ -656,34 +657,38 @@ namespace viewer
         };
 
     private:
-        const osg::BoundingBox CalculateBoundingBox(osg::Node* node);
-        // Update object from given object and scales
-        void UpdateObject(const Viewer::ViewerObjectDetail& objectDetails, osg::ref_ptr<osg::PositionAttitudeTransform> tx);
-        void AddObject(roadmanager::RMObject*                       object,
+        // Get bounding box from the given 3D model node
+        const osg::BoundingBox GetBoundingBox(osg::Node* node);
+        // Update model from given object and scales eg. Set position, scale, rotation
+        void UpdateModel(const Viewer::ViewerObjectDetail& objectDetails, osg::ref_ptr<osg::PositionAttitudeTransform> tx);
+        // Add model to the given graphics group
+        void AddModel(roadmanager::RMObject*                       object,
                        osg::ref_ptr<osg::PositionAttitudeTransform> tx,
                        osg::ref_ptr<osg::Group>                     objGroup);
+        // validate and throw warning only if viewer default value used
         void ValidateDimensionsForViewing(roadmanager::RMObject& object) const;
-        // based on what dimensions user has provided, update original object and/or scale for model
+        // Update RM object and get scale only if RM object cant be updated. eg. respect RM object dimension
         void UpdateObjectDimensionsAndGetScale(const osg::BoundingBox& boundingBox,
                                                roadmanager::RMObject*  object,
                                                double&                 scale_x,
                                                double&                 scale_y,
                                                double&                 scale_z);
-
-        osg::ref_ptr<osg::ShapeDrawable> CreateBoxShapeObject(roadmanager::RMObject* object) const;
+        // get box shaped model based on given object dimension
+        osg::ref_ptr<osg::ShapeDrawable> GetBoxShapeModel(roadmanager::RMObject* object) const;
         bool                             CreateRoadLines(roadmanager::OpenDrive* od);
         bool                             CreateRoadMarkLines(roadmanager::OpenDrive* od);
-        int                              CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
-        // create unique objects
-        void CreateOutlinesObject(std::vector<roadmanager::Outline>& Outlines, osg::Vec4 color, bool isMarkingAvailable);
-        // create unique objects
+        // create outline shape model for given outline
+        int                              CreateOutlineModel(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable);
+        // Loop each outline and create outline shape model for each outline
+        void CreateOutlinesModel(std::vector<roadmanager::Outline>& Outlines, osg::Vec4 color, bool isMarkingAvailable);
+        // Loop each outline and create outline shape model for each outline e.g for atleast one corner as road corner in any of outlines
         void CreateUniqueModels(roadmanager::RMObject* object);
-        // create one unique object and remaining as shallow copies
+        // create one unique model and remaining as shallow copies
         void  CreateShallowCopyModels(roadmanager::RMObject* object);
-        // create one unique object with local coordinates or world coordinates depends on UseLocalDim
+        // create one unique model with local coordinates or world coordinates depends on UseLocalDim
         void CreateOutlineModel(roadmanager::Outline& outline, osg::Vec4 color, bool UseLocalDim, osg::ref_ptr<osg::Geode> geode);
         // change viewer object as wireframe for better marking view
-        void ChangeObjectAsWireFrame(osg::ref_ptr<osg::Geode> geode, bool isMarkingAvailable);
+        void ChangeModelAsWireFrame(osg::ref_ptr<osg::Geode> geode, bool isMarkingAvailable);
         // create marking for the object
         int  DrawMarking(roadmanager::RMObject* object);
         // load and return the model for this given model name

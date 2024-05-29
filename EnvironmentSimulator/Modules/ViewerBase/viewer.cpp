@@ -3090,7 +3090,7 @@ void Viewer::CreateOutlineModel(roadmanager::Outline& outline, osg::Vec4 color, 
     geode->getOrCreateStateSet()->setAttributeAndModes(material_.get());
 }
 
-void Viewer::ChangeObjectAsWireFrame(osg::ref_ptr<osg::Geode> geode, bool isMarkingAvailable)
+void Viewer::ChangeModelAsWireFrame(osg::ref_ptr<osg::Geode> geode, bool isMarkingAvailable)
 {
     if (isMarkingAvailable)  // draw outlink marking
     {
@@ -3129,18 +3129,18 @@ void Viewer::CreateShallowCopyModels(roadmanager::RMObject* object)
             xform->setAttitude(quatLocal * quatRoad);
             envTx_->addChild(xform);
         }
-        ChangeObjectAsWireFrame(geode, object->GetNumberOfMarkings() > 0);
+        ChangeModelAsWireFrame(geode, object->GetNumberOfMarkings() > 0);
     }
 }
 
-int Viewer::CreateOutlineObject(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable)
+int Viewer::CreateOutlineModel(roadmanager::Outline& outline, osg::Vec4 color, bool isMarkingAvailable)
 {
     osg::ref_ptr<osg::Geode>    geode  = new osg::Geode;
     CreateOutlineModel(outline, color, false, geode); // create outline model
     osg::ref_ptr<osg::Group> group    = new osg::Group();
     group->addChild(geode);
     envTx_->addChild(group);
-    ChangeObjectAsWireFrame(geode, isMarkingAvailable);
+    ChangeModelAsWireFrame(geode, isMarkingAvailable);
     return 0;
 }
 
@@ -3243,11 +3243,11 @@ int Viewer::CreateRoadSignals(osg::ref_ptr<osg::Group> objGroup, std::vector<roa
     return 0;
 }
 
-void Viewer::CreateOutlinesObject(std::vector<roadmanager::Outline>& Outlines, osg::Vec4 color, bool isMarkingAvailable)
+void Viewer::CreateOutlinesModel(std::vector<roadmanager::Outline>& Outlines, osg::Vec4 color, bool isMarkingAvailable)
 {
     for (auto& outline : Outlines)
     {
-        CreateOutlineObject(outline, color, isMarkingAvailable);
+        CreateOutlineModel(outline, color, isMarkingAvailable);
     }
 }
 
@@ -3257,18 +3257,16 @@ void Viewer::CreateUniqueModels(roadmanager::RMObject* object)
     {
         for (auto& outlines : object->GetUniqueOutlines(repeat))
         {
-            CreateOutlinesObject(outlines, GetObjectColor(object->GetType()), object->GetNumberOfMarkings() > 0);
+            CreateOutlinesModel(outlines, GetObjectColor(object->GetType()), object->GetNumberOfMarkings() > 0);
         }
     }
 }
 
-// Gives dimension for viewer
 double Viewer::GetViewerDimension(const esmini::DimensionComponent component)
 {
     return std::max(component.Get(), DEFAULT_MIN_DIM);
 }
 
-// Gives dimension for viewer
 double Viewer::GetViewerDimension(const double val)
 {
     return std::max(val, DEFAULT_MIN_DIM);
@@ -3312,8 +3310,7 @@ void Viewer::ValidateDimensionsForViewing(roadmanager::RMObject& object) const
     }
 }
 
-// calculate and return bounding from the given 3D model node
-const osg::BoundingBox Viewer::CalculateBoundingBox(osg::Node* node)
+const osg::BoundingBox Viewer::GetBoundingBox(osg::Node* node)
 {
     osg::BoundingBox          boundingBox;
     osg::ComputeBoundsVisitor cbv;
@@ -3350,7 +3347,7 @@ void Viewer::UpdateObjectDimensionsAndGetScale(const osg::BoundingBox& boundingB
 }
 
 // create a bounding box to represent the given object
-osg::ref_ptr<osg::ShapeDrawable> Viewer::CreateBoxShapeObject(roadmanager::RMObject* object) const
+osg::ref_ptr<osg::ShapeDrawable> Viewer::GetBoxShapeModel(roadmanager::RMObject* object) const
 {
     // avoid zero width, length and width - set to a minimum value of 0.05m
     osg::ref_ptr<osg::ShapeDrawable> shape =
@@ -3415,7 +3412,7 @@ Viewer::ViewerObjectDetail Viewer::ViewerObjectDetail::copy(const roadmanager::R
 }
 
 // create object from given object and repeat dimension
-void Viewer::UpdateObject(const Viewer::ViewerObjectDetail& objectDetails, osg::ref_ptr<osg::PositionAttitudeTransform> clone)
+void Viewer::UpdateModel(const Viewer::ViewerObjectDetail& objectDetails, osg::ref_ptr<osg::PositionAttitudeTransform> clone)
 {
     clone->getOrCreateStateSet()->setMode(GL_RESCALE_NORMAL, osg::StateAttribute::ON);
     clone->setScale(osg::Vec3d(objectDetails.scale_x, objectDetails.scale_y, objectDetails.scale_z));
@@ -3431,7 +3428,7 @@ void Viewer::UpdateObject(const Viewer::ViewerObjectDetail& objectDetails, osg::
 }
 
 // create object from given object and scales
-void Viewer::AddObject(roadmanager::RMObject*                       object,
+void Viewer::AddModel(roadmanager::RMObject*                       object,
                        osg::ref_ptr<osg::PositionAttitudeTransform> tx,
                        osg::ref_ptr<osg::Group>                     objGroup)
 {
@@ -3464,7 +3461,7 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
         {
             // create a bounding box to represent the object
             tx = new osg::PositionAttitudeTransform;
-            tx->addChild(CreateBoxShapeObject(object));
+            tx->addChild(GetBoxShapeModel(object));
 
             for (auto& repeat : object->GetRepeats())
             {
@@ -3475,19 +3472,19 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
                         osg::ref_ptr<osg::PositionAttitudeTransform> clone =
                             tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY))
                                           : nullptr;  // create shollow copy
-                        UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
-                        AddObject(object, clone, objGroup);
+                        UpdateModel(objectDeatil.copy(object, repeatDimension), clone);
+                        AddModel(object, clone, objGroup);
                     }
                 }
                 else  // repeat with zero distance
                 {
-                    CreateOutlinesObject(object->GetUniqueOutlinesZeroDistance(repeat), color, object->GetNumberOfMarkings() > 0);
+                    CreateOutlinesModel(object->GetUniqueOutlinesZeroDistance(repeat), color, object->GetNumberOfMarkings() > 0);
                 }
             }
         }
         else
         {
-            osg::BoundingBox boundingBox = CalculateBoundingBox(tx.get());
+            osg::BoundingBox boundingBox = GetBoundingBox(tx.get());
             object->GetLength().SetIfNot(boundingBox._max.x() - boundingBox._min.x());  // update object dim from model
             object->GetWidth().SetIfNot(boundingBox._max.y() - boundingBox._min.y());
             object->GetHeight().SetIfNot(boundingBox._max.z() - boundingBox._min.z());
@@ -3498,8 +3495,8 @@ void Viewer::CreateRepeatObject(roadmanager::RMObject* object, osg::ref_ptr<osg:
                     osg::ref_ptr<osg::PositionAttitudeTransform> clone =
                         tx != nullptr ? dynamic_cast<osg::PositionAttitudeTransform*>(tx->clone(osg::CopyOp::SHALLOW_COPY))
                                       : nullptr;  // create shollow copy
-                    UpdateObject(objectDeatil.copy(object, repeatDimension), clone);
-                    AddObject(object, clone, objGroup);
+                    UpdateModel(objectDeatil.copy(object, repeatDimension), clone);
+                    AddModel(object, clone, objGroup);
                 }
             }
         }
@@ -3538,20 +3535,20 @@ int Viewer::CreateRoadSignsAndObjects(roadmanager::OpenDrive* od)
                     {
                         // create a bounding box to represent the object
                         tx = new osg::PositionAttitudeTransform;
-                        tx->addChild(CreateBoxShapeObject(object));
+                        tx->addChild(GetBoxShapeModel(object));
                     }
                     else  // model loaded
                     {
-                        osg::BoundingBox boundingBox = CalculateBoundingBox(tx.get());
+                        osg::BoundingBox boundingBox = GetBoundingBox(tx.get());
                         UpdateObjectDimensionsAndGetScale(boundingBox, object, scale_x, scale_y, scale_z);
                     }
                     ValidateDimensionsForViewing(*object);
-                    UpdateObject(objectDeatil.copy(object, scale_x, scale_y, scale_z), tx);  // update object with position and scale
-                    AddObject(object, tx, objGroup);
+                    UpdateModel(objectDeatil.copy(object, scale_x, scale_y, scale_z), tx);  // update object with position and scale
+                    AddModel(object, tx, objGroup);
                 }
                 else  // outlines
                 {
-                    CreateOutlinesObject(object->GetOutlines(), color, object->GetNumberOfMarkings() > 0);
+                    CreateOutlinesModel(object->GetOutlines(), color, object->GetNumberOfMarkings() > 0);
                     LOG("Created outline geometry for object %s.", object->GetName().c_str());
                     LOG("  if it looks strange, e.g.faces too dark or light color, ");
                     LOG("  check that corners are defined counter-clockwise (as OpenGL default).");

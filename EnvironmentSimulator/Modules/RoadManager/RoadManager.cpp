@@ -3174,18 +3174,20 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
     if (repeatLength > SMALL_NUMBER)
     {
         double cur_s = 0.0;
-        // transform all the corner as local to find the combined bb
-        std::vector<std::vector<Outline::point>> localPoints = GetLocalPointsFromOutlines();
+        // get all points from outlines
+        std::vector<std::vector<Outline::point>> points = GetPointsFromOutlines();
         // Now all local points are availbel, find the bb from the corner
         double lengthOutline;
         double widthOutline;
         double zOutline;
         double heightOutline;
-        GetBoundingBoxFromCorners(localPoints, lengthOutline, widthOutline, zOutline, heightOutline);
+        GetBoundingBoxFromCorners(points, lengthOutline, widthOutline, zOutline, heightOutline);
         double cur_length = lengthOutline;
         double cur_width  = widthOutline;
         double cur_z      = zOutline;
         double cur_height = heightOutline;
+        // transform all the corner as local to find the combined bb
+        std::vector<std::vector<Outline::point>> localPoints = GetLocalPointsFromOutlines();
         while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
         {
             double       factor  = cur_s / repeatLength;
@@ -3273,6 +3275,8 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
                     }
 
                     double         start_s = repeat.GetS() + cur_s + x_to_add;
+                    // double         start_t = GetT() + repeat.GetTWithFactor(factor) + y_to_add;
+                    // double         start_t = repeat.GetTWithFactor(factor) + y_to_add;
                     double         start_t = repeat.GetTStart() + y_to_add;
                     double         start_z = z_to_add;
                     double         start_h = h_to_add;
@@ -3286,6 +3290,7 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
                                                                         start_h,
                                                                         cur_s,
                                                                         repeat.GetTStart(),
+                                                                        // repeat.GetTWithFactor(factor),
                                                                         GetHOffset(),
                                                                         corner_original->GetCornerId()));
                     }
@@ -3293,8 +3298,8 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
                     {
                         OutlineCornerLocal* localCorner = static_cast<OutlineCornerLocal*>(corner_original);
                         corner                          = (OutlineCorner*)(new OutlineCornerLocal(GetRoadId(),
-                                                                         GetS() + cur_s,
-                                                                         GetT(),
+                                                                         repeat.GetS() + cur_s,
+                                                                         repeat.GetTWithFactor(factor),
                                                                          localCorner->GetU() * scale_u,
                                                                          localCorner->GetV() * scale_v,
                                                                          localCorner->GetZ() * scale_z,
@@ -3353,7 +3358,7 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
     if (repeatLength > SMALL_NUMBER)
     {
         // transform all the corner as local to find the combined bb
-        std::vector<std::vector<Outline::point>> localPointsList = GetLocalPointsFromOutlines();
+        std::vector<std::vector<Outline::point>> localPointsList = GetPointsFromOutlines();
         // Now all local points are availbel, find the bb from the corner
         double lengthOutline;
         double widthOutline;
@@ -3389,7 +3394,7 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
 
             double scale_u = abs(cur_length / lengthOutline);
             double scale_v = abs(cur_width / widthOutline);
-            double scale_z = abs((cur_height + cur_z) / (zOutline + heightOutline));
+            double scale_z = abs(cur_height) / (zOutline + heightOutline);
             pos.SetTrackPosMode(GetRoadId(),
                                 repeat.GetS() + cur_s,
                                 repeat.GetTWithFactor(factor),
@@ -3421,11 +3426,46 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
     }
 }
 
+std::vector<std::vector<Outline::point>> RMObject::GetPointsFromOutlines()
+{
+    // transform all the corner as local to find the combined bb
+    std::vector<std::vector<Outline::point>> localPointsList;  // store one entry for each outline
+    for (auto& outlineOriginal : GetOutlines())
+    {
+        std::vector<Outline::point> localPoints;  // store corners of one outline
+        localPoints.reserve(outlineOriginal.corner_.size());
+        OutlineCorner::CornerType cornerType = outlineOriginal.corner_[0]->GetCornerType();
+        for (const auto& corner : outlineOriginal.corner_)
+        {
+            Outline::point point;
+            if (cornerType == OutlineCorner::CornerType::LOCAL_CORNER)  // check first corner
+            {
+                OutlineCornerLocal* localCorner = static_cast<OutlineCornerLocal*>(corner);
+                point.x = localCorner->GetU();  // u and v not transformed to x and y yet. just storing as x and y for future processing
+                point.y = localCorner->GetV();
+                point.z = corner->GetZ();
+                point.h = corner->GetHeight();
+                localPoints.emplace_back(std::move(point));
+            }
+            else
+            {
+                OutlineCornerRoad* roadCorner = static_cast<OutlineCornerRoad*>(corner);
+                point.x                       = roadCorner->GetS();  // s and t not transformed to x and y yet. just storing as x and y for future processing
+                point.y                       = roadCorner->GetT();
+                point.z                       = corner->GetZ();
+                point.h                       = corner->GetHeight();
+                localPoints.emplace_back(std::move(point));  // this is not transformed to local yet, Shall be tranformed below after finding minX
+            }
+        }
+        localPointsList.emplace_back(std::move(localPoints));
+    }
+    return localPointsList;
+}
+
 std::vector<std::vector<Outline::point>> RMObject::GetLocalPointsFromOutlines()
 {
     // transform all the corner as local to find the combined bb
     std::vector<std::vector<Outline::point>> localPointsList;  // store one entry for each outline
-    bool                                     createShallowCopy = true;
     for (auto& outlineOriginal : GetOutlines())
     {
         std::vector<Outline::point> localPoints;  // store corners of one outline
@@ -3446,8 +3486,7 @@ std::vector<std::vector<Outline::point>> RMObject::GetLocalPointsFromOutlines()
             else
             {
                 outlineOriginal.TransformRoadCornerToLocal(localPoints);
-                createShallowCopy = false;  // dont create shallow copy if raod corner present any of outline
-                break;
+                OutlineCornerRoad* roadCorner = static_cast<OutlineCornerRoad*>(corner);
             }
         }
         localPointsList.emplace_back(std::move(localPoints));
