@@ -492,12 +492,17 @@ void FollowTrajectoryAction::ReplaceObjectRefs(Object* obj1, Object* obj2)
 void AcquirePositionAction::Start(double simTime)
 {
     // Resolve route
-    route_.reset(new roadmanager::Route);
+    if (route_ != nullptr)
+    {
+        delete route_;
+        route_ = nullptr;
+    }
+    route_ = new roadmanager::Route;
     route_->setName("AcquirePositionRoute");
     route_->setObjName(object_->GetName());
 
-    route_->AddWaypoint(&object_->pos_);
-    route_->AddWaypoint(target_position_);
+    route_->AddWaypoint(object_->pos_);
+    route_->AddWaypoint(*target_position_);
 
     object_->pos_.SetRoute(route_);
     object_->SetDirtyBits(Object::DirtyBit::ROUTE);
@@ -678,7 +683,7 @@ void LatLaneChangeAction::Start(double simTime)
     else if (target_->type_ == Target::Type::RELATIVE_LANE)
     {
         // Find out target lane relative referred vehicle
-        Object* ref_entity = (static_cast<TargetRelative*>(target_.get()))->object_;
+        Object* ref_entity = (static_cast<TargetRelative*>(target_))->object_;
         if (ref_entity != nullptr)
         {
             target_lane_id_ = ref_entity->pos_.GetLaneId() + target_->value_ * (IsAngleForward(ref_entity->pos_.GetHRelative()) ? 1 : -1);
@@ -845,9 +850,9 @@ void LatLaneChangeAction::ReplaceObjectRefs(Object* obj1, Object* obj2)
 
     if (target_->type_ == Target::Type::RELATIVE_LANE)
     {
-        if ((static_cast<TargetRelative*>(target_.get()))->object_ == obj1)
+        if ((static_cast<TargetRelative*>(target_))->object_ == obj1)
         {
-            (static_cast<TargetRelative*>(target_.get()))->object_ = obj2;
+            (static_cast<TargetRelative*>(target_))->object_ = obj2;
         }
     }
 }
@@ -1778,7 +1783,7 @@ void TeleportAction::Start(double simTime)
     }
 
     // consider any assigned route for relative positions
-    position_->CopyRouteSharedPtr(&object_->pos_);
+    position_->CopyRoute(object_->pos_);
     object_->pos_.TeleportTo(position_);
 
     if (!object_->TowVehicle() && object_->TrailerVehicle())

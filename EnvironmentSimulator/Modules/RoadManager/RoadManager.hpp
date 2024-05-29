@@ -3048,7 +3048,12 @@ namespace roadmanager
         explicit Position(int track_id, int lane_id, double s, double offset);
         explicit Position(double x, double y, double z, double h, double p, double r);
         explicit Position(double x, double y, double z, double h, double p, double r, bool calculateTrackPosition);
+        Position(const Position& other);
+        Position(Position&& other);
+        Position& operator=(const Position& other);
+        Position& operator=(Position&& other);
         ~Position();
+        void Duplicate(const Position& other);
 
         void              Init();
         static bool       LoadOpenDrive(const char *filename);
@@ -3222,20 +3227,18 @@ namespace roadmanager
 
         void EvaluateRelation(bool release = false);
 
-        int          SetRoute(std::shared_ptr<Route> route);
+        int          SetRoute(Route* route);
         int          CalcRoutePosition();
         const Route *GetRoute() const
         {
-            return route_.get();
+            return route_;
         }
         Route *GetRoute()
         {
-            return route_.get();
+            return route_;
         }
-        void CopyRouteSharedPtr(Position *position)
-        {
-            route_ = position->route_;
-        }
+        void CopyRoute(const Position& position);
+
         RMTrajectory *GetTrajectory()
         {
             return trajectory_;
@@ -3967,6 +3970,10 @@ namespace roadmanager
             double dr     = 0.0;
         } relative_;
 
+        // route reference
+        Route* route_;  // if pointer set, the position corresponds to a point along (s) the route
+
+
     protected:
         void       Track2Lane();
         ReturnCode Track2XYZ();
@@ -3989,9 +3996,6 @@ namespace roadmanager
 
         // Control lane belonging
         bool lockOnLane_;  // if true then keep logical lane regardless of lateral position, default false
-
-        // route reference
-        std::shared_ptr<Route> route_;  // if pointer set, the position corresponds to a point along (s) the route
 
         // trajectory reference
         RMTrajectory *trajectory_;  // if pointer set, the position corresponds to a point along (s) the trajectory
@@ -4080,7 +4084,7 @@ namespace roadmanager
         @param position A regular position created with road, lane or world coordinates
         @return Non zero return value indicates error of some kind
         */
-        int AddWaypoint(Position *position);
+        int AddWaypoint(const Position& position);
 
         /**
         Return direction Adds a waypoint to the route. One waypoint per road. At most one junction between waypoints.

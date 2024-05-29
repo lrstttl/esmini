@@ -224,7 +224,7 @@ void OSCPositionRelativeRoad::Print()
     object_->pos_.Print();
 }
 
-OSCPositionRoute::OSCPositionRoute(std::shared_ptr<roadmanager::Route> route, double s, int laneId, double laneOffset)
+OSCPositionRoute::OSCPositionRoute(roadmanager::Route* route, double s, int laneId, double laneOffset)
 {
     (void)s;
     (void)laneId;

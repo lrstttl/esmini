@@ -42,7 +42,7 @@ set(ENABLE_COVERAGE
           "Enable code coverage (Will force no optimizations)")
 
 set(ENABLE_SANITIZERS
-    OFF
+    ON
     CACHE BOOL
           "Enable sanitizers (Only valid for Linux and Mac OS)")
 
@@ -57,7 +57,7 @@ set(ENABLE_INCLUDE_WHAT_YOU_USE
           "Enable iwyu")
 
 set(USE_OSG
-    ON
+    OFF
     CACHE BOOL
           "If projects that depend on osg should be compiled.")
 
@@ -90,6 +90,11 @@ set(ESMINI_BUILD_VERSION
     "N/A - client build"
     CACHE STRING
           "Esmini CI Build Version")
+
+set(CMAKE_BUILD_TYPE
+    "Debug"
+    CACHE STRING
+           "build mode")
 
 # ############################### Setting project rules ############################################################
 

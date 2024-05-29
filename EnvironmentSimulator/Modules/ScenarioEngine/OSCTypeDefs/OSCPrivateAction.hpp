@@ -551,7 +551,7 @@ namespace scenarioengine
             }
         };
 
-        std::shared_ptr<Target> target_;
+        Target* target_;
         TransitionDynamics      transition_;
         double                  target_lane_offset_;
 
@@ -580,6 +580,15 @@ namespace scenarioengine
         {
             LatLaneChangeAction* new_action = new LatLaneChangeAction(*this);
             return new_action;
+        }
+
+        ~LatLaneChangeAction()
+        {
+            if (target_ != nullptr)
+            {
+                delete target_;
+                target_ = nullptr;
+            }
         }
 
         std::string Type2Str()
@@ -938,7 +947,16 @@ namespace scenarioengine
     class AssignRouteAction : public OSCPrivateAction
     {
     public:
-        std::shared_ptr<roadmanager::Route> route_;
+        roadmanager::Route* route_;
+
+        ~AssignRouteAction()
+        {
+            if (route_ != nullptr)
+            {
+                delete route_;
+                route_ = nullptr;
+            }
+        }
 
         AssignRouteAction(StoryBoardElement* parent)
             : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, parent, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE)),
@@ -947,10 +965,10 @@ namespace scenarioengine
         }
 
         AssignRouteAction(const AssignRouteAction& action)
-            : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE))
+            : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE)), route_(0)
         {
             SetName(action.GetName());
-            route_ = action.route_;
+            route_->CopyFrom(*action.route_);
         }
 
         OSCPrivateAction* Copy()
@@ -1045,7 +1063,16 @@ namespace scenarioengine
     public:
         std::shared_ptr<OSCPosition>        target_position_OSCPosition_;
         roadmanager::Position*              target_position_;
-        std::shared_ptr<roadmanager::Route> route_;
+        roadmanager::Route* route_;
+
+        ~AcquirePositionAction()
+        {
+            if (route_ != nullptr)
+            {
+                delete route_;
+                route_ = nullptr;
+            }
+        }
 
         AcquirePositionAction(StoryBoardElement* parent)
             : OSCPrivateAction(OSCPrivateAction::ActionType::Acquire_POSITION, parent, static_cast<unsigned int>(ControlDomains::DOMAIN_LONG)),
@@ -1055,7 +1082,9 @@ namespace scenarioengine
         }
 
         AcquirePositionAction(const AcquirePositionAction& action)
-            : OSCPrivateAction(OSCPrivateAction::ActionType::Acquire_POSITION, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_LONG))
+            : OSCPrivateAction(OSCPrivateAction::ActionType::Acquire_POSITION, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_LONG)),               
+            target_position_(0),
+            route_(0)
         {
             SetName(action.GetName());
             target_position_OSCPosition_ = action.target_position_OSCPosition_;

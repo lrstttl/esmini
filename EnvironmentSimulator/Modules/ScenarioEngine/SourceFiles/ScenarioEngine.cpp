@@ -885,7 +885,7 @@ void ScenarioEngine::prepareGroundTruth(double dt)
         double friction_global = roadmanager::Position::GetOpenDrive()->GetFriction();
 
         roadmanager::Position wp;
-        wp.CopyRMPos(&obj->pos_);
+        wp.Duplicate(obj->pos_);
 
         if (std::isnan(friction_global))
         {
