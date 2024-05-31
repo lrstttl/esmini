@@ -1875,7 +1875,7 @@ namespace roadmanager
             double z;
             double h;
         };
-        void TransformRoadCornerToLocal(std::vector<Outline::point> &localPointsList);
+        void TransformRoadCornerToLocal(std::vector<Outline::point> &localPointsList, bool RemoveMin);
     };
 
     class ParkingSpace
@@ -2585,6 +2585,8 @@ namespace roadmanager
         std::vector<std::vector<Outline::point>>                  GetLocalPointsFromOutlines();
         // check whether all corners in all outlines are local, In which each all outlines shall have same shape. Hence e.g. shallow copies is possible
         bool                                                      IsAllCornersLocal();
+        // check whether all outlines not have same corner type
+        bool                                                      IsMixedCorners();
 
         // Get length from repeat given factor. Priority 1.repeat start - end length, 2.Object length, 3.Zero
         double                                                    GetRepeatLengthWithFactor(Repeat &rep, double factor);
@@ -2594,6 +2596,7 @@ namespace roadmanager
         double                                                    GetRepeatZOffsetWithFactor(Repeat &rep, double factor);
         // Get height from repeat given factor. Priority 1.repeat start - end height, 2.Object height, 3.Zero
         double                                                    GetRepeatHeightWithFactor(Repeat &rep, double factor);
+        void TransformToLocal(std::vector<std::vector<Outline::point>>& localPoints);
 
     private:
         std::string                name_;
