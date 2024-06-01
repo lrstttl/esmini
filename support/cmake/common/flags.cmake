@@ -20,7 +20,7 @@ macro(set_special_build_flags)
            STREQUAL
            "Release")
             set(CMAKE_CXX_FLAGS
-                "${CXX_STD_FLAG} -pthread -fPIC -Wl,-strip-all")
+                "${CXX_STD_FLAG} -pthread -fPIC -Wl,-g")
         elseif(
             CMAKE_BUILD_TYPE
             STREQUAL

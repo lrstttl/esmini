@@ -709,7 +709,7 @@ void ScenarioEngine::prepareGroundTruth(double dt)
         {
             if (o->dirty_ & (Object::DirtyBit::LATERAL | Object::DirtyBit::LONGITUDINAL))
             {
-                obj->pos_ = o->state_.pos;
+                obj->pos_.Duplicate(o->state_.pos);
                 obj->SetDirtyBits(o->dirty_ & (Object::DirtyBit::LATERAL | Object::DirtyBit::LONGITUDINAL));
             }
             if (o->dirty_ & Object::DirtyBit::ACCELERATION)
@@ -732,6 +732,11 @@ void ScenarioEngine::prepareGroundTruth(double dt)
                 obj->wheel_rot_ = o->state_.info.wheel_rot;
                 obj->SetDirtyBits(Object::DirtyBit::WHEEL_ROTATION);
             }
+            // if (o->dirty_ & Object::DirtyBit::ALIGN_MODE_Z_UPDATE)
+            // {
+            //     obj->pos_.SetMode(roadmanager::Position::PosModeType::UPDATE, o->state_.) = o->state_.info.wheel_rot;
+            //     obj->SetDirtyBits(Object::DirtyBit::WHEEL_ROTATION);
+            // }
         }
 
         // Calculate resulting updated velocity, acceleration and heading rate (rad/s) NOTE: in global coordinate sys
@@ -885,7 +890,7 @@ void ScenarioEngine::prepareGroundTruth(double dt)
         double friction_global = roadmanager::Position::GetOpenDrive()->GetFriction();
 
         roadmanager::Position wp;
-        wp.CopyRMPos(&obj->pos_);
+        wp.Duplicate(obj->pos_);
 
         if (std::isnan(friction_global))
         {

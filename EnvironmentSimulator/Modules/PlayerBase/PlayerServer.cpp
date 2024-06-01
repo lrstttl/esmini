@@ -178,14 +178,14 @@ namespace scenarioengine
         {
             LatLaneChangeAction::TargetAbsolute *target = new LatLaneChangeAction::TargetAbsolute;
             target->value_                              = action.target;
-            a->target_.reset(target);
+            a->target_ = target;
         }
         else
         {
             LatLaneChangeAction::TargetRelative *target = new LatLaneChangeAction::TargetRelative;
             target->object_                             = a->object_;
             target->value_                              = action.target;
-            a->target_.reset(target);
+            a->target_ = target;
         }
 
         AddAction(a);

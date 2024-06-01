@@ -20,14 +20,13 @@ static void SetPositionModesGeneric(roadmanager::Position &position, OSCOrientat
     // if set, then read or calculate absolute value
     // if not set, indicate it should be aligned with road
     // keep relative status for positions which relates to objects, to be resolved at a later time
-    position.SetModes(static_cast<int>(roadmanager::Position::PosModeType::SET) |
-                          (relative_object ? 0 : static_cast<int>(roadmanager::Position::PosModeType::INIT)),
+    position.SetModes(static_cast<int>(roadmanager::Position::PosModeType::INIT),
                       roadmanager::Position::PosMode::Z_REL |
                           (std::isnan(orientation.h_) ? roadmanager::Position::PosMode::H_REL : roadmanager::Position::PosMode::H_ABS) |
                           (std::isnan(orientation.p_) ? roadmanager::Position::PosMode::P_REL : roadmanager::Position::PosMode::P_ABS) |
                           (std::isnan(orientation.r_) ? roadmanager::Position::PosMode::R_REL : roadmanager::Position::PosMode::R_ABS));
 
-    // Set how position should be update wrt road
+    // Set how position should be update wrt road based on orientation attributes
     // if relative, object will be aligned with relative values
     // if absolute, road geometry will be ignored
     // if not set, then assume full alignment (relative value = 0)
@@ -224,7 +223,7 @@ void OSCPositionRelativeRoad::Print()
     object_->pos_.Print();
 }
 
-OSCPositionRoute::OSCPositionRoute(std::shared_ptr<roadmanager::Route> route, double s, int laneId, double laneOffset)
+OSCPositionRoute::OSCPositionRoute(roadmanager::Route* route, double s, int laneId, double laneOffset)
 {
     (void)s;
     (void)laneId;

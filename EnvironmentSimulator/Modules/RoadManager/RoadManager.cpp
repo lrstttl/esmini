@@ -6207,8 +6207,111 @@ Position::Position(double x, double y, double z, double h, double p, double r, b
     SetInertiaPos(x, y, z, h, p, r, calculateTrackPosition);
 }
 
+Position::Position(const Position& other)
+{
+    Init();
+    Duplicate(other);
+}
+
+Position& Position::operator=(const Position& other)
+{
+    Init();
+    this->Duplicate(other);
+    return *this;
+}
+
 Position::~Position()
 {
+}
+
+Position::Position(Position&& other)
+{
+    Duplicate(other);
+    if (other.route_ != nullptr)
+    {
+        delete other.route_;
+        other.route_ = nullptr;
+    }    
+}
+
+Position& Position::operator=(Position&& other)
+{
+    this->Duplicate(other);
+    if (route_ != nullptr)
+    {
+        delete route_;
+        route_ = nullptr;
+    }    
+    return *this;
+}
+
+void Position::Duplicate(const Position& from)
+{
+    if (this == &from)
+    {
+        return;
+    }
+
+    // copy only specific fields
+    x_                      = from.x_;
+    y_                      = from.y_;
+    z_                      = from.z_;
+    h_                      = from.h_;
+    p_                      = from.p_;
+    r_                      = from.r_;
+    h_relative_             = from.h_relative_;
+    p_relative_             = from.p_relative_;
+    r_relative_             = from.r_relative_;
+    z_relative_             = from.z_relative_;
+    h_road_                 = from.h_road_;
+    p_road_                 = from.p_road_;
+    r_road_                 = from.r_road_;
+    s_                      = from.s_;
+    t_                      = from.t_;
+    track_id_               = from.track_id_;
+    lane_id_                = from.lane_id_;
+    offset_                 = from.offset_;
+    curvature_              = from.curvature_;
+    elevation_idx_          = from.elevation_idx_;
+    track_idx_              = from.track_idx_;
+    lane_idx_               = from.lane_idx_;
+    geometry_idx_           = from.geometry_idx_;
+    z_road_                 = from.z_road_;
+    z_roadPrim_             = from.z_roadPrim_;
+    z_roadPrimPrim_         = from.z_roadPrimPrim_;
+    z_relative_             = from.z_relative_;
+    h_offset_               = from.h_offset_;
+    lane_section_idx_       = from.lane_section_idx_;
+    osi_point_idx_          = from.osi_point_idx_;
+    roadmarkline_idx_       = from.roadmarkline_idx_;
+    roadmarktype_idx_       = from.roadmarktype_idx_;
+    roadmark_idx_           = from.roadmark_idx_;
+    roadSuperElevationPrim_ = from.roadSuperElevationPrim_;
+    mode_init_              = from.mode_init_;
+    mode_set_               = from.mode_set_;
+    mode_update_            = from.mode_update_;
+    direction_mode_         = from.direction_mode_;
+    velX_ = from.velX_;
+    velY_ = from.velY_;
+    velZ_ = from.velZ_;
+    accX_ = from.accX_;
+    accY_ = from.accY_;
+    accZ_ = from.accZ_;
+    h_acc_ = from.h_acc_;
+    p_acc_ = from.p_acc_;
+    r_acc_ = from.r_acc_;
+    h_rate_ = from.h_rate_;
+    p_rate_ = from.p_rate_;
+    r_rate_ = from.r_rate_;
+
+#if 0
+    if (route_ != nullptr)
+    {
+        // free any old route
+        delete route_;
+        route_ = nullptr;
+    }
+#endif
 }
 
 bool Position::LoadOpenDrive(const char* filename)
@@ -8423,7 +8526,7 @@ int Position::TeleportTo(Position* position)
         // Special case: Relation short circuit - need to make a copy before reseting
         roadmanager::Position tmpPos;
 
-        tmpPos.CopyRMPos(this);
+        tmpPos.Duplicate(*this);
 
         position->SetRelativePosition(&tmpPos, position->GetType());
     }
@@ -8434,7 +8537,7 @@ int Position::TeleportTo(Position* position)
         position->EvaluateRelation(true);
     }
 
-    CopyRMPos(position);
+    Duplicate(*position);
 
     if (GetRoute())  // on a route
     {
@@ -8452,7 +8555,7 @@ Position::ReturnCode Position::MoveToConnectingRoad(RoadLink* road_link, Contact
     Lane*        lane;
     int          new_lane_id = 0;
     ReturnCode   ret_val     = ReturnCode::OK;
-
+    
     if (road == 0)
     {
         LOG("Invalid road id %d", road->GetId());
@@ -9805,68 +9908,6 @@ double Position::GetAcc() const
     return SIGN(x) * sqrt(pow(GetAccX(), 2) + pow(GetAccY(), 2));
 }
 
-void Position::CopyRMPos(const Position* from, bool deep)
-{
-    if (this == from)
-    {
-        return;
-    }
-
-    if (!deep)
-    {
-        // copy only specific fields
-        x_                      = from->x_;
-        y_                      = from->y_;
-        z_                      = from->z_;
-        h_                      = from->h_;
-        p_                      = from->p_;
-        r_                      = from->r_;
-        h_relative_             = from->h_relative_;
-        p_relative_             = from->p_relative_;
-        r_relative_             = from->r_relative_;
-        h_road_                 = from->h_road_;
-        p_road_                 = from->p_road_;
-        r_road_                 = from->r_road_;
-        s_                      = from->s_;
-        t_                      = from->t_;
-        track_id_               = from->track_id_;
-        lane_id_                = from->lane_id_;
-        offset_                 = from->offset_;
-        curvature_              = from->curvature_;
-        elevation_idx_          = from->elevation_idx_;
-        track_idx_              = from->track_idx_;
-        lane_idx_               = from->lane_idx_;
-        geometry_idx_           = from->geometry_idx_;
-        z_road_                 = from->z_road_;
-        z_roadPrim_             = from->z_roadPrim_;
-        z_roadPrimPrim_         = from->z_roadPrimPrim_;
-        z_relative_             = from->z_relative_;
-        h_offset_               = from->h_offset_;
-        lane_section_idx_       = from->lane_section_idx_;
-        osi_point_idx_          = from->osi_point_idx_;
-        roadmarkline_idx_       = from->roadmarkline_idx_;
-        roadmarktype_idx_       = from->roadmarktype_idx_;
-        roadmark_idx_           = from->roadmark_idx_;
-        roadSuperElevationPrim_ = from->roadSuperElevationPrim_;
-    }
-    else
-    {
-        if (route_.get() != nullptr)
-        {
-            // free any old route before copying
-            route_.reset();
-        }
-
-        *this = *from;
-
-        if (from->route_.get() != nullptr)
-        {
-            // make a copy of the route
-            this->route_.reset(from->route_.get());
-        }
-    }
-}
-
 void Position::PrintTrackPos() const
 {
     LOG("	Track pos: (road_id %d, s %.2f, t %.2f, h %.2f)", track_id_, s_, t_, h_);
@@ -9987,16 +10028,37 @@ int Position::CalcRoutePosition()
     }
 }
 
-int Position::SetRoute(std::shared_ptr<Route> route)
+int Position::SetRoute(Route* route)
 {
-    if (route_.get() != route.get())
+    if (route_ != route)
     {
+        if (route_ == nullptr)
+        {
+            delete route_;
+            route_ = nullptr;
+        }
         route_ = route;
     }
 
     // Also find out current position in terms of route position
     return CalcRoutePosition();
 }
+
+void Position::CopyRoute(const Position& position)
+{
+    if (route_ != nullptr)
+    {
+        delete route_;
+        route_ = nullptr;
+    }
+
+    if (position.route_ != nullptr)
+    {
+        route_ = new Route;
+        *route_ = *position.route_;
+    }
+}
+
 
 void Position::SetTrajectory(RMTrajectory* trajectory)
 {
@@ -10265,7 +10327,7 @@ int Position::GetRoadLaneInfo(RoadLaneInfo* data) const
 int Position::GetRoadLaneInfo(double lookahead_distance, RoadLaneInfo* data, LookAheadMode lookAheadMode) const
 {
     Position target;  // Make a copy of current position
-    target.CopyRMPos(this, false);
+    target.Duplicate(*this);
 
     Route route_backup;
     if (GetRoute())
@@ -10357,7 +10419,7 @@ Position::ReturnCode Position::GetProbeInfo(double lookahead_distance, RoadProbe
         route_->CopyTo(route_backup);
     }
 
-    target.CopyRMPos(this, false);
+    target.Duplicate(*this);
 
     if (lookAheadMode == LookAheadMode::LOOKAHEADMODE_AT_ROAD_CENTER)
     {
@@ -10550,7 +10612,7 @@ int Position::SetRoutePosition(Position* position)
         if (route_->minimal_waypoints_[i].GetTrackId() == position->GetTrackId())  // Same road
         {
             // Update current position
-            CopyRMPos(position, false);
+            Duplicate(*position);
             return 0;
         }
     }
@@ -10650,7 +10712,7 @@ Position::ReturnCode Position::MoveRouteDS(double ds, double* remaining_dist, bo
         else if (same_init_road_and_lane && entity_road2 != route_road2)
         {
             // paths have diverged, probably due to long ds which caused objects to end up at different paths
-            this->CopyRMPos(route_->GetCurrentPosition());
+            this->Duplicate(*route_->GetCurrentPosition());
         }
     }
 
@@ -12177,18 +12239,18 @@ void Position::EvaluateRelation(bool release)
         Route             route_backup;
         shared_ptr<Route> route;
 
-        pos_tmp.CopyRMPos(rel_pos_);  // copy referred entity's route as a starting point
+        pos_tmp.Duplicate(*rel_pos_);  // copy referred entity's route as a starting point
 
         // Prioritize any own route. Secondly, use a route of referred entity
         if (route_)
         {
-            pos_tmp.CopyRouteSharedPtr(this);
+            pos_tmp.CopyRoute(*this);
         }
         else if (rel_pos_->route_)
         {
             // instead of deep copy, use actual route of referred object and restore it afterwards
             rel_pos_->route_->CopyTo(route_backup);
-            pos_tmp.CopyRouteSharedPtr(rel_pos_);
+            pos_tmp.CopyRoute(*rel_pos_);
         }
 
         if (pos_tmp.route_)
@@ -12202,7 +12264,7 @@ void Position::EvaluateRelation(bool release)
                            false,
                            GetDirectionMode() == DirectionMode::ALONG_LANE ? MoveDirectionMode::LANE_DIRECTION : MoveDirectionMode::ROAD_DIRECTION,
                            true);
-        CopyRMPos(&pos_tmp);
+        Duplicate(pos_tmp);
 
         if (!route_ && rel_pos_->route_)
         {
@@ -12344,7 +12406,7 @@ void Position::EvaluateRelation(bool release)
     }
 }
 
-int Route::AddWaypoint(Position* position)
+int Route::AddWaypoint(const Position& wp_pos)
 {
     int retval = 0;
 
@@ -12354,13 +12416,13 @@ int Route::AddWaypoint(Position* position)
         // Keep first specified waypoint for first road
         // then, for following roads, keep the last waypoint.
 
-        if (position->GetTrackId() == minimal_waypoints_.back().GetTrackId())
+        if (wp_pos.GetTrackId() == minimal_waypoints_.back().GetTrackId())
         {
             if (minimal_waypoints_.size() == 1)
             {
                 // Ignore
-                LOG("Ignoring additional waypoint for road %d (s %.2f)", position->GetTrackId(), position->GetS());
-                all_waypoints_.push_back(*position);
+                LOG("Ignoring additional waypoint for road %d (s %.2f)", wp_pos.GetTrackId(), wp_pos.GetS());
+                all_waypoints_.push_back(wp_pos);
                 return -1;
             }
             else  // at least two road-unique waypoints
@@ -12374,7 +12436,7 @@ int Route::AddWaypoint(Position* position)
         }
 
         // Check that there is a valid path from previous waypoint
-        std::unique_ptr<RoadPath> path = std::make_unique<RoadPath>(&minimal_waypoints_.back(), position);
+        std::unique_ptr<RoadPath> path = std::make_unique<RoadPath>(&minimal_waypoints_.back(), &wp_pos);
         double                    dist = 0;
         retval                         = path->Calculate(dist, false);
         if (retval == 0)
@@ -12432,25 +12494,25 @@ int Route::AddWaypoint(Position* position)
     else
     {
         // First waypoint, make it the current position
-        currentPos_ = *position;
+        currentPos_ = wp_pos;
     }
     if (retval >= -1)
     {
         // Add waypoint defined by scenario
-        scenario_waypoints_.push_back(*position);
+        scenario_waypoints_.push_back(wp_pos);
 
         // Add all waypoints including a valid road ID (retval == -2 indicates invalid road ID)
-        all_waypoints_.push_back(*position);
+        all_waypoints_.push_back(wp_pos);
         LOG("Route::AddWaypoint Added waypoint %d: %d, %d, %.2f",
             (int)all_waypoints_.size() - 1,
-            position->GetTrackId(),
-            position->GetLaneId(),
-            position->GetS());
+            wp_pos.GetTrackId(),
+            wp_pos.GetLaneId(),
+            wp_pos.GetS());
 
         if (retval == 0)
         {
             // For OpenSCENARIO routes, add only waypoints to which a path has been found
-            minimal_waypoints_.push_back(*position);
+            minimal_waypoints_.push_back(wp_pos);
         }
         else
         {
@@ -12461,9 +12523,9 @@ int Route::AddWaypoint(Position* position)
     {
         LOG("Route::AddWaypoint Failed to add waypoint %d: %d, %d, %.2f",
             (int)minimal_waypoints_.size() - 1,
-            position->GetTrackId(),
-            position->GetLaneId(),
-            position->GetS());
+            wp_pos.GetTrackId(),
+            wp_pos.GetLaneId(),
+            wp_pos.GetS());
     }
 
     return 0;
@@ -12620,7 +12682,7 @@ Position::ReturnCode Route::SetTrackS(int trackId, double s)
                 }
                 else
                 {
-                    LOG("Entity %s moved out of route", getObjName().c_str());
+                    LOG("Entity %s moved out of route (SetTrackS())", getObjName().c_str());
                     retval = Position::ReturnCode::ERROR_END_OF_ROUTE;
                 }
             }
@@ -12734,7 +12796,7 @@ Position::ReturnCode Route::SetPathS(double s, double* remaining_dist)
                 }
                 else
                 {
-                    LOG("Entity %s moved out of route", getObjName().c_str());
+                    LOG("Entity %s moved out of route (SetPathS())", getObjName().c_str());
                     retval = Position::ReturnCode::ERROR_END_OF_ROUTE;
                 }
             }
