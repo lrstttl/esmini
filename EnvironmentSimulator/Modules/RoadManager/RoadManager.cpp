@@ -6113,6 +6113,7 @@ bool OpenDrive::LoadSignalsByCountry(const std::string& country)
     return true;
 }
 
+#if 0
 void Position::Init()
 {
     track_id_               = -1;
@@ -6177,45 +6178,39 @@ void Position::Init()
     SetModeDefault(PosModeType::UPDATE);
     SetModeDefault(PosModeType::INIT);
 }
+#endif
 
 Position::Position()
 {
-    Init();
 }
 
 Position::Position(int track_id, double s, double t)
 {
-    Init();
     SetTrackPos(track_id, s, t);
 }
 
 Position::Position(int track_id, int lane_id, double s, double offset)
 {
-    Init();
     SetLanePos(track_id, lane_id, s, offset);
 }
 
 Position::Position(double x, double y, double z, double h, double p, double r)
 {
-    Init();
     SetInertiaPos(x, y, z, h, p, r);
 }
 
 Position::Position(double x, double y, double z, double h, double p, double r, bool calculateTrackPosition)
 {
-    Init();
     SetInertiaPos(x, y, z, h, p, r, calculateTrackPosition);
 }
 
 Position::Position(const Position& other)
 {
-    Init();
     Duplicate(other);
 }
 
 Position& Position::operator=(const Position& other)
 {
-    Init();
     this->Duplicate(other);
     return *this;
 }
@@ -6231,7 +6226,7 @@ Position::Position(Position&& other)
     {
         delete other.route_;
         other.route_ = nullptr;
-    }    
+    }
 }
 
 Position& Position::operator=(Position&& other)
@@ -6241,7 +6236,7 @@ Position& Position::operator=(Position&& other)
     {
         delete route_;
         route_ = nullptr;
-    }    
+    }
     return *this;
 }
 
@@ -6291,18 +6286,18 @@ void Position::Duplicate(const Position& from)
     mode_set_               = from.mode_set_;
     mode_update_            = from.mode_update_;
     direction_mode_         = from.direction_mode_;
-    velX_ = from.velX_;
-    velY_ = from.velY_;
-    velZ_ = from.velZ_;
-    accX_ = from.accX_;
-    accY_ = from.accY_;
-    accZ_ = from.accZ_;
-    h_acc_ = from.h_acc_;
-    p_acc_ = from.p_acc_;
-    r_acc_ = from.r_acc_;
-    h_rate_ = from.h_rate_;
-    p_rate_ = from.p_rate_;
-    r_rate_ = from.r_rate_;
+    velX_                   = from.velX_;
+    velY_                   = from.velY_;
+    velZ_                   = from.velZ_;
+    accX_                   = from.accX_;
+    accY_                   = from.accY_;
+    accZ_                   = from.accZ_;
+    h_acc_                  = from.h_acc_;
+    p_acc_                  = from.p_acc_;
+    r_acc_                  = from.r_acc_;
+    h_rate_                 = from.h_rate_;
+    p_rate_                 = from.p_rate_;
+    r_rate_                 = from.r_rate_;
 
 #if 0
     if (route_ != nullptr)
@@ -7890,6 +7885,7 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
     }
 
     overlapping_roads = std::move(overlapping_roads_tmp);
+    printf("inside %d\n", closestPointInside);
 
     if (closestPointInside)
     {
@@ -8555,7 +8551,7 @@ Position::ReturnCode Position::MoveToConnectingRoad(RoadLink* road_link, Contact
     Lane*        lane;
     int          new_lane_id = 0;
     ReturnCode   ret_val     = ReturnCode::OK;
-    
+
     if (road == 0)
     {
         LOG("Invalid road id %d", road->GetId());
@@ -10054,11 +10050,10 @@ void Position::CopyRoute(const Position& position)
 
     if (position.route_ != nullptr)
     {
-        route_ = new Route;
+        route_  = new Route;
         *route_ = *position.route_;
     }
 }
-
 
 void Position::SetTrajectory(RMTrajectory* trajectory)
 {

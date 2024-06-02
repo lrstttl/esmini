@@ -3182,7 +3182,7 @@ TEST(ExternalController, TestPositionAlignment)
 
     SE_AddPath("../../../resources/models");
 
-    ASSERT_EQ(SE_Init("../../../EnvironmentSimulator/Unittest/xosc/follow_ghost_align_position.xosc", 1, 1, 0, 0), 0);
+    ASSERT_EQ(SE_Init("../../../EnvironmentSimulator/Unittest/xosc/follow_ghost_align_position.xosc", 0, 1, 0, 0), 0);
 
     // Lock object to the original lane
     // If setting to false, the object road position will snap to closest lane
@@ -3272,6 +3272,7 @@ TEST(ExternalController, TestPositionAlignment)
             test_index++;
         }
         counter++;
+        printf("counter: %d\n", counter);
     }
     SE_SimpleVehicleDelete(vehicleHandle);
     SE_Close();

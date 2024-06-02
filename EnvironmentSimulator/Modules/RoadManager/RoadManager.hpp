@@ -3048,12 +3048,12 @@ namespace roadmanager
         explicit Position(int track_id, int lane_id, double s, double offset);
         explicit Position(double x, double y, double z, double h, double p, double r);
         explicit Position(double x, double y, double z, double h, double p, double r, bool calculateTrackPosition);
-        Position(const Position& other);
-        Position(Position&& other);
-        Position& operator=(const Position& other);
-        Position& operator=(Position&& other);
+        Position(const Position &other);
+        Position(Position &&other);
+        Position &operator=(const Position &other);
+        Position &operator=(Position &&other);
         ~Position();
-        void Duplicate(const Position& other);
+        void Duplicate(const Position &other);
 
         void              Init();
         static bool       LoadOpenDrive(const char *filename);
@@ -3227,7 +3227,7 @@ namespace roadmanager
 
         void EvaluateRelation(bool release = false);
 
-        int          SetRoute(Route* route);
+        int          SetRoute(Route *route);
         int          CalcRoutePosition();
         const Route *GetRoute() const
         {
@@ -3237,7 +3237,7 @@ namespace roadmanager
         {
             return route_;
         }
-        void CopyRoute(const Position& position);
+        void CopyRoute(const Position &position);
 
         RMTrajectory *GetTrajectory()
         {
@@ -3971,8 +3971,7 @@ namespace roadmanager
         } relative_;
 
         // route reference
-        Route* route_;  // if pointer set, the position corresponds to a point along (s) the route
-
+        Route *route_ = nullptr;  // if pointer set, the position corresponds to a point along (s) the route
 
     protected:
         void       Track2Lane();
@@ -3995,74 +3994,80 @@ namespace roadmanager
         int UpdateTrajectoryPos(TrajVertex v);
 
         // Control lane belonging
-        bool lockOnLane_;  // if true then keep logical lane regardless of lateral position, default false
+        bool lockOnLane_ = false;  // if true then keep logical lane regardless of lateral position, default false
 
         // trajectory reference
-        RMTrajectory *trajectory_;  // if pointer set, the position corresponds to a point along (s) the trajectory
+        RMTrajectory *trajectory_ = nullptr;  // if pointer set, the position corresponds to a point along (s) the trajectory
 
         // track reference
-        int    track_id_;
-        double s_;             // longitudinal point/distance along the track
-        double t_;             // lateral position relative reference line (geometry)
-        int    lane_id_;       // lane reference
-        double offset_;        // lateral position relative lane given by lane_id
-        double h_road_;        // heading of the road
-        double h_offset_;      // local heading offset given by lane width and offset
-        double h_relative_;    // heading relative to the road (h_ = h_road_ + h_relative_)
-        double z_relative_;    // z relative to the road
-        double s_trajectory_;  // longitudinal point/distance along the trajectory
-        double t_trajectory_;  // longitudinal point/distance along the trajectory
-        double curvature_;
-        double p_relative_;   // pitch relative to the road (h_ = h_road_ + h_relative_)
-        double r_relative_;   // roll relative to the road (h_ = h_road_ + h_relative_)
-        int    mode_update_;  // bitmask controlling alignment to road surface and orientation, update operations. See PositionMode enum.
-        int    mode_set_;     // bitmask controlling alignment to road surface and orientation, set operations. See PositionMode enum.
-        int    mode_init_;    // bitmask controlling alignment to road surface and orientation, initialization. See PositionMode enum.
+        int       track_id_                = -1;
+        double    s_                       = 0.0;  // longitudinal point/distance along the track
+        double    t_                       = 0.0;  // lateral position relative reference line (geometry)
+        int       lane_id_                 = 0;    // lane reference
+        double    offset_                  = 0.0;  // lateral position relative lane given by lane_id
+        double    h_road_                  = 0.0;  // heading of the road
+        double    h_offset_                = 0.0;  // local heading offset given by lane width and offset
+        double    h_relative_              = 0.0;  // heading relative to the road (h_ = h_road_ + h_relative_)
+        double    z_relative_              = 0.0;  // z relative to the road
+        double    s_trajectory_            = 0.0;  // longitudinal point/distance along the trajectory
+        double    t_trajectory_            = 0.0;  // longitudinal point/distance along the trajectory
+        double    curvature_               = 0.0;
+        double    p_relative_              = 0.0;  // pitch relative to the road (h_ = h_road_ + h_relative_)
+        double    r_relative_              = 0.0;  // roll relative to the road (h_ = h_road_ + h_relative_)
+        const int pos_mode_set_default_    = PosMode::Z_REL | PosMode::H_ABS | PosMode::P_REL | PosMode::R_REL;
+        const int pos_mode_update_default_ = PosMode::Z_REL | PosMode::H_REL | PosMode::P_REL | PosMode::R_REL;
+        const int pos_mode_init_default_   = PosMode::Z_REL | PosMode::H_ABS | PosMode::P_REL | PosMode::R_REL;
+        int       mode_set_ =
+            pos_mode_set_default_;  // bitmask controlling alignment to road surface and orientation, set operations. See PositionMode enum.
+        int mode_update_ =
+            pos_mode_update_default_;  // bitmask controlling alignment to road surface and orientation, update operations. See PositionMode enum.
+        int mode_init_ =
+            pos_mode_init_default_;  // bitmask controlling alignment to road surface and orientation, initialization. See PositionMode enum.
 
-        Position     *rel_pos_;
-        PositionType  type_;
-        DirectionMode direction_mode_;
+        Position     *rel_pos_        = nullptr;
+        PositionType  type_           = PositionType::NORMAL;
+        DirectionMode direction_mode_ = DirectionMode::ALONG_LANE;
 
-        int snapToLaneTypes_;  // Bitmask of lane types that the position will snap to
-        int status_;           // Bitmask of various states, e.g. off_road, end_of_road
+        int snapToLaneTypes_ = Lane::LaneType::LANE_TYPE_ANY_DRIVING;  // Bitmask of lane types that the position will snap to
+        int status_          = 0;                                      // Bitmask of various states, e.g. off_road, end_of_road
 
         // inertial reference
-        double x_;
-        double y_;
-        double z_;
-        double h_;
-        double p_;
-        double r_;
-        double h_rate_;
-        double p_rate_;
-        double r_rate_;
-        double h_acc_;
-        double p_acc_;
-        double r_acc_;
-        double velX_;
-        double velY_;
-        double velZ_;
-        double accX_;
-        double accY_;
-        double accZ_;
-        double z_road_;
-        double p_road_;
-        double r_road_;
-        double z_roadPrim_;              // the road vertical slope (dz/ds)
-        double z_roadPrimPrim_;          // rate of change of the road slope, like the vertical curvature
-        double roadSuperElevationPrim_;  // rate of change of the road superelevation/lateral inclination
+        double x_                      = 0.0;
+        double y_                      = 0.0;
+        double z_                      = 0.0;
+        double h_                      = 0.0;
+        double p_                      = 0.0;
+        double r_                      = 0.0;
+        double h_rate_                 = 0.0;
+        double p_rate_                 = 0.0;
+        double r_rate_                 = 0.0;
+        double h_acc_                  = 0.0;
+        double p_acc_                  = 0.0;
+        double r_acc_                  = 0.0;
+        double velX_                   = 0.0;
+        double velY_                   = 0.0;
+        double velZ_                   = 0.0;
+        double accX_                   = 0.0;
+        double accY_                   = 0.0;
+        double accZ_                   = 0.0;
+        double z_road_                 = 0.0;
+        double p_road_                 = 0.0;
+        double r_road_                 = 0.0;
+        double z_roadPrim_             = 0.0;  // the road vertical slope (dz/ds)
+        double z_roadPrimPrim_         = 0.0;  // rate of change of the road slope, like the vertical curvature
+        double roadSuperElevationPrim_ = 0.0;  // rate of change of the road superelevation/lateral inclination
 
         // keep track for fast incremental updates of the position
-        int track_idx_;            // road index
-        int lane_idx_;             // lane index
-        int roadmark_idx_;         // laneroadmark index
-        int roadmarktype_idx_;     // laneroadmark index
-        int roadmarkline_idx_;     // laneroadmarkline index
-        int lane_section_idx_;     // lane section
-        int geometry_idx_;         // index of the segment within the track given by track_idx
-        int elevation_idx_;        // index of the current elevation entry
-        int super_elevation_idx_;  // index of the current super elevation entry
-        int osi_point_idx_;        // index of the current closest OSI road point
+        int track_idx_           = -1;  // road index
+        int lane_idx_            = -1;  // lane index
+        int roadmark_idx_        = -1;  // laneroadmark index
+        int roadmarktype_idx_    = -1;  // laneroadmark index
+        int roadmarkline_idx_    = -1;  // laneroadmarkline index
+        int lane_section_idx_    = -1;  // lane section
+        int geometry_idx_        = -1;  // index of the segment within the track given by track_idx
+        int elevation_idx_       = -1;  // index of the current elevation entry
+        int super_elevation_idx_ = -1;  // index of the current super elevation entry
+        int osi_point_idx_       = -1;  // index of the current closest OSI road point
 
         // RouteStrategy for a position, used for waypoints
         RouteStrategy routeStrategy_ = RouteStrategy::SHORTEST;
@@ -4084,7 +4089,7 @@ namespace roadmanager
         @param position A regular position created with road, lane or world coordinates
         @return Non zero return value indicates error of some kind
         */
-        int AddWaypoint(const Position& position);
+        int AddWaypoint(const Position &position);
 
         /**
         Return direction Adds a waypoint to the route. One waypoint per road. At most one junction between waypoints.
