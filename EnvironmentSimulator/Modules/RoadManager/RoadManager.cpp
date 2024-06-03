@@ -6298,7 +6298,7 @@ void Position::Duplicate(const Position& from)
     h_rate_                 = from.h_rate_;
     p_rate_                 = from.p_rate_;
     r_rate_                 = from.r_rate_;
-
+    status_                 = from.status_;
 #if 0
     if (route_ != nullptr)
     {
@@ -7513,6 +7513,24 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
     bool             closestPointDirectlyConnected = false;
     std::vector<int> overlapping_roads_tmp;
 
+    double z_resolved = 0.0;
+
+    if (mode & PosMode::Z_SET)
+    {
+        if ((mode & PosMode::Z_MASK) == PosMode::Z_ABS)
+        {
+            z_resolved = z3;
+        }
+        else if ((mode & PosMode::Z_MASK) == PosMode::Z_REL)
+        {
+            z_resolved = GetZRoad();
+        }
+    }
+    else
+    {
+        z_resolved = std::nan("");
+    }
+
     if (mode == PosMode::UNDEFINED)
     {
         // mode "set" is default
@@ -7529,9 +7547,16 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
         SetX(x3);
         SetY(y3);
 
-        if ((mode & PosMode::Z_SET) && ((mode & PosMode::Z_MASK) == PosMode::Z_ABS))
+        if (!std::isnan(z_resolved))
         {
-            SetZ(z3);
+            if ((mode & PosMode::Z_MASK) == PosMode::Z_ABS)
+            {
+                SetZ(z3);
+            }
+            else if ((mode & PosMode::Z_MASK) == PosMode::Z_REL)
+            {
+                SetZRelative(z3);
+            }
         }
 
         return ReturnCode::ERROR_GENERIC;
@@ -7815,10 +7840,10 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
 
                 weightedDist = distTmp;
 
-                if (fabs(z3 - z) > 2.0)
+                if (!std::isnan(z_resolved))
                 {
                     // Add threshold for considering z - to avoid noise in co-planar distance calculations
-                    weightedDist += fabs(z3 - z);
+                    weightedDist += fabs(z_resolved - z);
                 }
 
                 if (!insideCurrentRoad && road == current_road)
@@ -7833,6 +7858,7 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
                     // longitudinal (end points) and lateral (road width)
                     weightedDist += weight;
                 }
+
                 if (weightedDist < closestPointDist + SMALL_NUMBER)
                 {
                     bool directlyConnectedCandidate = directlyConnected;
@@ -7850,6 +7876,7 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
                         }
                     }
 
+                    //printf("weighted dist %.2f jMin %d kMin %d inside %d\n", weightedDist, jMinLocal, kMinLocal, inside);
                     if (directlyConnectedCandidate || weightedDist < closestPointDist)
                     {
                         closestPointDist              = weightedDist;
@@ -7866,11 +7893,13 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
                         }
                     }
                 }
-                else if (i == -2)
+
+                if (i == -2 && closestPointInside)
                 {
-                    // distance is now increasing, indicating that we already passed the closest point
-                    if (closestPointInside && closestPointDist < SMALL_NUMBER && !check_overlapping_roads)
+                    // located segment including the position on current road
+                    if (closestPointDist < SMALL_NUMBER && !check_overlapping_roads)
                     {
+                        // position is inside current road boundaries and no need to check overlapping roads - done
                         search_done = true;
                         break;
                     }
@@ -7885,7 +7914,6 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
     }
 
     overlapping_roads = std::move(overlapping_roads_tmp);
-    printf("inside %d\n", closestPointInside);
 
     if (closestPointInside)
     {
@@ -7907,9 +7935,16 @@ Position::ReturnCode Position::XYZ2TrackPos(double x3, double y3, double z3, int
         SetX(x3);
         SetY(y3);
 
-        if ((mode & PosMode::Z_SET) && ((mode & PosMode::Z_MASK) == PosMode::Z_ABS))
+        if (!std::isnan(z_resolved))
         {
-            SetZ(z3);
+            if ((mode & PosMode::Z_MASK) == PosMode::Z_ABS)
+            {
+                SetZ(z3);
+            }
+            else if ((mode & PosMode::Z_MASK) == PosMode::Z_REL)
+            {
+                SetZRelative(z3);
+            }
         }
 
         return ReturnCode::ERROR_GENERIC;

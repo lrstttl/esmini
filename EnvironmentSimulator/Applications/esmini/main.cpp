@@ -87,6 +87,16 @@ static int execute_scenario(int argc, char* argv[])
 
         retval = player->Frame(dt);
 
+        //if (!player->IsPaused())
+        //{
+        //    player->scenarioEngine->entities_.object_[0]->pos_.SetInertiaPos(player->scenarioEngine->entities_.object_[0]->pos_.GetX(),
+        //                                                                     player->scenarioEngine->entities_.object_[0]->pos_.GetY(),
+        //                                                                     0.0,
+        //                                                                     player->scenarioEngine->entities_.object_[0]->pos_.GetH(),
+        //                                                                     0.0,
+        //                                                                     0.0);
+        //}
+
 #ifdef _USE_IMPLOT
         if (plot != nullptr && plot->IsModeSynchronuous())
         {
