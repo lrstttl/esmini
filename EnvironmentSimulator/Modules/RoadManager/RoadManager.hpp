@@ -2561,6 +2561,16 @@ namespace roadmanager
         {
             return road_id_;
         }
+        // Get the difference between object referrence S and repeat referrence T
+        double GetDifferenceOfRepeatAndObjectS(Repeat& repeat)
+        {
+            return repeat.GetS() - GetS();
+        }
+        // Get the difference between object referrence T and repeat referrence T
+        double GetDifferenceOfRepeatAndObjectT(Repeat& repeat)
+        {
+            return repeat.GetTStart() - GetT();
+        }
         // Get or create transformation info for repeat which shall be used to create more models e.g non outline repeat object
         const std::vector<Repeat::RepeatTransformationInfoDimension> &GetRepeatTransformationInfoDimensions(Repeat &repeat);
         // Get or create transformation info for repeat which shall be used to create more models e.g repeat with all outline as local corner

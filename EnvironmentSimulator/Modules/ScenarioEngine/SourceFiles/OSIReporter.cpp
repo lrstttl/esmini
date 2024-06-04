@@ -706,16 +706,10 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                             UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
 
                             double height = 0;
-                            int    k      = 0;
+                            UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeat.GetS(), repeat.GetTStart(), repeat.GetZOffsetStartResolved() + object->GetZOffset());
                             for (const auto &corner : outline.corner_)
                             {
                                 double x, y, z;
-                                if (k == 0)  // update position only once
-                                {
-                                    // Set OSI Stationary Object Position
-                                    corner->GetPos(x, y, z);
-                                    UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, x, y, z + object->GetZOffset());
-                                }
                                 corner->GetPosLocal(x, y, z);
                                 osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
                                 vec->set_x(x);
