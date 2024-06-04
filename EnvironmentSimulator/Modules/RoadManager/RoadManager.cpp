@@ -12268,8 +12268,10 @@ void Position::EvaluateRelation(bool release)
         Position          pos_tmp;
         Route             route_backup;
         shared_ptr<Route> route;
+        DirectionMode dir_mode = GetDirectionMode();
 
         pos_tmp.Duplicate(*rel_pos_);  // copy referred entity's route as a starting point
+        pos_tmp.direction_mode_ = dir_mode;  // inherit direction mode from original position object
 
         // Prioritize any own route. Secondly, use a route of referred entity
         if (route_)

@@ -2803,7 +2803,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
         else if (actionChild.name() == std::string("TeleportAction"))
         {
             TeleportAction *action_pos = new TeleportAction(parent);
-            action_pos->position_OSCPosition_.reset(parseOSCPosition(actionChild.first_child()));
+            action_pos->position_OSCPosition_ = parseOSCPosition(actionChild.first_child());
             action_pos->position_ = action_pos->position_OSCPosition_->GetRMPos();
             action                = action_pos;
         }
