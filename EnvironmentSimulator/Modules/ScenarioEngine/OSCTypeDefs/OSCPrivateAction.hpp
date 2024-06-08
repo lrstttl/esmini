@@ -826,8 +826,7 @@ namespace scenarioengine
     class TeleportAction : public OSCPrivateAction
     {
     public:
-        OSCPosition* position_OSCPosition_ = nullptr;
-        roadmanager::Position* position_             = nullptr;
+        roadmanager::Position* position_ = nullptr;
 
         TeleportAction(StoryBoardElement* parent)
             : OSCPrivateAction(OSCPrivateAction::ActionType::TELEPORT, parent, static_cast<unsigned int>(ControlDomains::DOMAIN_LAT_AND_LONG)),
@@ -839,18 +838,15 @@ namespace scenarioengine
             : OSCPrivateAction(OSCPrivateAction::ActionType::TELEPORT, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_LAT_AND_LONG))
         {
             SetName(action.GetName());
-            position_OSCPosition_ = action.position_OSCPosition_;
-            position_             = action.position_;
+            position_             = new roadmanager::Position(*action.position_);
             ghost_restart_        = action.ghost_restart_;
         }
 
         ~TeleportAction()
         {
-            if (position_OSCPosition_ != nullptr)
+            if (position_ != nullptr)
             {
-                delete position_OSCPosition_;
-                position_OSCPosition_ = nullptr;
-                position_             = nullptr;  // position is part of and deleted by the OSCPosition
+                delete position_;
             }
         }
 

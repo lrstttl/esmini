@@ -6299,6 +6299,11 @@ void Position::Duplicate(const Position& from)
     p_rate_                 = from.p_rate_;
     r_rate_                 = from.r_rate_;
     status_                 = from.status_;
+    type_                   = from.type_;
+    relative_               = from.relative_;
+    snapToLaneTypes_        = from.snapToLaneTypes_;
+    lockOnLane_             = from.lockOnLane_;
+
 #if 0
     if (route_ != nullptr)
     {
