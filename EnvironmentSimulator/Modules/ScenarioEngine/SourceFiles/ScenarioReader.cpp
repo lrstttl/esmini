@@ -1070,13 +1070,11 @@ roadmanager::Route *ScenarioReader::parseOSCRoute(pugi::xml_node routeNode)
                 rs = roadmanager::Position::RouteStrategy::SHORTEST;
             }
 
-            OSCPosition* pos = parseOSCPosition(routeChild.first_child());
-            if (pos != nullptr)
+            roadmanager::Position *p   = parseOSCPosition(routeChild.first_child());
+            if (p != nullptr)
             {
-                roadmanager::Position* p = pos->GetRMPos();
                 p->SetRouteStrategy(rs);
                 route->AddWaypoint(*p);
-                delete pos;
             }
             else
             {
@@ -1187,16 +1185,19 @@ roadmanager::RMTrajectory *ScenarioReader::parseTrajectory(pugi::xml_node node)
                     {
                         throw std::runtime_error("Missing Trajectory/Polyline/Vertex/Position node");
                     }
-                    std::unique_ptr<OSCPosition> pos  = std::unique_ptr<OSCPosition>{parseOSCPosition(posNode)};
-                    double                       time = strtod(parameters.ReadAttribute(vertexNode, "time"));
-                    pline->AddVertex(*pos->GetRMPos(), time);
+                    roadmanager::Position       *pos  = parseOSCPosition(posNode);
+                    if (pos != nullptr)
+                    {
+                        double time = strtod(parameters.ReadAttribute(vertexNode, "time"));
+                        pline->AddVertex(*pos, time);
+                        delete pos;
+                    }
                 }
                 shape = pline;
             }
             else if (shapeType == "Clothoid")
             {
-                pugi::xml_node               posNode = shapeNode.child("Position");
-                std::unique_ptr<OSCPosition> pos     = std::unique_ptr<OSCPosition>{parseOSCPosition(posNode)};
+                roadmanager::Position       *pos = parseOSCPosition(shapeNode.child("Position"));
 
                 double curvature = strtod(parameters.ReadAttribute(shapeNode, "curvature"));
 
@@ -1217,9 +1218,9 @@ roadmanager::RMTrajectory *ScenarioReader::parseTrajectory(pugi::xml_node node)
                 double stopTime  = strtod(parameters.ReadAttribute(shapeNode, "stopTime"));
 
                 LOG("Adding clothoid(x=%.2f y=%.2f h=%.2f curv=%.2f curvDot=%.2f len=%.2f startTime=%.2f stopTime=%.2f)",
-                    pos->GetRMPos()->GetX(),
-                    pos->GetRMPos()->GetY(),
-                    pos->GetRMPos()->GetH(),
+                    pos->GetX(),
+                    pos->GetY(),
+                    pos->GetH(),
                     curvature,
                     curvaturePrime,
                     length,
@@ -1227,7 +1228,9 @@ roadmanager::RMTrajectory *ScenarioReader::parseTrajectory(pugi::xml_node node)
                     stopTime);
 
                 roadmanager::ClothoidShape *clothoid =
-                    new roadmanager::ClothoidShape(*pos->GetRMPos(), curvature, curvaturePrime, length, startTime, stopTime);
+                    new roadmanager::ClothoidShape(*pos, curvature, curvaturePrime, length, startTime, stopTime);
+
+                delete pos;
 
                 shape = clothoid;
             }
@@ -1240,13 +1243,11 @@ roadmanager::RMTrajectory *ScenarioReader::parseTrajectory(pugi::xml_node node)
                 for (pugi::xml_node segmentNode = shapeNode.child("Segment"); segmentNode; segmentNode = segmentNode.next_sibling("Segment"))
                 {
                     pugi::xml_node               posNode = segmentNode.child("PositionStart");
-                    std::unique_ptr<OSCPosition> pos;
                     roadmanager::Position       *rm_pos = nullptr;
 
                     if (posNode)
                     {
-                        pos    = std::unique_ptr<OSCPosition>(parseOSCPosition(posNode));
-                        rm_pos = pos->GetRMPos();
+                        rm_pos = parseOSCPosition(posNode);
                     }
 
                     double curvStart  = std::nan("");  // default is to use end curvature of previous segment
@@ -1284,7 +1285,7 @@ roadmanager::RMTrajectory *ScenarioReader::parseTrajectory(pugi::xml_node node)
                     if (nurbsChildName == "ControlPoint")
                     {
                         pugi::xml_node               posNode = nurbsChild.child("Position");
-                        std::unique_ptr<OSCPosition> pos     = std::unique_ptr<OSCPosition>{parseOSCPosition(posNode)};
+                        roadmanager::Position* pos     = parseOSCPosition(posNode);
                         double                       time    = strtod(parameters.ReadAttribute(nurbsChild, "time"));
                         double                       weight  = 1.0;
                         if (!nurbsChild.attribute("weight").empty())
@@ -1294,14 +1295,15 @@ roadmanager::RMTrajectory *ScenarioReader::parseTrajectory(pugi::xml_node node)
 #if 1
                         if (posNode.first_child().child("Orientation"))
                         {
-                            pos->GetRMPos()->SetMode(roadmanager::Position::PosModeType::SET, roadmanager::Position::PosMode::H_ABS);
+                            pos->SetMode(roadmanager::Position::PosModeType::SET, roadmanager::Position::PosMode::H_ABS);
                         }
                         else
                         {
-                            pos->GetRMPos()->SetMode(roadmanager::Position::PosModeType::SET, roadmanager::Position::PosMode::H_REL);
+                            pos->SetMode(roadmanager::Position::PosModeType::SET, roadmanager::Position::PosMode::H_REL);
                         }
 #endif
-                        nurbs->AddControlPoint(*pos->GetRMPos(), time, weight);
+                        nurbs->AddControlPoint(*pos, time, weight);
+                        delete pos;
                     }
                     else if (nurbsChildName == "Knot")
                     {
@@ -1630,9 +1632,10 @@ void ScenarioReader::parseOSCOrientation(OSCOrientation &orientation, pugi::xml_
     }
 }
 
-OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPosition *base_on_pos)
+roadmanager::Position* ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPosition *base_on_pos)
 {
-    OSCPosition *pos_return = 0;
+    OSCPosition *osc_pos = nullptr;
+    roadmanager::Position* rm_pos = nullptr;
 
     pugi::xml_node positionChild = positionNode.first_child();
 
@@ -1677,7 +1680,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             LOG_AND_QUIT("Missing x or y attributes!\n");
         }
 
-        pos_return = new OSCPositionWorld(x, y, z, h, p, r, base_on_pos);
+        osc_pos = new OSCPositionWorld(x, y, z, h, p, r, base_on_pos);
     }
     else if (positionChildName == "RelativeWorldPosition")
     {
@@ -1697,7 +1700,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             parseOSCOrientation(orientation, orientation_node);
         }
 
-        pos_return = new OSCPositionRelativeWorld(object, dx, dy, dz, orientation);
+        osc_pos = new OSCPositionRelativeWorld(object, dx, dy, dz, orientation);
     }
     else if (positionChildName == "RelativeObjectPosition")
     {
@@ -1716,7 +1719,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             parseOSCOrientation(orientation, orientation_node);
         }
 
-        pos_return = new OSCPositionRelativeObject(object, dx, dy, dz, orientation);
+        osc_pos = new OSCPositionRelativeObject(object, dx, dy, dz, orientation);
     }
     else if (positionChildName == "RelativeLanePosition")
     {
@@ -1753,7 +1756,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             direction_mode = roadmanager::Position::DirectionMode::ALONG_LANE;
         }
 
-        pos_return = new OSCPositionRelativeLane(object, dLane, ds, offset, orientation, direction_mode);
+        osc_pos = new OSCPositionRelativeLane(object, dLane, ds, offset, orientation, direction_mode);
     }
     else if (positionChildName == "RelativeRoadPosition")
     {
@@ -1776,7 +1779,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             orientation.type_ = roadmanager::Position::OrientationType::ORIENTATION_RELATIVE;
         }
 
-        pos_return = new OSCPositionRelativeRoad(object, ds, dt, orientation);
+        osc_pos = new OSCPositionRelativeRoad(object, ds, dt, orientation);
     }
     else if (positionChildName == "RoadPosition")
     {
@@ -1797,7 +1800,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             orientation.type_ = roadmanager::Position::OrientationType::ORIENTATION_RELATIVE;
         }
 
-        pos_return = new OSCPositionRoad(road_id, s, t, orientation);
+        osc_pos = new OSCPositionRoad(road_id, s, t, orientation);
     }
     else if (positionChildName == "LanePosition")
     {
@@ -1824,7 +1827,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             orientation.type_ = roadmanager::Position::OrientationType::ORIENTATION_RELATIVE;
         }
 
-        pos_return = new OSCPositionLane(road_id, lane_id, s, offset, orientation);
+        osc_pos = new OSCPositionLane(road_id, lane_id, s, offset, orientation);
     }
     else if (positionChildName == "RoutePosition")
     {
@@ -1938,7 +1941,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             delete orientation;
         }
 
-        pos_return = pos;
+        osc_pos = pos;
     }
     else if (positionChildName == "TrajectoryPosition")
     {
@@ -1967,15 +1970,19 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
             parseOSCOrientation(orientation, orientation_node);
         }
 
-        pos_return = new OSCPositionTrajectory(traj, s, t, orientation);
+        osc_pos = new OSCPositionTrajectory(traj, s, t, orientation);
     }
 
-    if (pos_return == 0)
+    if (osc_pos == nullptr)
     {
         throw std::runtime_error(std::string("Failed parse position in node ") + positionNode.name());
     }
 
-    return pos_return;
+    rm_pos = osc_pos->GetRMPos();
+
+    delete osc_pos;
+
+    return rm_pos;
 }
 
 OSCPrivateAction::DynamicsShape ParseDynamicsShape(std::string shape)
@@ -2173,8 +2180,7 @@ OSCGlobalAction *ScenarioReader::parseOSCGlobalAction(pugi::xml_node actionNode,
                 {
                     AddEntityAction *addEntityAction = new AddEntityAction(entity, parent);
 
-                    addEntityAction->pos_OSCPosition_.reset(parseOSCPosition(eaChild.child("Position")));
-                    addEntityAction->pos_ = addEntityAction->pos_OSCPosition_->GetRMPos();
+                    addEntityAction->pos_             = parseOSCPosition(eaChild.child("Position"));
                     addEntityAction->SetEntities(entities_);
 
                     action = addEntityAction;
@@ -2689,8 +2695,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                 LOG("Missing required element \"TargetPositionMaster\"");
                 return 0;
             }
-            action_synch->target_position_master_OSCPosition_.reset(parseOSCPosition(target_position_master_node));
-            action_synch->target_position_master_ = action_synch->target_position_master_OSCPosition_->GetRMPos();
+            action_synch->target_position_master_ = parseOSCPosition(target_position_master_node);
             if (parameters.ReadAttribute(actionChild, "targetToleranceMaster") != "")
             {
                 action_synch->tolerance_master_ = strtod(parameters.ReadAttribute(actionChild, "targetToleranceMaster"));
@@ -2702,8 +2707,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                 LOG("Missing required element \"TargetPosition\"");
                 return 0;
             }
-            action_synch->target_position_OSCPosition_.reset(parseOSCPosition(target_position_node));
-            action_synch->target_position_ = action_synch->target_position_OSCPosition_->GetRMPos();
+            action_synch->target_position_ = parseOSCPosition(target_position_node);
             if (parameters.ReadAttribute(actionChild, "targetTolerance") != "")
             {
                 action_synch->tolerance_ = strtod(parameters.ReadAttribute(actionChild, "targetTolerance"));
@@ -2787,9 +2791,8 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                     }
                     else if (!strcmp(steady_state_node.name(), "TargetPositionSteadyState"))
                     {
-                        action_synch->steadyState_OSCPosition_.reset(parseOSCPosition(steady_state_node));
                         action_synch->steadyState_.type_ = SynchronizeAction::SteadyStateType::STEADY_STATE_POS;
-                        action_synch->steadyState_.pos_  = action_synch->steadyState_OSCPosition_->GetRMPos();
+                        action_synch->steadyState_.pos_  = parseOSCPosition(steady_state_node);
                     }
                     else
                     {
@@ -2803,10 +2806,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
         else if (actionChild.name() == std::string("TeleportAction"))
         {
             TeleportAction *action_pos = new TeleportAction(parent);
-            OSCPosition* osc_pos = parseOSCPosition(actionChild.first_child());
-            action_pos->position_ = new roadmanager::Position(*osc_pos->GetRMPos());
-            action_pos->position_->SetRelativePosition(osc_pos->GetRMPos()->GetRelativePosition(), osc_pos->GetRMPos()->GetType());
-            delete osc_pos;
+            action_pos->position_      = parseOSCPosition(actionChild.first_child());
             action                = action_pos;
         }
         else if (actionChild.name() == std::string("TrailerAction"))
@@ -3025,8 +3025,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                 else if (routingChild.name() == std::string("AcquirePositionAction"))
                 {
                     AcquirePositionAction *acqPosAction = new AcquirePositionAction(parent);
-                    acqPosAction->target_position_OSCPosition_.reset(parseOSCPosition(routingChild.first_child()));
-                    acqPosAction->target_position_ = acqPosAction->target_position_OSCPosition_->GetRMPos();
+                    acqPosAction->target_position_ = parseOSCPosition(routingChild.first_child());
                     action                         = acqPosAction;
                 }
                 else
@@ -3840,7 +3839,7 @@ OSCCondition *ScenarioReader::parseOSCCondition(pugi::xml_node conditionNode)
                         std::string    targetChildName(targetChild.name());
                         if (targetChildName == "Position")
                         {
-                            trigger->position_.reset(parseOSCPosition(targetChild));
+                            trigger->position_ = parseOSCPosition(targetChild);
                         }
                         else if (targetChildName == "EntityRef")
                         {
@@ -3908,7 +3907,7 @@ OSCCondition *ScenarioReader::parseOSCCondition(pugi::xml_node conditionNode)
 
                         // Read position
                         pugi::xml_node pos_node = condition_node.child("Position");
-                        trigger->position_.reset(parseOSCPosition(pos_node));
+                        trigger->position_ = parseOSCPosition(pos_node);
                         if (trigger->position_ && !pos_node.first_child().child("Orientation").empty())
                         {
                             trigger->checkOrientation_ = true;
@@ -3980,7 +3979,7 @@ OSCCondition *ScenarioReader::parseOSCCondition(pugi::xml_node conditionNode)
                         // Read position
                         pugi::xml_node pos_node = condition_node.child("Position");
 
-                        trigger->position_.reset(parseOSCPosition(pos_node));
+                        trigger->position_ = parseOSCPosition(pos_node);
 
                         std::string freespace_str = parameters.ReadAttribute(condition_node, "freespace");
                         if ((freespace_str == "true") || (freespace_str == "1"))

@@ -192,7 +192,7 @@ namespace scenarioengine
     {
     public:
         Object*                           object_;
-        std::unique_ptr<OSCPosition>      position_;
+        roadmanager::Position*      position_ = nullptr;
         double                            value_;
         bool                              freespace_;
         roadmanager::CoordinateSystem     cs_;
@@ -204,13 +204,20 @@ namespace scenarioengine
         TrigByTimeToCollision() : TrigByEntity(TrigByEntity::EntityConditionType::TIME_TO_COLLISION), object_(0), ttc_(-1)
         {
         }
+        ~TrigByTimeToCollision()
+        {
+            if (position_ != nullptr)
+            {
+				delete position_;
+			}
+		}
         void Log();
     };
 
     class TrigByReachPosition : public TrigByEntity
     {
     public:
-        std::unique_ptr<OSCPosition> position_;
+        roadmanager::Position* position_ = nullptr;
         double                       tolerance_;
         double                       dist_;
         double                       angularTolerance_;
@@ -225,13 +232,20 @@ namespace scenarioengine
               checkOrientation_(false)
         {
         }
+        ~TrigByReachPosition()
+        {
+            if (position_ != nullptr)
+            {
+                delete position_;
+            }
+		}
         void Log();
     };
 
     class TrigByDistance : public TrigByEntity
     {
     public:
-        std::unique_ptr<OSCPosition>      position_;
+        roadmanager::Position*      position_ = nullptr;
         double                            value_;
         bool                              freespace_;
         roadmanager::CoordinateSystem     cs_;
@@ -248,6 +262,13 @@ namespace scenarioengine
               relDistType_(roadmanager::RelativeDistanceType::REL_DIST_UNDEFINED),
               dist_(0)
         {
+        }
+        ~TrigByDistance()
+        {
+            if (position_ != nullptr)
+            {
+				delete position_;
+			}
         }
         void Log();
     };

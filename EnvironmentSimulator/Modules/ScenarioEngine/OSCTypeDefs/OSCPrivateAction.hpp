@@ -720,13 +720,12 @@ namespace scenarioengine
             SUBMODE_CONCAVE
         } SynchSubmode;
 
-        std::shared_ptr<OSCPosition> steadyState_OSCPosition_;
         struct
         {
-            SteadyStateType type_;
+            SteadyStateType type_ = SteadyStateType::STEADY_STATE_NONE;
             union
             {
-                roadmanager::Position* pos_;
+                roadmanager::Position* pos_ = nullptr;
                 double                 time_;
                 double                 dist_;
             };
@@ -735,10 +734,8 @@ namespace scenarioengine
         SynchMode    mode_;
         SynchSubmode submode_;
 
-        std::shared_ptr<OSCPosition>             target_position_master_OSCPosition_;
-        std::shared_ptr<OSCPosition>             target_position_OSCPosition_;
-        roadmanager::Position*                   target_position_master_;
-        roadmanager::Position*                   target_position_;
+        roadmanager::Position*                   target_position_master_ = nullptr;
+        roadmanager::Position*                   target_position_ = nullptr;
         Object*                                  master_object_;
         std::shared_ptr<LongSpeedAction::Target> final_speed_;
         double                                   tolerance_;
@@ -751,7 +748,6 @@ namespace scenarioengine
         SynchronizeAction(StoryBoardElement* parent)
             : OSCPrivateAction(OSCPrivateAction::ActionType::SYNCHRONIZE_ACTION, parent, static_cast<unsigned int>(ControlDomains::DOMAIN_LONG))
         {
-            steadyState_OSCPosition_ = nullptr;
             master_object_           = 0;
             final_speed_             = 0;
             target_position_master_  = 0;
@@ -771,13 +767,16 @@ namespace scenarioengine
                                static_cast<unsigned int>(ControlDomains::DOMAIN_LONG))
         {
             SetName(action.GetName());
-            steadyState_OSCPosition_            = action.steadyState_OSCPosition_;
-            target_position_master_OSCPosition_ = action.target_position_master_OSCPosition_;
-            target_position_OSCPosition_        = action.target_position_OSCPosition_;
             master_object_                      = action.master_object_;
             final_speed_                        = action.final_speed_;
-            target_position_master_             = action.target_position_master_;
-            target_position_                    = action.target_position_;
+            if (action.target_position_master_ != nullptr)
+            {
+				target_position_master_ = new roadmanager::Position(*action.target_position_master_);
+			}
+            if (action.target_position_ != nullptr)
+            {
+                target_position_ = new roadmanager::Position(*action.target_position_);
+            }
             mode_                               = action.mode_;
             submode_                            = action.submode_;
             lastDist_                           = LARGE_NUMBER;
@@ -786,7 +785,24 @@ namespace scenarioengine
             tolerance_master_                   = SYNCH_DISTANCE_TOLERANCE;
             steadyState_                        = action.steadyState_;
         }
-
+        ~SynchronizeAction()
+        {
+            if (target_position_master_ != nullptr)
+            {
+				delete target_position_master_;
+			}
+            if (target_position_ != nullptr)
+            {
+				delete target_position_;
+			}
+            if (steadyState_.type_ == SteadyStateType::STEADY_STATE_POS)
+            {
+                if (steadyState_.pos_ != nullptr)
+                {
+					delete steadyState_.pos_;
+				}
+            }
+		}
         OSCPrivateAction* Copy()
         {
             SynchronizeAction* new_action = new SynchronizeAction(*this);
@@ -1065,7 +1081,6 @@ namespace scenarioengine
     class AcquirePositionAction : public OSCPrivateAction
     {
     public:
-        std::shared_ptr<OSCPosition>        target_position_OSCPosition_;
         roadmanager::Position*              target_position_;
         roadmanager::Route* route_;
 
@@ -1091,7 +1106,6 @@ namespace scenarioengine
             route_(0)
         {
             SetName(action.GetName());
-            target_position_OSCPosition_ = action.target_position_OSCPosition_;
             target_position_             = action.target_position_;
             route_                       = action.route_;
         }

@@ -128,7 +128,7 @@ namespace scenarioengine
         OSCGlobalAction*          parseOSCGlobalAction(pugi::xml_node actionNode, Event* parent);
         OSCUserDefinedAction*     parseOSCUserDefinedAction(pugi::xml_node actionNode, Event* parent);
         void                      parseOSCOrientation(OSCOrientation& orientation, pugi::xml_node orientationNode);
-        OSCPosition*              parseOSCPosition(pugi::xml_node positionNode, OSCPosition* base_on_pos = nullptr);
+        roadmanager::Position*    parseOSCPosition(pugi::xml_node positionNode, OSCPosition* base_on_pos = nullptr);
 
         // Storyboard - Story
         OSCCondition* parseOSCCondition(pugi::xml_node conditionNode);

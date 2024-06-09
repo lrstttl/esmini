@@ -58,46 +58,58 @@ namespace scenarioengine
 
         OSCPosition() : type_(PositionType::UNDEFINED)
         {
+            position_ = new roadmanager::Position;
         }
         OSCPosition(PositionType type) : type_(type)
         {
+            position_ = new roadmanager::Position;
         }
-        virtual ~OSCPosition() = default;
+        virtual ~OSCPosition()
+        {
+            if (position_ != nullptr)
+            {
+                delete position_;
+                position_ = nullptr;
+            }
+        }
 
         PositionType type_;
 
         virtual double GetX()
         {
-            return position_.GetX();
+            return position_->GetX();
         }
         virtual double GetY()
         {
-            return position_.GetY();
+            return position_->GetY();
         }
         virtual double GetZ()
         {
-            return position_.GetZ();
+            return position_->GetZ();
         }
         virtual double GetH()
         {
-            return position_.GetH();
+            return position_->GetH();
         }
         virtual double GetP()
         {
-            return position_.GetP();
+            return position_->GetP();
         }
         virtual double GetR()
         {
-            return position_.GetR();
+            return position_->GetR();
         }
-        virtual void                   Print() = 0;
-        virtual roadmanager::Position *GetRMPos()
+        virtual void Print()
         {
-            return &position_;
+			position_->Print();
+        }
+        virtual roadmanager::Position* GetRMPos()
+        {
+            return position_;
         }
 
     protected:
-        roadmanager::Position position_;
+        roadmanager::Position* position_ = nullptr;
     };
 
     class OSCPositionWorld : public OSCPosition
@@ -109,11 +121,6 @@ namespace scenarioengine
 
         // base_on_pos: Provide position from which to base XY to road coord mapping from (optimize search)
         OSCPositionWorld(double x, double y, double z, double h, double p, double r, OSCPosition *base_on_pos);
-
-        void Print()
-        {
-            position_.Print();
-        }
     };
 
     class OSCPositionLane : public OSCPosition
@@ -123,11 +130,6 @@ namespace scenarioengine
         {
         }
         OSCPositionLane(int roadId, int laneId, double s, double offset, OSCOrientation orientation);
-
-        void Print()
-        {
-            position_.Print();
-        }
     };
 
     class OSCPositionRoad : public OSCPosition
@@ -137,11 +139,6 @@ namespace scenarioengine
         {
         }
         OSCPositionRoad(int roadId, double s, double t, OSCOrientation orientation);
-
-        void Print()
-        {
-            position_.Print();
-        }
     };
 
     class OSCPositionRelativeObject : public OSCPosition
@@ -152,11 +149,6 @@ namespace scenarioengine
         OSCPositionRelativeObject(Object *object, double dx, double dy, double dz, OSCOrientation orientation);
 
         void Print();
-
-        roadmanager::Position *GetRMPos()
-        {
-            return &position_;
-        }
     };
 
     class OSCPositionRelativeWorld : public OSCPosition
@@ -167,10 +159,6 @@ namespace scenarioengine
         OSCPositionRelativeWorld(Object *object, double dx, double dy, double dz, OSCOrientation orientation);
 
         void                   Print();
-        roadmanager::Position *GetRMPos()
-        {
-            return &position_;
-        }
     };
 
     class OSCPositionRelativeLane : public OSCPosition
@@ -187,10 +175,6 @@ namespace scenarioengine
                                 roadmanager::Position::DirectionMode direction_mode);
 
         void                   Print();
-        roadmanager::Position *GetRMPos()
-        {
-            return &position_;
-        }
     };
 
     class OSCPositionRelativeRoad : public OSCPosition
@@ -203,10 +187,6 @@ namespace scenarioengine
         OSCPositionRelativeRoad(Object *object, double ds, double dt, OSCOrientation orientation);
 
         void                   Print();
-        roadmanager::Position *GetRMPos()
-        {
-            return &position_;
-        }
     };
 
     class OSCPositionRoute : public OSCPosition
@@ -219,18 +199,13 @@ namespace scenarioengine
 
         void SetRoute(roadmanager::Route* route)
         {
-            position_.SetRoute(route);
+            position_->SetRoute(route);
         }
         void SetRouteRefLaneCoord(roadmanager::Route *route, double pathS, int laneId, double laneOffset, OSCOrientation *orientation);
         void SetRouteRefLaneCoord(roadmanager::Route *route, double pathS, int laneId, double laneOffset);
         void SetRouteRelativeHeading(double h_relative)
         {
-            position_.SetHeadingRelative(h_relative);
-        }
-
-        void Print()
-        {
-            position_.Print();
+            position_->SetHeadingRelative(h_relative);
         }
     };
 
@@ -244,12 +219,7 @@ namespace scenarioengine
 
         void SetTrajectory(roadmanager::RMTrajectory *traj)
         {
-            position_.SetTrajectory(traj);
-        }
-
-        void Print()
-        {
-            position_.Print();
+            position_->SetTrajectory(traj);
         }
     };
 

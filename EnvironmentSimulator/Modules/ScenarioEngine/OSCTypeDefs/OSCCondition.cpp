@@ -749,8 +749,7 @@ bool TrigByTimeToCollision::CheckCondition(double sim_time)
         }
         else
         {
-            roadmanager::Position* pos = position_->GetRMPos();
-            retVal                     = trigObj->Distance(pos->GetX(), pos->GetY(), cs_, relDistType_, freespace_, rel_dist);
+            retVal = trigObj->Distance(position_->GetX(), position_->GetY(), cs_, relDistType_, freespace_, rel_dist);
         }
         if (retVal != 0)
         {
@@ -844,21 +843,21 @@ bool TrigByReachPosition::CheckCondition(double sim_time)
             continue;
         }
 
-        Position* pos = position_->GetRMPos();
-        if (pos == nullptr)
+        if (position_ == nullptr)
         {
             LOG_AND_QUIT("missing road manager position");
         }
-        pos->EvaluateRelation();
+        position_->EvaluateRelation();
 
-        dist_ = fabs(trigObj->pos_.getRelativeDistance(pos->GetX(), pos->GetY(), dist_x, dist_y));
+        dist_ = fabs(trigObj->pos_.getRelativeDistance(position_->GetX(), position_->GetY(), dist_x, dist_y));
         if (dist_ < tolerance_)  // dist may reach half lane width, since offset of relative position is 0
         {
             // Check for any orientation condition
             if (checkOrientation_)
             {
-                if (abs(trigObj->pos_.GetH() - pos->GetH()) < angularTolerance_ && abs(trigObj->pos_.GetP() - pos->GetP()) < angularTolerance_ &&
-                    abs(trigObj->pos_.GetR() - pos->GetR()) < angularTolerance_)
+                if (abs(trigObj->pos_.GetH() - position_->GetH()) < angularTolerance_ &&
+                    abs(trigObj->pos_.GetP() - position_->GetP()) < angularTolerance_ &&
+                    abs(trigObj->pos_.GetR() - position_->GetR()) < angularTolerance_)
                 {
                     result = true;
                 }
@@ -920,9 +919,8 @@ bool TrigByDistance::CheckCondition(double sim_time)
     triggered_by_entities_.clear();
     bool result                = false;
     dist_                      = 0;
-    roadmanager::Position* pos = position_->GetRMPos();
 
-    pos->EvaluateRelation();
+    position_->EvaluateRelation();
 
     for (size_t i = 0; i < triggering_entities_.entity_.size(); i++)
     {
@@ -932,7 +930,7 @@ bool TrigByDistance::CheckCondition(double sim_time)
             continue;
         }
 
-        if (trigObj->Distance(pos->GetX(), pos->GetY(), cs_, relDistType_, freespace_, dist_) != 0)
+        if (trigObj->Distance(position_->GetX(), position_->GetY(), cs_, relDistType_, freespace_, dist_) != 0)
         {
             dist_ = LARGE_NUMBER;
         }
