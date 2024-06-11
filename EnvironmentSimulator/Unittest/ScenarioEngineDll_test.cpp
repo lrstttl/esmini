@@ -2625,6 +2625,7 @@ TEST(TestOsiReporter, RoadCornerOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -20);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), -15);
@@ -2650,6 +2651,7 @@ TEST(TestOsiReporter, RoadCornerOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -20);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), -15);
@@ -2682,6 +2684,7 @@ TEST(TestOsiReporter, LocalCornerOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), 0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), 5);
@@ -2707,6 +2710,7 @@ TEST(TestOsiReporter, LocalCornerOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), 0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), 5);
@@ -2739,6 +2743,7 @@ TEST(TestOsiReporter, RoadCornerWithTwoOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 7);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -20);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), -15);
@@ -2770,6 +2775,7 @@ TEST(TestOsiReporter, RoadCornerWithTwoOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 5);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 7);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -20);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), -15);
@@ -2808,6 +2814,7 @@ TEST(TestOsiReporter, LocalCornerWithTwoOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -10);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 8);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 7);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), 0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), 5);
@@ -2839,6 +2846,7 @@ TEST(TestOsiReporter, LocalCornerWithTwoOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 25);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), -10);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 8);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 7);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), 0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), 5);
@@ -2877,6 +2885,7 @@ TEST(TestOsiReporter, MixedCornerWithTwoOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 55);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 10);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 7);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -20);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), -15);
@@ -2908,6 +2917,7 @@ TEST(TestOsiReporter, MixedCornerWithTwoOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().x(), 55);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().y(), 10);
     EXPECT_EQ(osi_gt.stationary_object(0).base().position().z(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().dimension().height(), 4);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 7);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -20);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(1).x(), -15);
@@ -3010,27 +3020,27 @@ TEST(TestOsiReporter, MarkingTest)
     // road corner outline with repeat, markings also repeated
     EXPECT_EQ(osi_gt.road_marking(6).base().base_polygon_size(), 20);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).x(), 241.00231811727818);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).y(), -20.971385405179376);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).x(), 205.9811052843107);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).y(), 8.7461037446257439);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).x(), 243.19586614995225);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).y(), -18.116854440493299);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).x(), 207.16354547144655);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).y(), 12.14637361683384);
 
     EXPECT_EQ(osi_gt.road_marking(9).base().base_polygon_size(), 20);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).x(), 247.45307758486038);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).y(), -21.544770135016638);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).x(), 212.42912230551772);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).y(), 10.218471325730539);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).x(), 246.55028082010708);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).y(), -22.614797238201866);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).x(), 211.92612542514399);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).y(), 8.9119514681186178);
 
     EXPECT_EQ(osi_gt.road_marking(11).base().base_polygon_size(), 20);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).x(), 258.59876013219866);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).y(), -33.065303195215279);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).x(), 227.33393409597204);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).y(), 3.036464618609827);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).x(), 256.58336523858969);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), -34.862017814406371);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).x(), 226.10624894670312);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), 0.6317215607625819);
 
     // local corner outline with repeat
     EXPECT_EQ(osi_gt.road_marking(12).base().base_polygon_size(), 20);
@@ -3181,27 +3191,27 @@ TEST(TestOsiReporter, MarkingTest)
     // road corner outline with repeat, markings also repeated
     EXPECT_EQ(osi_gt.road_marking(6).base().base_polygon_size(), 20);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).x(), 241.00231811727818);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).y(), -20.971385405179376);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).x(), 205.9811052843107);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(2).y(), 8.7461037446257439);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).x(), 243.19586614995225);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).y(), -18.116854440493299);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).x(), 207.16354547144655);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(6).base().base_polygon(18).y(), 12.14637361683384);
 
     EXPECT_EQ(osi_gt.road_marking(9).base().base_polygon_size(), 20);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).x(), 247.45307758486038);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).y(), -21.544770135016638);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).x(), 212.42912230551772);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(4).y(), 10.218471325730539);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).x(), 246.55028082010708);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).y(), -22.614797238201866);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).x(), 211.92612542514399);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(9).base().base_polygon(11).y(), 8.9119514681186178);
 
     EXPECT_EQ(osi_gt.road_marking(11).base().base_polygon_size(), 20);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).x(), 258.59876013219866);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).y(), -33.065303195215279);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).x(), 227.33393409597204);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(7).y(), 3.036464618609827);
 
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).x(), 256.58336523858969);
-    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), -34.862017814406371);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).x(), 226.10624894670312);
+    EXPECT_DOUBLE_EQ(osi_gt.road_marking(11).base().base_polygon(19).y(), 0.6317215607625819);
 
     // local corner outline with repeat
     EXPECT_EQ(osi_gt.road_marking(12).base().base_polygon_size(), 20);
@@ -3651,32 +3661,32 @@ TEST(TestOsiReporter, ObjectAsOutlineRepeat)
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon_size(), 4.0);  // local corner
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).x(), -10.0);
     EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(0).y(), -2.5);
-    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(3).x(), 10.0);
-    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(3).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(3).x(), -10.0);
+    EXPECT_EQ(osi_gt.stationary_object(0).base().base_polygon(3).y(), 2.5);
 
     EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon_size(), 4.0);
-    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).x(), -1.5308084989341933e-16);
-    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).y(), -2.5);
-    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).x(), 2.3503376129179672);
-    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).y(), -2.2046680062511257);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).x(), -0.54741774762199813);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(0).y(), -2.64349088670411);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).x(), -1.1707914145481364);
+    EXPECT_EQ(osi_gt.stationary_object(2).base().base_polygon(3).y(), 2.3174974494425351);
 
     EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon_size(), 4.0);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).x(), 1.1985638465105075);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).y(), -2.1939564047259332);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).x(), 3.1195894499922541);
-    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).y(), -0.80796632106869171);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).x(), 1.7477613115357902);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(0).y(), -2.0574354561924699);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).x(), -0.083601333894446961);
+    EXPECT_EQ(osi_gt.stationary_object(3).base().base_polygon(3).y(), 2.5951026533691008);
 
     EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon_size(), 4.0);  // local corner
     EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(0).x(), -10.0);
     EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(0).y(), -2.5);
-    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(3).x(), 10.0);
-    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(3).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(3).x(), -10.0);
+    EXPECT_EQ(osi_gt.stationary_object(7).base().base_polygon(3).y(), 2.5);
 
     EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon_size(), 4.0);
-    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(0).x(), -16.231447929850376);
-    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(0).y(), -0.58209750921280001);
-    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).x(), -15.502931203871906);
-    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).y(), -2.8361097676528955);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(0).x(), -4.3235634197327055);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(0).y(), 5.6946721728227176);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).x(), -1.5701357067445161);
+    EXPECT_EQ(osi_gt.stationary_object(10).base().base_polygon(3).y(), 9.8682360970185137);
 }
 
 TEST(TestOsiReporter, MoreOutlineWithRepeats)
@@ -3702,28 +3712,28 @@ TEST(TestOsiReporter, MoreOutlineWithRepeats)
     EXPECT_EQ(osi_gt.stationary_object(18).base().position().z(), 0);
     EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon_size(), 6);
     EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).x(), 0);
-    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).y(), -1.8690322978973621);
 
     EXPECT_EQ(osi_gt.stationary_object(32).base().position().x(), 246.39117354161621);
     EXPECT_EQ(osi_gt.stationary_object(32).base().position().y(), -61.814594146211874);
     EXPECT_EQ(osi_gt.stationary_object(32).base().position().z(), 5.9235329490876794);
     EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon_size(), 6);
     EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon(0).x(), 0);
-    EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon(0).y(), -1.8690322978973621);
 
-    EXPECT_EQ(osi_gt.stationary_object(71).base().position().x(), 91);
-    EXPECT_EQ(osi_gt.stationary_object(71).base().position().y(), 27.5);
+    EXPECT_EQ(osi_gt.stationary_object(71).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(71).base().position().y(), 30);
     EXPECT_EQ(osi_gt.stationary_object(71).base().position().z(), 0);
     EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon_size(), 6);
-    EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon(0).x(), 90);
     EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon(0).y(), -2.5);
 
-    EXPECT_EQ(osi_gt.stationary_object(102).base().position().x(), 269.20580119435141);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().position().y(), -69.04903269972894);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().position().z(), 4.5945655976650039);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().position().x(), 200);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().position().y(), 7);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().position().z(), 0);
     EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon_size(), 6);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).x(), 177.84481116076171);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).y(), -75.055115444384271);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).x(), 43.110831332752568);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).y(), -82.281220232613009);
 
     const char* args[] =
         {"--osc", "../../../resources/xosc/test_two_outline_with_repeat.xosc", "--window", "60", "60", "800", "400", "--aa_mode", "4", "--headless"};
@@ -3742,28 +3752,28 @@ TEST(TestOsiReporter, MoreOutlineWithRepeats)
     EXPECT_EQ(osi_gt.stationary_object(18).base().position().z(), 0);
     EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon_size(), 6);
     EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).x(), 0);
-    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(18).base().base_polygon(0).y(), -1.8690322978973621);
 
     EXPECT_EQ(osi_gt.stationary_object(32).base().position().x(), 246.39117354161621);
     EXPECT_EQ(osi_gt.stationary_object(32).base().position().y(), -61.814594146211874);
     EXPECT_EQ(osi_gt.stationary_object(32).base().position().z(), 5.9235329490876794);
     EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon_size(), 6);
     EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon(0).x(), 0);
-    EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon(0).y(), -2.5);
+    EXPECT_EQ(osi_gt.stationary_object(32).base().base_polygon(0).y(), -1.8690322978973621);
 
-    EXPECT_EQ(osi_gt.stationary_object(71).base().position().x(), 91);
-    EXPECT_EQ(osi_gt.stationary_object(71).base().position().y(), 27.5);
+    EXPECT_EQ(osi_gt.stationary_object(71).base().position().x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(71).base().position().y(), 30);
     EXPECT_EQ(osi_gt.stationary_object(71).base().position().z(), 0);
     EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon_size(), 6);
-    EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon(0).x(), 0);
+    EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon(0).x(), 90);
     EXPECT_EQ(osi_gt.stationary_object(71).base().base_polygon(0).y(), -2.5);
 
-    EXPECT_EQ(osi_gt.stationary_object(102).base().position().x(), 269.20580119435141);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().position().y(), -69.04903269972894);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().position().z(), 4.5945655976650039);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().position().x(), 200);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().position().y(), 7);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().position().z(), 0);
     EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon_size(), 6);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).x(), 177.84481116076171);
-    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).y(), -75.055115444384271);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).x(), 43.110831332752568);
+    EXPECT_EQ(osi_gt.stationary_object(102).base().base_polygon(0).y(), -82.281220232613009);
 }
 
 TEST(ParameterTest, GetTypedParameterValues)

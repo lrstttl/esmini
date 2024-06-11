@@ -71,31 +71,31 @@
                 <outlines>
                     <outline id="0" closed="true">
                         <cornerLocal u="-10.0" v="-2.5" z="0.0" height="4.0" id="0"/>
-                        <cornerLocal u="-10.0" v="2.5" z="0.0" height="4.0" id="1"/>
+                        <cornerLocal u="10.0" v="-2.5" z="0.0" height="4.0" id="1"/>
                         <cornerLocal u="10.0" v="2.5" z="0.0" height="4.0" id="2"/>
-                        <cornerLocal u="10.0" v="-2.5" z="0.0" height="4.0" id="3"/>
+                        <cornerLocal u="-10.0" v="2.5" z="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
                 <repeat s="60" length="20" distance ="0.0" tStart="-13.0" tEnd="-13.0"/>
             </object>
-            <object type="barrier" id="1" s="50" t="-10">
+            <object type="barrier" id="1" s="12.5" t="0">
                 <outlines>
                     <outline id="1" closed="true">
                         <cornerRoad s="10" t="-2.5" dz="0.0" height="4.0" id="0"/>
-                        <cornerRoad s="10" t="2.5" dz="0.0" height="4.0" id="1"/>
+                        <cornerRoad s="15" t="-2.5" dz="0.0" height="4.0" id="1"/>
                         <cornerRoad s="15" t="2.5" dz="0.0" height="4.0" id="2"/>
-                        <cornerRoad s="15" t="-2.5" dz="0.0" height="4.0" id="3"/>
+                        <cornerRoad s="10" t="2.5" dz="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
-                <repeat s="0" length="20" distance ="0.0" tStart="13.0" tEnd="13.0" lengthStart="5" lengthEnd="5" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>
+                <repeat s="2.5" length="20" distance ="0.0" tStart="13.0" tEnd="13.0" lengthStart="5" lengthEnd="5" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>
             </object>
             <object type="barrier" id="0" s="50" t="-9">
                 <outlines>
                     <outline id="0" closed="true">
                         <cornerLocal u="-10.0" v="-2.5" z="0.0" height="4.0" id="0"/>
-                        <cornerLocal u="-10.0" v="2.5" z="0.0" height="4.0" id="1"/>
+                        <cornerLocal u="10.0" v="-2.5" z="0.0" height="4.0" id="1"/>
                         <cornerLocal u="10.0" v="2.5" z="0.0" height="4.0" id="2"/>
-                        <cornerLocal u="10.0" v="-2.5" z="0.0" height="4.0" id="3"/>
+                        <cornerLocal u="-10.0" v="2.5" z="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
                 <repeat s="10" length="40" distance ="22.0" tStart="-13.0" tEnd="-13.0"/>
@@ -104,9 +104,9 @@
                 <outlines>
                     <outline id="1" closed="true">
                         <cornerRoad s="10" t="-2.5" dz="0.0" height="4.0" id="0"/>
-                        <cornerRoad s="10" t="2.5" dz="0.0" height="4.0" id="1"/>
+                        <cornerRoad s="15" t="-2.5" dz="0.0" height="4.0" id="1"/>
                         <cornerRoad s="15" t="2.5" dz="0.0" height="4.0" id="2"/>
-                        <cornerRoad s="15" t="-2.5" dz="0.0" height="4.0" id="3"/>
+                        <cornerRoad s="10" t="2.5" dz="0.0" height="4.0" id="3"/>
                     </outline>
                 </outlines>
                 <repeat s="70" length="20" distance ="7.0" tStart="13.0" tEnd="13.0" lengthStart="5" lengthEnd="5" widthStart="5" widthEnd="5" heightStart="4.0" heightEnd="4.0"/>

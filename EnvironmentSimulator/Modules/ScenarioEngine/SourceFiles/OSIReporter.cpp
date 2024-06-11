@@ -577,6 +577,70 @@ int UpdateOSIStationaryObjectODRPosition(osi3::StationaryObject *sobj, double x,
     return 0;
 }
 
+void UpdateOSIStationaryObjectDimensionAndOrientation(osi3::StationaryObject *sobj, roadmanager::RMObject *object)
+{
+    // Set OSI Stationary Object Bounding box
+    sobj->mutable_base()->mutable_dimension()->set_height(object->GetHeight().Get());
+    sobj->mutable_base()->mutable_dimension()->set_width(object->GetWidth().Get());
+    sobj->mutable_base()->mutable_dimension()->set_length(object->GetLength().Get());
+    // only bounding box
+
+    // Set OSI Stationary Object Orientation
+    sobj->mutable_base()->mutable_orientation()->set_roll(GetAngleInIntervalMinusPIPlusPI(object->GetRoll()));
+    sobj->mutable_base()->mutable_orientation()->set_pitch(GetAngleInIntervalMinusPIPlusPI(object->GetPitch()));
+    sobj->mutable_base()->mutable_orientation()->set_yaw(
+        GetAngleInIntervalMinusPIPlusPI(object->GetH() + object->GetHOffset()));
+}
+
+void AddOSIStationaryObject(osi3::StationaryObject *sobj, osi3::GroundTruth *gt, roadmanager::RMObject *object)
+{
+    // Create OSI Stationary Object
+    sobj = gt->add_stationary_object();
+    // Set OSI Stationary Object Mutable ID
+    sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+    // Set OSI Stationary Object Type and Classification
+    UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+
+    // Set OSI Stationary Object Position
+    UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
+}
+
+void AddPolygonToOSIStationaryObject(osi3::StationaryObject *sobj, const roadmanager::Outline& outline)
+{
+    double height = 0;
+    for (const auto &corner : outline.corner_)
+    {
+        double x, y, z;
+        corner->GetPosLocal(x, y, z);
+        // printf("outline corner %d, %d: %.2f %.2f\n", (int)k, (int)l, x, y);
+        osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
+        vec->set_x(x);
+        vec->set_y(y);
+        height += corner->GetHeight() / static_cast<double>(outline.corner_.size());
+    }
+    sobj->mutable_base()->mutable_dimension()->set_height(height);
+}
+#if 0
+int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
+{
+    if (object->GetNumberOfRepeats() == 0)
+    {
+        if (object->GetNumberOfOutlines() > 0)
+        {
+            for (const auto &outline : object->GetOutlines())
+            {
+                AddOSIStationaryObject(obj_osi_internal.sobj, obj_osi_internal.gt, object); // each outline is separate object
+                AddPolygonToOSIStationaryObject(obj_osi_internal.sobj, outline);
+            }
+        }
+        else
+        {
+            AddOSIStationaryObject(obj_osi_internal.sobj, obj_osi_internal.gt, object);
+            UpdateOSIStationaryObjectDimensionAndOrientation(obj_osi_internal.sobj, object);
+        }
+    }
+}
+#endif
 int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject *object)
 {
     if (object->GetNumberOfRepeats() > 0)
@@ -698,23 +762,22 @@ int OSIReporter::UpdateOSIStationaryObjectODR(int road_id, roadmanager::RMObject
                     {
                         // Create OSI Stationary Object
                         obj_osi_internal.sobj = obj_osi_internal.gt->add_stationary_object();
+                        // Set OSI Stationary Object Mutable ID
+                        obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
+                        // Set OSI Stationary Object Type and Classification
+                        UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
+                        UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeat.GetS(), repeat.GetTStart(), repeat.GetZOffsetStartResolved() + object->GetZOffset());
                         for (const auto &outline : outlineCopies)
                         {
-                            // Set OSI Stationary Object Mutable ID
-                            obj_osi_internal.sobj->mutable_id()->set_value(static_cast<unsigned int>(object->GetId()));
-                            // Set OSI Stationary Object Type and Classification
-                            UpdateOSIStationaryObjectODRType(object->GetType(), obj_osi_internal.sobj, object->GetParkingSpace().GetRestrictions());
-
                             double height = 0;
-                            UpdateOSIStationaryObjectODRPosition(obj_osi_internal.sobj, repeat.GetS(), repeat.GetTStart(), repeat.GetZOffsetStartResolved() + object->GetZOffset());
                             for (const auto &corner : outline.corner_)
                             {
+                                osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
                                 double x, y, z;
                                 corner->GetPosLocal(x, y, z);
-                                osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
                                 vec->set_x(x);
                                 vec->set_y(y);
-                                height += corner->GetHeight() / static_cast<double>(outline.corner_.size());
+                                height += corner->GetHeight() / static_cast<unsigned int>(outline.corner_.size());
                             }
                             obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
                         }

@@ -3451,7 +3451,6 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
             scale.heading = pos.GetH();
             scale.hOffset = GetOrientation() == Signal::Orientation::NEGATIVE ? M_PI : 0.0 + GetHOffset();
             repeat.transformationInfoScales_.emplace_back(std::move(scale));  // store points for shallow copy
-
             if (repeat.GetDistance() < SMALL_NUMBER)
             {
                 cur_s += pos.DistanceToDS(cur_length);
