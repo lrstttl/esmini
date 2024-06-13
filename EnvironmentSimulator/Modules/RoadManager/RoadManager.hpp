@@ -2201,9 +2201,9 @@ namespace roadmanager
 
         struct RepeatTransformationInfoScale : public RepeatTransformationInfo
         {
-            double scale_x;
-            double scale_y;
-            double scale_z;
+            double scale_x = 1;
+            double scale_y = 1;
+            double scale_z = 1;
         };
         // stores repeat transformation info for non outline object
         void AddTransformationInfoDimension(RepeatTransformationInfoDimension repeatDimension)
@@ -2561,12 +2561,12 @@ namespace roadmanager
         {
             return road_id_;
         }
-        // Get the difference between object referrence S and repeat referrence T
+        // Get the difference between object reference S and repeat reference S
         double GetDifferenceOfRepeatAndObjectS(Repeat& repeat)
         {
             return repeat.GetS() - GetS();
         }
-        // Get the difference between object referrence T and repeat referrence T
+        // Get the difference between object reference T and repeat reference T
         double GetDifferenceOfRepeatAndObjectT(Repeat& repeat)
         {
             return repeat.GetTStart() - GetT();

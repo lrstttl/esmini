@@ -3327,7 +3327,7 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
                                                                         start_t,
                                                                         start_z,
                                                                         start_h,
-                                                                        repeat.GetS(),
+                                                                        repeat.GetS() ,
                                                                         repeat.GetTWithFactor(factor),
                                                                         GetHOffset(),
                                                                         corner_original->GetCornerId()));
@@ -3432,7 +3432,7 @@ void RMObject::CalculateLocalOutlineTransformationInfo(Repeat& repeat)
 
             double scale_u = abs(cur_length / lengthOutline);
             double scale_v = abs(cur_width / widthOutline);
-            double scale_z = abs(cur_z) / (zOutline + heightOutline);
+            double scale_z = abs(cur_z + cur_height) / (zOutline + heightOutline);
             pos.SetTrackPosMode(GetRoadId(),
                                 repeat.GetS() + cur_s,
                                 repeat.GetTWithFactor(factor),
