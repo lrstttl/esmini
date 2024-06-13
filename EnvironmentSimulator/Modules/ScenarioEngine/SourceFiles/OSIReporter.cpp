@@ -625,25 +625,6 @@ void AddOSIStationaryObject(roadmanager::RMObject *object)
     AddOSIStationaryObjectAtPosition(object, object->GetX(), object->GetY(), object->GetZ() + object->GetZOffset());
 }
 
-
-
-// void AddPolygonToOSIStationaryObject(const roadmanager::Outline& outline)
-// {
-//     double height = 0;
-//     for (const auto &corner : outline.corner_)
-//     {
-//         double x, y, z;
-//         corner->GetPosLocal(x, y, z);
-//         // printf("outline corner %d, %d: %.2f %.2f\n", (int)k, (int)l, x, y);
-//         osi3::Vector2d *vec = obj_osi_internal.sobj->mutable_base()->add_base_polygon();
-//         vec->set_x(x);
-//         vec->set_y(y);
-
-//         height += corner->GetHeight() / static_cast<double>(outline.corner_.size());
-//     }
-//     obj_osi_internal.sobj->mutable_base()->mutable_dimension()->set_height(height);
-// }
-
 void AddPolygonToOSIStationaryObject(const roadmanager::Outline& outline, const roadmanager::Repeat::RepeatTransformationInfoScale &repeatScale = {})
 {
     double height = 0;

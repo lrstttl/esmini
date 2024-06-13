@@ -3212,10 +3212,6 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
         double cur_width  = widthOutline;
         double cur_z      = zOutline;
         double cur_height = heightOutline;
-        // transform all the corner as local to find the combined bb
-        // std::vector<std::vector<Outline::point>> localPoints = GetLocalPointsFromOutlines();
-        // TransformToLocal(localPoints);
-        // bool isMixedCorners = IsMixedCorners();
         while (!(IsEqualDouble(cur_s + SMALL_NUMBER, repeatLength) || cur_s > repeatLength))
         {
             double       factor  = cur_s / repeatLength;
@@ -3301,19 +3297,6 @@ int RMObject::CalculateUniqueOutlines(Repeat& repeat)
                             scale_h  = abs(cur_height / heightOutline);
                         }
                     }
-                    // double localCornerS = 0.0;
-                    // double raodCornerT = 0.0;
-                    // if(isMixedCorners)
-                    // {
-                    //     localCornerS = GetS() + repeat.GetS() + cur_s;
-                    //     raodCornerT = GetT() + repeat.GetTWithFactor(factor);
-                    // }
-                    // else
-                    // {
-                    //     localCornerS = repeat.GetS() + cur_s;
-                    //     raodCornerT = repeat.GetTWithFactor(factor);
-                    // }
-
 
                     double         start_s = GetDifferenceOfRepeatAndObjectS(repeat) + cur_s + x_to_add;
                     double         start_t = repeat.GetTWithFactor(factor) - GetT() + y_to_add;
@@ -3531,8 +3514,6 @@ std::vector<std::vector<Outline::point>> RMObject::GetLocalPointsFromOutlines()
                 point.z                       = corner->GetZ();
                 point.h                       = corner->GetHeight();
                 localPoints.emplace_back(std::move(point));  // this is not transformed to local yet, Shall be tranformed below after finding minX
-                // outlineOriginal.TransformRoadCornerToLocal(localPoints, k == 0);
-
             }
         }
         localPointsList.emplace_back(std::move(localPoints));
