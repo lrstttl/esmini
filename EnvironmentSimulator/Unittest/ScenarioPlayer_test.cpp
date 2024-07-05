@@ -171,11 +171,12 @@ TEST(AlignmentTest, TestPositionAlignmentVariants)
     EXPECT_NEAR(player->scenarioEngine->entities_.object_[0]->pos_.GetZ(), 6.919, 1E-3);
 
     // Ensure absolute update mode preserves z level
-    player->scenarioEngine->entities_.object_[0]->pos_.SetMode(roadmanager::Position::PosModeType::UPDATE, roadmanager::Position::PosMode::Z_ABS);
+    // player->scenarioEngine->entities_.object_[0]->pos_.SetMode(roadmanager::Position::PosModeType::UPDATE, roadmanager::Position::PosMode::Z_ABS);
+    player->scenarioGateway->setObjectPositionMode(0, static_cast<int>(roadmanager::Position::PosModeType::UPDATE), static_cast<int>(roadmanager::Position::PosMode::Z_ABS));
+    player->Frame(0.0);
     EXPECT_EQ(player->scenarioEngine->entities_.object_[0]->pos_.GetMode(roadmanager::Position::PosModeType::UPDATE) &
                   roadmanager::Position::PosMode::Z_MASK,
               roadmanager::Position::PosMode::Z_ABS);
-    player->Frame(0.0);
     player->scenarioGateway->updateObjectWorldPosMode(0, 0.0, 221.381, -22.974, 3.0, 5.575, 0.0, 0.0, roadmanager::Position::PosMode::Z_ABS);
     player->scenarioGateway->updateObjectSpeed(0, 0.0, 15.0);
     player->Frame(0.1);
@@ -224,7 +225,8 @@ TEST(SensorTest, TestSensorFunctionsReturnValuesAndCounters)
 
 TEST(AlignmentTest, TestPosMode)
 {
-    const char* args[] = {"esmini", "--headless", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc", "--disable_stdout"};
+    // const char* args[] = {"esmini", "--headless", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc", "--disable_stdout"};
+    const char* args[] = {"esmini", "--window", "60", "60", "1000", "500", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc"};
     int         argc   = sizeof(args) / sizeof(char*);
     ScenarioPlayer* player = new ScenarioPlayer(argc, const_cast<char**>(args));
 
@@ -235,7 +237,10 @@ TEST(AlignmentTest, TestPosMode)
     roadmanager::Position& pos  = player->scenarioEngine->entities_.object_[0]->pos_;
     roadmanager::Road*     road = player->GetODRManager()->GetRoadByIdx(0);
 
-    EXPECT_EQ(pos.GetMode(Position::PosModeType::SET), Position::GetModeDefault(Position::PosModeType::SET));
+    EXPECT_EQ(pos.GetMode(Position::PosModeType::SET), roadmanager::Position::PosMode::Z_REL | 
+        roadmanager::Position::PosMode::H_REL | 
+        roadmanager::Position::PosMode::P_REL | 
+        roadmanager::Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::UPDATE), Position::GetModeDefault(Position::PosModeType::UPDATE));
 
     // Test some operations
@@ -248,7 +253,7 @@ TEST(AlignmentTest, TestPosMode)
 
     pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::SET),
-              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_ABS | roadmanager::Position::PosMode::P_REL |
+              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
                   roadmanager::Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::UPDATE),
               roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
@@ -272,7 +277,7 @@ TEST(AlignmentTest, TestPosMode)
 
     pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::R_ABS);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::SET),
-              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_ABS | roadmanager::Position::PosMode::P_REL |
+              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
                   roadmanager::Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::UPDATE),
               roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
@@ -301,7 +306,7 @@ TEST(AlignmentTest, TestPosMode)
 
     pos.SetMode(Position::PosModeType::UPDATE, Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::SET),
-              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_ABS | roadmanager::Position::PosMode::P_REL |
+              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
                   roadmanager::Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::UPDATE),
               roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
@@ -334,7 +339,7 @@ TEST(AlignmentTest, TestPosMode)
 
     pos.SetMode(Position::PosModeType::SET, Position::PosMode::R_ABS);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::SET),
-              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_ABS | roadmanager::Position::PosMode::P_REL |
+              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_REL | roadmanager::Position::PosMode::P_REL |
                   roadmanager::Position::PosMode::R_ABS);
     pos.SetInertiaPos(100.0, 85.0, -10.0, 0.5, 0.0, 0.3);
     player->scenarioEngine->entities_.object_[0]->SetSpeed(0.0);

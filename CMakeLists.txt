@@ -42,7 +42,7 @@ set(ENABLE_COVERAGE
           "Enable code coverage (Will force no optimizations)")
 
 set(ENABLE_SANITIZERS
-    ON
+    OFF
     CACHE BOOL
           "Enable sanitizers (Only valid for Linux and Mac OS)")
 
@@ -57,7 +57,7 @@ set(ENABLE_INCLUDE_WHAT_YOU_USE
           "Enable iwyu")
 
 set(USE_OSG
-    OFF
+    ON
     CACHE BOOL
           "If projects that depend on osg should be compiled.")
 

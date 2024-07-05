@@ -949,14 +949,7 @@ namespace scenarioengine
     public:
         roadmanager::Route* route_;
 
-        ~AssignRouteAction()
-        {
-            if (route_ != nullptr)
-            {
-                delete route_;
-                route_ = nullptr;
-            }
-        }
+        ~AssignRouteAction();
 
         AssignRouteAction(StoryBoardElement* parent)
             : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, parent, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE)),
@@ -968,6 +961,11 @@ namespace scenarioengine
             : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE)), route_(0)
         {
             SetName(action.GetName());
+            if (route_ == nullptr)
+            {
+                printf("Route not defined! Creating one\n");
+                route_ = new roadmanager::Route;
+            }
             route_->CopyFrom(*action.route_);
         }
 

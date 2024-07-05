@@ -709,7 +709,7 @@ void ScenarioEngine::prepareGroundTruth(double dt)
         {
             if (o->dirty_ & (Object::DirtyBit::LATERAL | Object::DirtyBit::LONGITUDINAL))
             {
-                obj->pos_ = o->state_.pos;
+                obj->pos_.Duplicate(o->state_.pos);
                 obj->SetDirtyBits(o->dirty_ & (Object::DirtyBit::LATERAL | Object::DirtyBit::LONGITUDINAL));
             }
             if (o->dirty_ & Object::DirtyBit::ACCELERATION)

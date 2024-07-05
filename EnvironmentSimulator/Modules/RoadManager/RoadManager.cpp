@@ -6222,20 +6222,15 @@ Position& Position::operator=(const Position& other)
 
 Position::~Position()
 {
-    if (route_ != nullptr)
-    {
-        delete route_;
-        route_ = nullptr;
-    }
 }
 
 Position::Position(Position&& other)
 {
     Duplicate(other);
-    if (route_ != nullptr)
+    if (other.route_ != nullptr)
     {
-        delete route_;
-        route_ = nullptr;
+        delete other.route_;
+        other.route_ = nullptr;
     }    
 }
 
@@ -6267,6 +6262,7 @@ void Position::Duplicate(const Position& from)
     h_relative_             = from.h_relative_;
     p_relative_             = from.p_relative_;
     r_relative_             = from.r_relative_;
+    z_relative_             = from.z_relative_;
     h_road_                 = from.h_road_;
     p_road_                 = from.p_road_;
     r_road_                 = from.r_road_;
@@ -6291,13 +6287,20 @@ void Position::Duplicate(const Position& from)
     roadmarktype_idx_       = from.roadmarktype_idx_;
     roadmark_idx_           = from.roadmark_idx_;
     roadSuperElevationPrim_ = from.roadSuperElevationPrim_;
+    mode_init_              = from.mode_init_;
+    mode_set_               = from.mode_set_;
+    mode_update_            = from.mode_update_;
+    direction_mode_         = from.direction_mode_;
+    type_                   = from.type_;
 
+#if 0
     if (route_ != nullptr)
     {
         // free any old route
         delete route_;
         route_ = nullptr;
     }
+#endif
 }
 
 bool Position::LoadOpenDrive(const char* filename)
@@ -12668,7 +12671,7 @@ Position::ReturnCode Route::SetTrackS(int trackId, double s)
                 }
                 else
                 {
-                    LOG("Entity %s moved out of route", getObjName().c_str());
+                    LOG("Entity %s moved out of route (SetTrackS())", getObjName().c_str());
                     retval = Position::ReturnCode::ERROR_END_OF_ROUTE;
                 }
             }
@@ -12782,7 +12785,7 @@ Position::ReturnCode Route::SetPathS(double s, double* remaining_dist)
                 }
                 else
                 {
-                    LOG("Entity %s moved out of route", getObjName().c_str());
+                    LOG("Entity %s moved out of route (SetPathS())", getObjName().c_str());
                     retval = Position::ReturnCode::ERROR_END_OF_ROUTE;
                 }
             }

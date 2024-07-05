@@ -1828,7 +1828,7 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
     }
     else if (positionChildName == "RoutePosition")
     {
-        std::unique_ptr<roadmanager::Route> route;
+        roadmanager::Route* route = nullptr;
         OSCPositionRoute                   *pos         = new OSCPositionRoute;
         OSCOrientation                     *orientation = 0;
 
@@ -1843,8 +1843,8 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
                     if (routeRefChildName == "Route")
                     {
                         // Parse inline route
-                        route.reset(parseOSCRoute(routeRefChild));
-                        if (route.get() == nullptr)
+                        route = parseOSCRoute(routeRefChild);
+                        if (route == nullptr)
                         {
                             LOG_AND_QUIT("Failed to resolve inline route");
                         }
@@ -1863,8 +1863,8 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
                         if (entry->type_ == CatalogType::CATALOG_ROUTE)
                         {
                             // Make a new instance from catalog entry
-                            route.reset(parseOSCRoute(entry->GetNode()));
-                            if (route.get() == nullptr)
+                            route = parseOSCRoute(entry->GetNode());
+                            if (route == nullptr)
                             {
                                 LOG_AND_QUIT("Failed to resolve catalog route");
                             }
@@ -1918,11 +1918,11 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
                         }
                         if (orientation)
                         {
-                            pos->SetRouteRefLaneCoord(route.get(), s, lane_id, lane_offset, orientation);
+                            pos->SetRouteRefLaneCoord(route, s, lane_id, lane_offset, orientation);
                         }
                         else
                         {
-                            pos->SetRouteRefLaneCoord(route.get(), s, lane_id, lane_offset);
+                            pos->SetRouteRefLaneCoord(route, s, lane_id, lane_offset);
                             if (lane_id > 0)
                             {
                                 pos->SetRouteRelativeHeading(M_PI);

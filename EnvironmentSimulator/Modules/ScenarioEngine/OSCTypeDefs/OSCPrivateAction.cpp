@@ -277,6 +277,15 @@ void OSCPrivateAction::TransitionDynamics::UpdateRate()
     }
 }
 
+AssignRouteAction::~AssignRouteAction()
+{
+    if (route_ != nullptr)
+    {
+        delete route_;
+        route_ = nullptr;
+    }
+}
+
 void AssignRouteAction::Start(double simTime)
 {
     route_->setObjName(object_->GetName());
@@ -708,6 +717,7 @@ void LatLaneChangeAction::Start(double simTime)
     // Set initial state
     object_->pos_.ForceLaneId(target_lane_id_);
     internal_pos_ = object_->pos_;
+    // internal_pos_.CopyRoute(object_->pos_);
 
     // Make offsets agnostic to lane sign
     transition_.SetStartVal(SIGN(object_->pos_.GetLaneId()) * object_->pos_.GetOffset());

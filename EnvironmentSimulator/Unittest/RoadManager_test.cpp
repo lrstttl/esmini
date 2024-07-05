@@ -1819,7 +1819,7 @@ TEST(Route, TestAssignRoute)
     EXPECT_EQ(odr->GetNumOfRoads(), 16);
 
     const int              nrWaypoints = 6;
-    Route* route       = new Route;
+    Route* route = new Route;
     Position               routepos[nrWaypoints];
     routepos[0].SetLanePos(0, 1, 10.0, 0);
     routepos[0].SetHeadingRelative(M_PI);
@@ -1854,6 +1854,8 @@ TEST(Route, TestAssignRoute)
     // Set a position in intersection, at a lane not part of the route
     pos0.SetLanePos(16, -1, 1.0, 0.0);
     EXPECT_EQ(pos0.SetRoute(route), -1);  // pos not along the route
+
+    delete route;
 }
 
 TEST(GeoReferenceTest, TestNoGeoReferenceSimpleRoad)
