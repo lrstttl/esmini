@@ -6292,6 +6292,18 @@ void Position::Duplicate(const Position& from)
     mode_update_            = from.mode_update_;
     direction_mode_         = from.direction_mode_;
     type_                   = from.type_;
+    velX_                   = from.velX_;
+    velY_                   = from.velY_;
+    velZ_                   = from.velZ_;
+    accX_                   = from.accX_;
+    accY_                   = from.accY_;
+    accZ_                   = from.accZ_;
+    h_rate_                 = from.h_rate_;
+    p_rate_                 = from.p_rate_;
+    r_rate_                 = from.r_rate_;
+    h_acc_                  = from.h_acc_;
+    p_acc_                  = from.p_acc_;
+    r_acc_                  = from.r_acc_;
 
 #if 0
     if (route_ != nullptr)
