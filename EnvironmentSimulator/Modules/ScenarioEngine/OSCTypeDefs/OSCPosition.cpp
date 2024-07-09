@@ -59,19 +59,20 @@ static void SetPositionModesGeneric(roadmanager::Position &position, double *z, 
 #else
     position.SetMode(
         roadmanager::Position::PosModeType::INIT,
-        (z == nullptr || std::isnan(*z)) ? roadmanager::Position::PosMode::Z_REL : roadmanager::Position::PosMode::Z_ABS |
+        ((z == nullptr || std::isnan(*z)) ? roadmanager::Position::PosMode::Z_REL : roadmanager::Position::PosMode::Z_ABS) |
+        
             (orientation == nullptr || std::isnan(orientation->h_)
                  ? roadmanager::Position::PosMode::H_REL
                  : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::H_ABS
                                                                                                       : roadmanager::Position::PosMode::H_REL)) |
-            (orientation == nullptr || std::isnan(orientation->h_)
+            (orientation == nullptr || std::isnan(orientation->p_)
                  ? roadmanager::Position::PosMode::P_REL
                  : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::P_ABS
                                                                                                       : roadmanager::Position::PosMode::P_REL)) |
-            (orientation == nullptr || std::isnan(orientation->h_)
+            (orientation == nullptr || std::isnan(orientation->r_)
                  ? roadmanager::Position::PosMode::R_REL
-                 : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::P_ABS
-                                                                                                      : roadmanager::Position::PosMode::P_REL)));
+                 : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::R_ABS
+                                                                                                      : roadmanager::Position::PosMode::R_REL)));
 #endif
 }
 
@@ -84,7 +85,8 @@ OSCPositionWorld::OSCPositionWorld(double x, double y, double z, double h, doubl
     }
 
 #if 1
-    SetPositionModesGeneric(position_, &z, nullptr, false);
+    OSCOrientation orientation(roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE, h, p, r);
+    SetPositionModesGeneric(position_, &z, &orientation, false);
 #else
     // nan indicates value not set -> mark relative to align to road or curve
     position_.SetMode(roadmanager::Position::PosModeType::ALL,

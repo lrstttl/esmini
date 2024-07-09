@@ -6245,7 +6245,7 @@ Position& Position::operator=(Position&& other)
     return *this;
 }
 
-void Position::Duplicate(const Position& from)
+void Position::CopyLocation(const Position& from)
 {
     if (this == &from)
     {
@@ -6287,6 +6287,20 @@ void Position::Duplicate(const Position& from)
     roadmarktype_idx_       = from.roadmarktype_idx_;
     roadmark_idx_           = from.roadmark_idx_;
     roadSuperElevationPrim_ = from.roadSuperElevationPrim_;
+    routeStrategy_          = from.routeStrategy_;
+}
+
+
+void Position::Duplicate(const Position& from)
+{
+    if (this == &from)
+    {
+        return;
+    }
+
+    CopyLocation(from);
+
+    // copy only specific fields
     mode_init_              = from.mode_init_;
     mode_set_               = from.mode_set_;
     mode_update_            = from.mode_update_;
@@ -6304,7 +6318,11 @@ void Position::Duplicate(const Position& from)
     h_acc_                  = from.h_acc_;
     p_acc_                  = from.p_acc_;
     r_acc_                  = from.r_acc_;
-
+    status_                 = from.status_;
+    relative_               = from.relative_;
+    snapToLaneTypes_        = from.snapToLaneTypes_;
+    lockOnLane_             = from.lockOnLane_;
+    rel_pos_                = from.rel_pos_;
 #if 0
     if (route_ != nullptr)
     {
@@ -12228,7 +12246,7 @@ Position::ReturnCode Position::SetRouteS(double route_s)
 
 void Position::EvaluateRelation(bool release)
 {
-    if (rel_pos_ == nullptr || rel_pos_ == this || GetType() == Position::PositionType::NORMAL || GetType() == Position::PositionType::ROUTE)
+    if (rel_pos_ == nullptr || GetType() == Position::PositionType::NORMAL || GetType() == Position::PositionType::ROUTE)
     {
         // relation not defined or not relevant for the position type
         return;
@@ -12239,6 +12257,7 @@ void Position::EvaluateRelation(bool release)
         Position          pos_tmp;
         Route             route_backup;
         shared_ptr<Route> route;
+
 
         pos_tmp.Duplicate(*rel_pos_);  // copy referred entity's route as a starting point
 
@@ -12265,7 +12284,8 @@ void Position::EvaluateRelation(bool release)
                            false,
                            GetDirectionMode() == DirectionMode::ALONG_LANE ? MoveDirectionMode::LANE_DIRECTION : MoveDirectionMode::ROAD_DIRECTION,
                            true);
-        Duplicate(pos_tmp);
+        
+        CopyLocation(pos_tmp);
 
         if (!route_ && rel_pos_->route_)
         {

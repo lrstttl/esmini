@@ -530,6 +530,7 @@ namespace scenarioengine
             Target(Type type) : type_(type)
             {
             }
+
             virtual ~Target() = default;
         };
 
@@ -538,6 +539,11 @@ namespace scenarioengine
         public:
             TargetAbsolute() : Target(Target::Type::ABSOLUTE_LANE)
             {
+            }
+            
+            TargetAbsolute(const TargetAbsolute& target) : Target(target.type_)
+            {
+                value_ = target.value_;
             }
         };
 
@@ -548,6 +554,12 @@ namespace scenarioengine
 
             TargetRelative() : Target(Target::Type::RELATIVE_LANE), object_(0)
             {
+            }
+
+            TargetRelative(const TargetRelative& target) : Target(target.type_)
+            {
+                value_ = target.value_;
+                object_ = target.object_;
             }
         };
 
@@ -567,12 +579,22 @@ namespace scenarioengine
 
         LatLaneChangeAction(const LatLaneChangeAction& action)
             : OSCPrivateAction(OSCPrivateAction::ActionType::LAT_LANE_CHANGE, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_LAT)),
-              target_(action.target_),
               transition_(action.transition_),
               target_lane_offset_(action.target_lane_offset_),
               start_offset_(action.start_offset_),
               heading_agnostic_(action.heading_agnostic_)
         {
+            if (action.target_ != nullptr)
+            {
+                if (action.target_->type_ == Target::Type::ABSOLUTE_LANE)
+                {
+                    target_ = new TargetAbsolute(*static_cast<TargetAbsolute*>(action.target_));
+                }
+                else if (action.target_->type_ == Target::Type::RELATIVE_LANE)
+                {
+                    target_ = new TargetRelative(*static_cast<TargetRelative*>(action.target_));
+                }
+            }
             SetName(action.GetName());
         }
 

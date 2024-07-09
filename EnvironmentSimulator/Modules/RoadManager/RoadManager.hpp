@@ -3054,6 +3054,7 @@ namespace roadmanager
         Position& operator=(Position&& other);
         ~Position();
         void Duplicate(const Position& other);
+        void CopyLocation(const Position& from);
 
         void              Init();
         static bool       LoadOpenDrive(const char *filename);

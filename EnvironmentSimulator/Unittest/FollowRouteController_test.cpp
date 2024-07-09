@@ -271,7 +271,7 @@ TEST_F(FollowRouteControllerTest, FollowRouteSetParameters)
 }
 
 // Uncomment to print log output to console
-#define LOG_TO_CONSOLE
+// #define LOG_TO_CONSOLE
 
 #ifdef LOG_TO_CONSOLE
 static void log_callback(const char *str)
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
     }
 #endif
 
-    testing::GTEST_FLAG(filter) = "*PerformSingleLaneChange*";
+    // testing::GTEST_FLAG(filter) = "*PerformSingleLaneChange*";
 
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
