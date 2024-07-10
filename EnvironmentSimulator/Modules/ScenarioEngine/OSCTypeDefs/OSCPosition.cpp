@@ -102,11 +102,11 @@ OSCPositionLane::OSCPositionLane(int roadId, int laneId, double s, double offset
 {
     SetPositionModesGeneric(position_, nullptr, &orientation, false);
 
+    // Set temporary position to find out road elevation, orientation and driving direction
+    position_.SetLanePos(roadId, laneId, s, offset);
+
     if (orientation.type_ == roadmanager::Position::OrientationType::ORIENTATION_RELATIVE)
     {
-        // Set temporary position to find out driving direction
-        position_.SetLanePos(roadId, laneId, s, offset);
-
         // Adjust heading to road direction also considering traffic rule (left/right hand traffic)
         if (position_.GetDrivingDirectionRelativeRoad() > 0)
         {
@@ -121,9 +121,9 @@ OSCPositionLane::OSCPositionLane(int roadId, int laneId, double s, double offset
     }
     else if (orientation.type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE)
     {
-        position_.SetH(std::isnan(orientation.h_) ? 0.0 : orientation.h_);
-        position_.SetP(std::isnan(orientation.p_) ? 0.0 : orientation.p_);
-        position_.SetR(std::isnan(orientation.r_) ? 0.0 : orientation.r_);
+        position_.SetHeading(std::isnan(orientation.h_) ? 0.0 : orientation.h_);
+        position_.SetPitch(std::isnan(orientation.p_) ? 0.0 : orientation.p_);
+        position_.SetRoll(std::isnan(orientation.r_) ? 0.0 : orientation.r_);
     }
     else
     {
@@ -142,6 +142,9 @@ OSCPositionRoad::OSCPositionRoad(int roadId, double s, double t, OSCOrientation 
 
     SetPositionModesGeneric(position_, nullptr, &orientation, false);
 
+    // Set temporary position to find out road elevation, orientation and driving direction
+    position_.SetTrackPos(roadId, s, t);
+
     if (orientation.type_ == roadmanager::Position::OrientationType::ORIENTATION_RELATIVE)
     {
         position_.SetHeadingRelative(std::isnan(orientation.h_) ? 0.0 : orientation.h_);
@@ -150,9 +153,9 @@ OSCPositionRoad::OSCPositionRoad(int roadId, double s, double t, OSCOrientation 
     }
     else if (orientation.type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE)
     {
-        position_.SetH(std::isnan(orientation.h_) ? 0.0 : orientation.h_);
-        position_.SetP(std::isnan(orientation.p_) ? 0.0 : orientation.p_);
-        position_.SetR(std::isnan(orientation.r_) ? 0.0 : orientation.r_);
+        position_.SetHeading(std::isnan(orientation.h_) ? 0.0 : orientation.h_);
+        position_.SetPitch(std::isnan(orientation.p_) ? 0.0 : orientation.p_);
+        position_.SetRoll(std::isnan(orientation.r_) ? 0.0 : orientation.r_);
     }
     else
     {
