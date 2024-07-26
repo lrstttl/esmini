@@ -10784,20 +10784,19 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
 
     if (i >= GetNumberOfVertices() - 1)
     {
-        pos.s           = vp0->s;
-        pos.x           = vp0->x;
-        pos.y           = vp0->y;
-        pos.z           = vp0->z;
-        pos.h           = vp0->h;
-        pos.pitch       = vp0->pitch;
-        pos.r           = vp0->r;
-        pos.road_id     = vp0->road_id;
-        pos.time        = vp0->time;
-        pos.speed       = vp0->speed;
-        pos.acc         = vp0->acc;
-        pos.param       = vp0->param;
-        pos.pos_mode    = vp0->pos_mode;
-        pos.interpolate = vp0->interpolate;
+        pos.s        = vp0->s;
+        pos.x        = vp0->x;
+        pos.y        = vp0->y;
+        pos.z        = vp0->z;
+        pos.h        = vp0->h;
+        pos.pitch    = vp0->pitch;
+        pos.r        = vp0->r;
+        pos.road_id  = vp0->road_id;
+        pos.time     = vp0->time;
+        pos.speed    = vp0->speed;
+        pos.acc      = vp0->acc;
+        pos.param    = vp0->param;
+        pos.pos_mode = vp0->pos_mode;
     }
     else if (i >= 0)
     {
@@ -10826,7 +10825,6 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
             double  angle_previous = 0.0;
             double  angle_next     = 0.0;
             double* angle          = nullptr;
-            int     bitmask        = 0;
             bool    specified      = true;
             if (j == 0)
             {
@@ -10834,7 +10832,6 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 angle_current  = vp0->h;
                 angle_next     = vp1->h;
                 angle_previous = i > 0 ? vertex_[i - 1].h : 0.0;
-                bitmask        = INTERPOLATE_HEADING;
                 if (pos.pos_mode & Position::PosMode::H_MASK == 0)
                 {
                     specified = false;
@@ -10846,7 +10843,6 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 angle_current  = vp0->pitch;
                 angle_next     = vp1->pitch;
                 angle_previous = i > 0 ? vertex_[i - 1].pitch : 0.0;
-                bitmask        = INTERPOLATE_PITCH;
                 if (pos.pos_mode & Position::PosMode::P_MASK == 0)
                 {
                     specified = false;
@@ -10858,7 +10854,6 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 angle_current  = vp0->r;
                 angle_next     = vp1->r;
                 angle_previous = i > 0 ? vertex_[i - 1].r : 0.0;
-                bitmask        = INTERPOLATE_ROLL;
                 if (pos.pos_mode & Position::PosMode::H_MASK == 0)
                 {
                     specified = false;
@@ -10867,16 +10862,16 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
 
             if (angle != nullptr)
             {
-                if (vp0->interpolate & bitmask)
+                if (interpolation_mode_ == InterpolationMode::INTERPOLATE_SEGMENT)
                 {
-                    // Interpolate
+                    // Interpolate angle over the whole segment
                     *angle = GetAngleInInterval2PI(angle_current + a * GetAngleDifference(angle_next, angle_current));
                 }
                 else
                 {
-                    *angle = angle_current;
+                    *angle = GetAngleInInterval2PI(angle_current);
 
-                    if (!specified)
+                    if (interpolation_mode_ == InterpolationMode::INTERPOLATE_CORNER)
                     {
                         // Strategy: Align to line, interpolate only at corners
                         double radius   = MIN(2.0, length / 2.0);
@@ -10892,21 +10887,22 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                             else
                             {
                                 // No previous value to interpolate
-                                *angle = angle_current;
+                                *angle = GetAngleInInterval2PI(angle_current);
                             }
                         }
                         else if (local_s > length - radius)
                         {
-                            a_corner = (radius + (length - local_s)) / (2 * radius);
-                            if (i > GetNumberOfVertices() - 2)
+                            if (i < GetNumberOfVertices() - 2)
                             {
-                                // Last segment, no next point to interpolate
-                                *angle = a_corner * angle_current;
+                                // mix orientation of current and next segment
+                                a_corner = (radius + (length - local_s)) / (2 * radius);
                             }
                             else
                             {
-                                *angle = GetAngleInInterval2PI(angle_current + (1 - a_corner) * GetAngleDifference(angle_next, angle_current));
+                                // Last segment, gradually apply orientation of final vertex
+                                a_corner = (length - local_s) / radius;
                             }
+                            *angle = GetAngleInInterval2PI(angle_current + (1 - a_corner) * GetAngleDifference(angle_next, angle_current));
                         }
                     }
                 }
@@ -11200,9 +11196,10 @@ void PolyLineBase::Reset(bool clear_vertices)
     {
         vertex_.clear();
     }
-    current_index_ = 0;
-    current_s_     = 0.0;
-    length_        = 0;
+    current_index_      = 0;
+    current_s_          = 0.0;
+    length_             = 0;
+    interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_NONE;
 }
 
 void PolyLineShape::AddVertex(Position pos, double time)
@@ -11215,6 +11212,19 @@ void PolyLineShape::CalculatePolyLine()
 {
     pline_.Reset(false);
     double speed = initial_speed_;
+
+    if (SE_Env::Inst().GetOptions().GetOptionSet("disable_pline_interpolation"))
+    {
+        pline_.interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_NONE;
+    }
+    else if (following_mode_ == FollowingMode::FOLLOW)
+    {
+        pline_.interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_SEGMENT;
+    }
+    else if (following_mode_ == FollowingMode::POSITION)
+    {
+        pline_.interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_CORNER;
+    }
 
     for (size_t i = 0; i < vertex_.size(); i++)
     {
@@ -11242,15 +11252,6 @@ void PolyLineShape::CalculatePolyLine()
         pv->param    = 0.0;  // skip p, s or time is used instead.
         pv->time     = v->time_;
 
-        if (following_mode_ == FollowingMode::FOLLOW)
-        {
-            pv->interpolate = INTERPOLATE_HEADING | INTERPOLATE_PITCH | INTERPOLATE_ROLL;
-        }
-        else
-        {
-            pv->interpolate = 0;
-        }
-
         if (i > 0)
         {
             TrajVertex* pvp = &pline_.vertex_[i - 1];
@@ -11259,7 +11260,7 @@ void PolyLineShape::CalculatePolyLine()
             double dist = PointDistance2D(pv->x, pv->y, pvp->x, pvp->y);
             pv->s       = pvp->s + dist;
 
-            if ((pv->pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
+            if ((pv->pos_mode & Position::PosMode::H_MASK) == 0)  // heading not set
             {
                 // Calulate heading from line segment between this and previous vertices
                 if (PointDistance2D(pv->x, pv->y, pvp->x, pvp->y) < SMALL_NUMBER)
@@ -11271,21 +11272,16 @@ void PolyLineShape::CalculatePolyLine()
                 {
                     pv->h = GetAngleInInterval2PI(atan2(pv->y - pvp->y, pv->x - pvp->x));
                 }
-            }
 
-            if ((pvp->pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
-            {
                 // Update heading of previous vertex now that outgoing line segment is known
                 pvp->h = pv->h;
             }
 
-            if ((pv->pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
+            if ((pv->pos_mode & Position::PosMode::P_MASK) == 0)  // not set
             {
                 pv->pitch = GetAngleInInterval2PI(-atan2(pv->z - pvp->z, pv->s - pvp->s));
-            }
 
-            if ((pvp->pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
-            {
+                // Update heading of previous vertex now that outgoing line segment is known
                 pvp->pitch = pv->pitch;
             }
 
@@ -11613,6 +11609,7 @@ void ClothoidSplineShape::CalculatePolyLine()
     double stepLen = 1.0;
     int    steps   = (int)(length_ / stepLen);
     pline_.Reset(true);
+    pline_.interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_SEGMENT;
     TrajVertex v;
 
     if (segments_.size() == 0)
@@ -11728,6 +11725,7 @@ void NurbsShape::CalculatePolyLine()
     TrajVertex tmppos;
 
     pline_.Reset(true);
+    pline_.interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_SEGMENT;
     pline_.vertex_.reserve(nSteps);
 
     for (int i = 0; i < nSteps + 1; i++)
@@ -11767,13 +11765,13 @@ void NurbsShape::CalculatePolyLine()
             // Calculate heading and pitch from curve
             if (i > 0)
             {
-                if ((pos.pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
+                if ((pos.pos_mode & Position::PosMode::H_MASK) == 0)  // not set
                 {
                     pos.h =
                         GetAngleInInterval2PI((i < nSteps) ? atan2(tmppos.y - pos.y, tmppos.x - pos.x) : atan2(pos.y - tmppos.y, pos.x - tmppos.x));
                 }
 
-                if ((pos.pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
+                if ((pos.pos_mode & Position::PosMode::P_MASK) == 0)  // not set
                 {
                     pos.pitch =
                         GetAngleInInterval2PI(i < nSteps ? -atan2(tmppos.z - pos.z, tmppos.s - pos.s) : -atan2(pos.z - tmppos.z, pos.s - tmppos.s));
@@ -11782,12 +11780,12 @@ void NurbsShape::CalculatePolyLine()
             else
             {
                 // resolve heading for first segment and pitch later
-                if ((pos.pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
+                if ((pos.pos_mode & Position::PosMode::H_MASK) == 0)  // not set
                 {
                     pos.h = std::nan("");
                 }
 
-                if ((pos.pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
+                if ((pos.pos_mode & Position::PosMode::P_MASK) == 0)  // not set
                 {
                     pos.pitch = std::nan("");
                 }
@@ -11796,11 +11794,11 @@ void NurbsShape::CalculatePolyLine()
         else if (i > 0)
         {
             // If points conside, get heading from previous segment, if existing
-            if (std::isnan(pline_.vertex_[i - 1].h) && (pos.pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
+            if (std::isnan(pline_.vertex_[i - 1].h) && (pos.pos_mode & Position::PosMode::H_MASK) == 0)
             {
                 pos.h = pline_.vertex_[i - 1].h;
             }
-            if (std::isnan(pline_.vertex_[i - 1].pitch) && (pos.pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
+            if (std::isnan(pline_.vertex_[i - 1].pitch) && (pos.pos_mode & Position::PosMode::P_MASK) == 0)
             {
                 pos.pitch = pline_.vertex_[i - 1].pitch;
             }
@@ -11808,11 +11806,11 @@ void NurbsShape::CalculatePolyLine()
         else
         {
             // If points conside, calculate heading and pitch from polyline
-            if ((pos.pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
+            if ((pos.pos_mode & Position::PosMode::H_MASK) == 0)
             {
                 pos.h = std::nan("");
             }
-            if ((pos.pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
+            if ((pos.pos_mode & Position::PosMode::P_MASK) == 0)
             {
                 pos.pitch = std::nan("");
             }
@@ -11828,7 +11826,6 @@ void NurbsShape::CalculatePolyLine()
             }
         }
 
-        pos.interpolate = (INTERPOLATE_HEADING | INTERPOLATE_PITCH | INTERPOLATE_ROLL);
         pline_.AddVertex(pos);
         pline_.vertex_[i].param = i * p_steplen;
         oldpos                  = pos;
@@ -11900,19 +11897,19 @@ int NurbsShape::EvaluateInternal(double t, TrajVertex& pos)
         }
     }
 
-    if ((pos.pos_mode & Position::PosMode::Z_MASK) == Position::PosMode::Z_ABS)
+    if ((pos.pos_mode & Position::PosMode::Z_MASK) != 0)
     {
         pos.z = 0.0;
     }
-    if ((pos.pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_ABS)
+    if ((pos.pos_mode & Position::PosMode::H_MASK) != 0)
     {
         pos.h = 0.0;
     }
-    if ((pos.pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_ABS)
+    if ((pos.pos_mode & Position::PosMode::P_MASK) != 0)
     {
         pos.pitch = 0.0;
     }
-    if ((pos.pos_mode & Position::PosMode::R_MASK) == Position::PosMode::R_ABS)
+    if ((pos.pos_mode & Position::PosMode::R_MASK) != 0)
     {
         pos.r = 0.0;
     }
@@ -11925,22 +11922,22 @@ int NurbsShape::EvaluateInternal(double t, TrajVertex& pos)
             pos.x += d_[i] * ctrlPoint_[i].pos_.GetX() * ctrlPoint_[i].weight_ / rationalWeight;
             pos.y += d_[i] * ctrlPoint_[i].pos_.GetY() * ctrlPoint_[i].weight_ / rationalWeight;
 
-            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::Z_MASK) == Position::PosMode::Z_ABS)
+            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::Z_MASK) != 0)
             {
                 pos.z += d_[i] * ctrlPoint_[i].pos_.GetZ() * ctrlPoint_[i].weight_ / rationalWeight;
             }
 
-            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::H_MASK) == Position::PosMode::H_ABS)
+            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::H_MASK) != 0)
             {
                 pos.h += (d_[i] * ctrlPoint_[i].weight_ / rationalWeight) * GetAngleDifference(ctrlPoint_[i].pos_.GetH(), pos.h);
             }
 
-            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::P_MASK) == Position::PosMode::P_ABS)
+            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::P_MASK) != 0)
             {
                 pos.pitch += (d_[i] * ctrlPoint_[i].weight_ / rationalWeight) * GetAngleDifference(ctrlPoint_[i].pos_.GetP(), pos.pitch);
             }
 
-            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::R_MASK) == Position::PosMode::R_ABS)
+            if ((ctrlPoint_[cur_ctrlp_index].pos_.GetMode(Position::PosModeType::INIT) & Position::PosMode::R_MASK) != 0)
             {
                 pos.r += (d_[i] * ctrlPoint_[i].weight_ / rationalWeight) * GetAngleDifference(ctrlPoint_[i].pos_.GetR(), pos.r);
             }
@@ -12034,6 +12031,7 @@ void ClothoidShape::CalculatePolyLine()
     double stepLen = 1.0;
     int    steps   = (int)(spiral_.GetLength() / stepLen);
     pline_.Reset(true);
+    pline_.interpolation_mode_ = PolyLineBase::InterpolationMode::INTERPOLATE_SEGMENT;
     pline_.vertex_.reserve(steps);
     double mini_step = 0.001;
 
@@ -12083,8 +12081,6 @@ void ClothoidShape::CalculatePolyLine()
         }
         v.param = v.s = i * stepLen;
         v.time        = t_start_ + (i * stepLen / spiral_.GetLength()) * t_end_;
-        v.interpolate = INTERPOLATE_HEADING | INTERPOLATE_PITCH | INTERPOLATE_ROLL;
-
         pline_.AddVertex(v);
     }
 

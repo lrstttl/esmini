@@ -2602,9 +2602,9 @@ TEST(ClothoidSplineTest, TestTrajectoryShape)
     // Check car position at given time at end phase of the scenario
     // Correct position indicates all trajectories have been evaluated correctly
     EXPECT_NEAR(entities->object_[0]->pos_.GetX(), 242.101, 1E-3);
-    EXPECT_NEAR(entities->object_[0]->pos_.GetY(), 1.087, 1E-3);
+    EXPECT_NEAR(entities->object_[0]->pos_.GetY(), 1.085, 1E-3);
     EXPECT_NEAR(entities->object_[0]->pos_.GetZ(), 0.0, 1E-3);
-    EXPECT_NEAR(GetAngleDifference(entities->object_[0]->pos_.GetH(), -0.031), 0.0, 1E-3);
+    EXPECT_NEAR(GetAngleDifference(entities->object_[0]->pos_.GetH(), 6.262), 0.0, 1E-3);
     EXPECT_NEAR(GetAngleDifference(entities->object_[0]->pos_.GetP(), 0.0), 0.0, 1E-3);
     EXPECT_NEAR(GetAngleDifference(entities->object_[0]->pos_.GetR(), 0.0), 0.0, 1E-3);
 

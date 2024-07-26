@@ -92,7 +92,7 @@ set(ESMINI_BUILD_VERSION
           "Esmini CI Build Version")
 
 set(CMAKE_BUILD_TYPE
-    "Debug"
+    "Release"
     CACHE STRING
           "build mode")
 

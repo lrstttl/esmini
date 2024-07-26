@@ -2897,29 +2897,21 @@ namespace roadmanager
     class Route;
     class RMTrajectory;
 
-    typedef enum
-    {
-        INTERPOLATE_HEADING = 0x1,
-        INTERPOLATE_PITCH   = 0x2,
-        INTERPOLATE_ROLL    = 0x4
-    } InterpolationComponent;
-
     struct TrajVertex
     {
-        double s           = 0;
-        double x           = 0;
-        double y           = 0;
-        double z           = 0;
-        double h           = 0;
-        double pitch       = 0;
-        double r           = 0;
-        int    road_id     = -1;  // -1 indicates no valid road position. Use X, Y instead.
-        double time        = 0;
-        double speed       = 0;  // speed at vertex point/start of segment
-        double acc         = 0;  // acceleration along the segment
-        double param       = 0;
-        int    pos_mode    = 0;  // resolved alignment bitmask after calculation, see Position::PosMode enum
-        int    interpolate = 0;  // interpolation bitmask, see InterpolateComponent enum
+        double s        = 0;
+        double x        = 0;
+        double y        = 0;
+        double z        = 0;
+        double h        = 0;
+        double pitch    = 0;
+        double r        = 0;
+        int    road_id  = -1;  // -1 indicates no valid road position. Use X, Y instead.
+        double time     = 0;
+        double speed    = 0;  // speed at vertex point/start of segment
+        double acc      = 0;  // acceleration along the segment
+        double param    = 0;
+        int    pos_mode = 0;  // resolved alignment bitmask after calculation, see Position::PosMode enum
     };
 
     class Position
@@ -4252,6 +4244,13 @@ namespace roadmanager
     class PolyLineBase
     {
     public:
+        enum class InterpolationMode
+        {
+            INTERPOLATE_NONE    = 0,
+            INTERPOLATE_SEGMENT = 1,
+            INTERPOLATE_CORNER  = 2
+        };
+
         PolyLineBase() : length_(0), current_index_(0), current_s_(0.0)
         {
         }
@@ -4304,6 +4303,7 @@ namespace roadmanager
         int                     current_index_;
         double                  current_s_;
         double                  length_;
+        InterpolationMode       interpolation_mode_ = InterpolationMode::INTERPOLATE_NONE;
 
     protected:
         int EvaluateSegmentByLocalS(int i, double local_s, double cornerRadius, TrajVertex &pos);

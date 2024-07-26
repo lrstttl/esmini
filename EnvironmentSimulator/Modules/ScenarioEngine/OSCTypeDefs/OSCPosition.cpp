@@ -18,7 +18,7 @@ static void SetPositionModesGeneric(roadmanager::Position &position, double *z, 
 {
     position.SetModeDefault(roadmanager::Position::PosModeType::SET);
     position.SetModeDefault(roadmanager::Position::PosModeType::UPDATE);
-
+#if 1
     position.SetModeBits(
         roadmanager::Position::PosModeType::INIT,
         ((z == nullptr || std::isnan(*z)) ? 0 : roadmanager::Position::PosMode::Z_ABS) |
@@ -35,6 +35,24 @@ static void SetPositionModesGeneric(roadmanager::Position &position, double *z, 
                  ? 0
                  : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::R_ABS
                                                                                                        : roadmanager::Position::PosMode::R_REL)));
+#else
+    position.SetModeBits(
+        roadmanager::Position::PosModeType::INIT,
+        ((z == nullptr || std::isnan(*z)) ? 0 : roadmanager::Position::PosMode::Z_ABS) |
+
+            (orientation == nullptr || std::isnan(orientation->h_)
+                 ? 0
+                 : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::H_ABS
+                                                                                                       : roadmanager::Position::PosMode::H_REL)) |
+            (orientation == nullptr || std::isnan(orientation->p_)
+                 ? 0
+                 : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::P_ABS
+                                                                                                       : roadmanager::Position::PosMode::P_REL)) |
+            (orientation == nullptr || std::isnan(orientation->r_)
+                 ? 0
+                 : (orientation->type_ == roadmanager::Position::OrientationType::ORIENTATION_ABSOLUTE ? roadmanager::Position::PosMode::R_ABS
+                                                                                                       : roadmanager::Position::PosMode::R_REL)));
+#endif
 }
 
 OSCPositionWorld::OSCPositionWorld(double x, double y, double z, double h, double p, double r, OSCPosition *base_on_pos)
