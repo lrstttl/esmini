@@ -380,7 +380,7 @@ void ControllerFollowRoute::Deactivate()
     if (testMode_)
     {
         gateway_->updateObjectSpeed(object_->GetId(), 0.0, 0.0);
-    }    
+    }
     LOG("ControllerFollowRoute - Deactivated");
     Controller::Deactivate();
 }

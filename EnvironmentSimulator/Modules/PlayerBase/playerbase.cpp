@@ -108,7 +108,7 @@ ScenarioPlayer::~ScenarioPlayer()
     }
 #endif  // _USE_OSG
 
-    for (auto &s:sensor)
+    for (auto& s : sensor)
     {
         delete s;
     }

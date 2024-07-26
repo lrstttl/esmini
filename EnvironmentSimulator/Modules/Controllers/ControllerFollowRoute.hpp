@@ -150,7 +150,7 @@ namespace scenarioengine
         ScenarioEngine                    *scenarioEngine_ = nullptr;
         vehicle::Vehicle                   vehicle_;
         LatLaneChangeAction               *laneChangeAction_ = nullptr;
-        roadmanager::OpenDrive            *odr_ = nullptr;
+        roadmanager::OpenDrive            *odr_              = nullptr;
         std::vector<roadmanager::Position> waypoints_;
         int                                currentWaypointIndex_;
         int                                scenarioWaypointIndex_;

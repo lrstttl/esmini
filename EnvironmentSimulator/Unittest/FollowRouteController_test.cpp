@@ -93,7 +93,7 @@ TEST_F(FollowRouteControllerTest, FollowRouteWithCollisionRisk)
     {
         delete se;
         GTEST_FAIL();
-    }    
+    }
 
     Position target(5, -3, 20, 0);
 
@@ -122,7 +122,7 @@ TEST_F(FollowRouteControllerTest, FollowRouteBlockedByCollisionRisk)
     {
         delete se;
         GTEST_FAIL();
-    }    
+    }
 
     // Can't change lane due to collision
     // Vehicle stops when reached target road on wrong lane

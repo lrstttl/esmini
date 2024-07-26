@@ -172,7 +172,9 @@ TEST(AlignmentTest, TestPositionAlignmentVariants)
 
     // Ensure absolute update mode preserves z level
     // player->scenarioEngine->entities_.object_[0]->pos_.SetMode(roadmanager::Position::PosModeType::UPDATE, roadmanager::Position::PosMode::Z_ABS);
-    player->scenarioGateway->setObjectPositionMode(0, static_cast<int>(roadmanager::Position::PosModeType::UPDATE), static_cast<int>(roadmanager::Position::PosMode::Z_ABS));
+    player->scenarioGateway->setObjectPositionMode(0,
+                                                   static_cast<int>(roadmanager::Position::PosModeType::UPDATE),
+                                                   static_cast<int>(roadmanager::Position::PosMode::Z_ABS));
     player->Frame(0.0);
     EXPECT_EQ(player->scenarioEngine->entities_.object_[0]->pos_.GetMode(roadmanager::Position::PosModeType::UPDATE) &
                   roadmanager::Position::PosMode::Z_MASK,
@@ -225,9 +227,11 @@ TEST(SensorTest, TestSensorFunctionsReturnValuesAndCounters)
 
 TEST(AlignmentTest, TestPosMode)
 {
-    // const char* args[] = {"esmini", "--headless", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc", "--disable_stdout"};
-    const char* args[] = {"esmini", "--window", "60", "60", "1000", "500", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc"};
-    int         argc   = sizeof(args) / sizeof(char*);
+    // const char* args[] = {"esmini", "--headless", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc",
+    // "--disable_stdout"};
+    const char* args[] =
+        {"esmini", "--window", "60", "60", "1000", "500", "--osc", "../../../EnvironmentSimulator/Unittest/xosc/curve_slope_simple.xosc"};
+    int             argc   = sizeof(args) / sizeof(char*);
     ScenarioPlayer* player = new ScenarioPlayer(argc, const_cast<char**>(args));
 
     ASSERT_NE(player, nullptr);
@@ -237,10 +241,9 @@ TEST(AlignmentTest, TestPosMode)
     roadmanager::Position& pos  = player->scenarioEngine->entities_.object_[0]->pos_;
     roadmanager::Road*     road = player->GetODRManager()->GetRoadByIdx(0);
 
-    EXPECT_EQ(pos.GetMode(Position::PosModeType::SET), roadmanager::Position::PosMode::Z_REL | 
-        roadmanager::Position::PosMode::H_ABS | 
-        roadmanager::Position::PosMode::P_REL | 
-        roadmanager::Position::PosMode::R_REL);
+    EXPECT_EQ(pos.GetMode(Position::PosModeType::SET),
+              roadmanager::Position::PosMode::Z_REL | roadmanager::Position::PosMode::H_ABS | roadmanager::Position::PosMode::P_REL |
+                  roadmanager::Position::PosMode::R_REL);
     EXPECT_EQ(pos.GetMode(Position::PosModeType::UPDATE), Position::GetModeDefault(Position::PosModeType::UPDATE));
 
     // Test some operations

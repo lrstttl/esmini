@@ -6231,7 +6231,7 @@ Position::Position(Position&& other)
     {
         delete other.route_;
         other.route_ = nullptr;
-    }    
+    }
 }
 
 Position& Position::operator=(Position&& other)
@@ -6241,7 +6241,7 @@ Position& Position::operator=(Position&& other)
     {
         delete route_;
         route_ = nullptr;
-    }    
+    }
     return *this;
 }
 
@@ -6290,7 +6290,6 @@ void Position::CopyLocation(const Position& from)
     routeStrategy_          = from.routeStrategy_;
 }
 
-
 void Position::Duplicate(const Position& from)
 {
     if (this == &from)
@@ -6301,28 +6300,28 @@ void Position::Duplicate(const Position& from)
     CopyLocation(from);
 
     // copy only specific fields
-    mode_init_              = from.mode_init_;
-    mode_set_               = from.mode_set_;
-    mode_update_            = from.mode_update_;
-    direction_mode_         = from.direction_mode_;
-    type_                   = from.type_;
-    velX_                   = from.velX_;
-    velY_                   = from.velY_;
-    velZ_                   = from.velZ_;
-    accX_                   = from.accX_;
-    accY_                   = from.accY_;
-    accZ_                   = from.accZ_;
-    h_rate_                 = from.h_rate_;
-    p_rate_                 = from.p_rate_;
-    r_rate_                 = from.r_rate_;
-    h_acc_                  = from.h_acc_;
-    p_acc_                  = from.p_acc_;
-    r_acc_                  = from.r_acc_;
-    status_                 = from.status_;
-    relative_               = from.relative_;
-    snapToLaneTypes_        = from.snapToLaneTypes_;
-    lockOnLane_             = from.lockOnLane_;
-    rel_pos_                = from.rel_pos_;
+    mode_init_       = from.mode_init_;
+    mode_set_        = from.mode_set_;
+    mode_update_     = from.mode_update_;
+    direction_mode_  = from.direction_mode_;
+    type_            = from.type_;
+    velX_            = from.velX_;
+    velY_            = from.velY_;
+    velZ_            = from.velZ_;
+    accX_            = from.accX_;
+    accY_            = from.accY_;
+    accZ_            = from.accZ_;
+    h_rate_          = from.h_rate_;
+    p_rate_          = from.p_rate_;
+    r_rate_          = from.r_rate_;
+    h_acc_           = from.h_acc_;
+    p_acc_           = from.p_acc_;
+    r_acc_           = from.r_acc_;
+    status_          = from.status_;
+    relative_        = from.relative_;
+    snapToLaneTypes_ = from.snapToLaneTypes_;
+    lockOnLane_      = from.lockOnLane_;
+    rel_pos_         = from.rel_pos_;
 #if 0
     if (route_ != nullptr)
     {
@@ -8574,7 +8573,7 @@ Position::ReturnCode Position::MoveToConnectingRoad(RoadLink* road_link, Contact
     Lane*        lane;
     int          new_lane_id = 0;
     ReturnCode   ret_val     = ReturnCode::OK;
-    
+
     if (road == 0)
     {
         LOG("Invalid road id %d", road->GetId());
@@ -9817,6 +9816,33 @@ void Position::GetAccTS(double& at, double& as) const
     RotateVec2D(GetAccX(), GetAccY(), -GetHRoad(), as, at);
 }
 
+void Position::SetModeBits(PosModeType type, int bits)
+{
+    if (type == PosModeType::ALL)
+    {
+        mode_set_    = bits;
+        mode_update_ = bits;
+        mode_init_   = bits;
+    }
+    else if (type == PosModeType::SET)
+    {
+        mode_set_ = bits;
+    }
+    else if (type == PosModeType::UPDATE)
+    {
+        mode_update_ = bits;
+    }
+    else if (type == PosModeType::INIT)
+    {
+        mode_init_ = bits;
+    }
+    else
+    {
+        LOG("Unexpected Position SetMode type: %d", type);
+        return;
+    }
+}
+
 void Position::SetMode(PosModeType type, int mode)
 {
     int* mode_ref = nullptr;
@@ -10073,11 +10099,10 @@ void Position::CopyRoute(const Position& position)
 
     if (position.route_ != nullptr)
     {
-        route_ = new Route;
+        route_  = new Route;
         *route_ = *position.route_;
     }
 }
-
 
 void Position::SetTrajectory(RMTrajectory* trajectory)
 {
@@ -10802,6 +10827,7 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
             double  angle_next     = 0.0;
             double* angle          = nullptr;
             int     bitmask        = 0;
+            bool    specified      = true;
             if (j == 0)
             {
                 angle          = &pos.h;
@@ -10809,6 +10835,10 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 angle_next     = vp1->h;
                 angle_previous = i > 0 ? vertex_[i - 1].h : 0.0;
                 bitmask        = INTERPOLATE_HEADING;
+                if (pos.pos_mode & Position::PosMode::H_MASK == 0)
+                {
+                    specified = false;
+                }
             }
             else if (j == 1)
             {
@@ -10817,6 +10847,10 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 angle_next     = vp1->pitch;
                 angle_previous = i > 0 ? vertex_[i - 1].pitch : 0.0;
                 bitmask        = INTERPOLATE_PITCH;
+                if (pos.pos_mode & Position::PosMode::P_MASK == 0)
+                {
+                    specified = false;
+                }
             }
             else if (j == 2)
             {
@@ -10825,6 +10859,10 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 angle_next     = vp1->r;
                 angle_previous = i > 0 ? vertex_[i - 1].r : 0.0;
                 bitmask        = INTERPOLATE_ROLL;
+                if (pos.pos_mode & Position::PosMode::H_MASK == 0)
+                {
+                    specified = false;
+                }
             }
 
             if (angle != nullptr)
@@ -10838,39 +10876,38 @@ int PolyLineBase::EvaluateSegmentByLocalS(int i, double local_s, double cornerRa
                 {
                     *angle = angle_current;
 
-                    // Strategy: Align to line, interpolate only at corners
-                    double radius   = MIN(2.0, length / 2.0);
-                    double a_corner = 0.0;
-                    if (local_s < radius)
+                    if (!specified)
                     {
-                        // passed a corner
-                        a_corner = (radius + local_s) / (2 * radius);
-                        if (i > 0)
+                        // Strategy: Align to line, interpolate only at corners
+                        double radius   = MIN(2.0, length / 2.0);
+                        double a_corner = 0.0;
+                        if (local_s < radius)
                         {
-                            *angle = GetAngleInInterval2PI(angle_previous + a_corner * GetAngleDifference(angle_current, angle_previous));
+                            // passed a corner
+                            a_corner = (radius + local_s) / (2 * radius);
+                            if (i > 0)
+                            {
+                                *angle = GetAngleInInterval2PI(angle_previous + a_corner * GetAngleDifference(angle_current, angle_previous));
+                            }
+                            else
+                            {
+                                // No previous value to interpolate
+                                *angle = angle_current;
+                            }
                         }
-                        else
+                        else if (local_s > length - radius)
                         {
-                            // No previous value to interpolate
-                            *angle = angle_current;
+                            a_corner = (radius + (length - local_s)) / (2 * radius);
+                            if (i > GetNumberOfVertices() - 2)
+                            {
+                                // Last segment, no next point to interpolate
+                                *angle = a_corner * angle_current;
+                            }
+                            else
+                            {
+                                *angle = GetAngleInInterval2PI(angle_current + (1 - a_corner) * GetAngleDifference(angle_next, angle_current));
+                            }
                         }
-                    }
-                    else if (local_s > length - radius)
-                    {
-                        a_corner = (radius + (length - local_s)) / (2 * radius);
-                        if (i > GetNumberOfVertices() - 2)
-                        {
-                            // Last segment, no next point to interpolate
-                            *angle = a_corner * angle_current;
-                        }
-                        else
-                        {
-                            *angle = GetAngleInInterval2PI(angle_current + (1 - a_corner) * GetAngleDifference(angle_next, angle_current));
-                        }
-                    }
-                    else
-                    {
-                        *angle = angle_current;
                     }
                 }
             }
@@ -11205,40 +11242,13 @@ void PolyLineShape::CalculatePolyLine()
         pv->param    = 0.0;  // skip p, s or time is used instead.
         pv->time     = v->time_;
 
-        if ((pv->pos_mode & Position::PosMode::H_MASK) == Position::PosMode::H_ABS)
+        if (following_mode_ == FollowingMode::FOLLOW)
         {
-            if (following_mode_ == FollowingMode::FOLLOW)
-            {
-                pv->interpolate |= INTERPOLATE_HEADING;
-            }
-            else
-            {
-                pv->interpolate &= ~INTERPOLATE_HEADING;
-            }
+            pv->interpolate = INTERPOLATE_HEADING | INTERPOLATE_PITCH | INTERPOLATE_ROLL;
         }
-
-        if ((pv->pos_mode & Position::PosMode::P_MASK) == Position::PosMode::P_ABS)
+        else
         {
-            if (following_mode_ == FollowingMode::FOLLOW)
-            {
-                pv->interpolate |= INTERPOLATE_PITCH;
-            }
-            else
-            {
-                pv->interpolate &= ~INTERPOLATE_PITCH;
-            }
-        }
-
-        if ((pv->pos_mode & Position::PosMode::R_MASK) == Position::PosMode::R_ABS)
-        {
-            if (following_mode_ == FollowingMode::FOLLOW)
-            {
-                pv->interpolate |= INTERPOLATE_ROLL;
-            }
-            else
-            {
-                pv->interpolate &= ~INTERPOLATE_ROLL;
-            }
+            pv->interpolate = 0;
         }
 
         if (i > 0)
@@ -12258,7 +12268,6 @@ void Position::EvaluateRelation(bool release)
         Route             route_backup;
         shared_ptr<Route> route;
 
-
         pos_tmp.Duplicate(*rel_pos_);  // copy referred entity's route as a starting point
 
         // Prioritize any own route. Secondly, use a route of referred entity
@@ -12284,7 +12293,7 @@ void Position::EvaluateRelation(bool release)
                            false,
                            GetDirectionMode() == DirectionMode::ALONG_LANE ? MoveDirectionMode::LANE_DIRECTION : MoveDirectionMode::ROAD_DIRECTION,
                            true);
-        
+
         CopyLocation(pos_tmp);
 
         if (!route_ && rel_pos_->route_)
@@ -12381,7 +12390,8 @@ void Position::EvaluateRelation(bool release)
     // Now when road orientation is known, set and update orientation of the position object
     if (GetType() == Position::PositionType::RELATIVE_LANE || GetType() == Position::PositionType::RELATIVE_ROAD)
     {
-        if ((GetMode(Position::PosModeType::INIT) & Position::PosMode::H_MASK) == Position::PosMode::H_REL)
+        if ((GetMode(Position::PosModeType::INIT) & Position::PosMode::H_MASK) == Position::PosMode::H_REL ||
+            (GetMode(Position::PosModeType::INIT) & Position::PosMode::H_MASK) == 0)  // not set
         {
             if (GetType() == Position::PositionType::RELATIVE_LANE && GetDirectionMode() == Position::DirectionMode::ALONG_LANE)
             {
@@ -12399,7 +12409,8 @@ void Position::EvaluateRelation(bool release)
             SetHeading(relative_.dh);
         }
 
-        if ((GetMode(Position::PosModeType::INIT) & Position::PosMode::P_MASK) == Position::PosMode::P_REL)
+        if ((GetMode(Position::PosModeType::INIT) & Position::PosMode::P_MASK) == Position::PosMode::P_REL ||
+            (GetMode(Position::PosModeType::INIT) & Position::PosMode::P_MASK) == 0)  // not set
         {
             SetPitchRelative(relative_.dp);
         }
@@ -12408,7 +12419,8 @@ void Position::EvaluateRelation(bool release)
             SetPitch(relative_.dp);
         }
 
-        if ((GetMode(Position::PosModeType::INIT) & Position::PosMode::R_MASK) == Position::PosMode::R_REL)
+        if ((GetMode(Position::PosModeType::INIT) & Position::PosMode::R_MASK) == Position::PosMode::R_REL ||
+            (GetMode(Position::PosModeType::INIT) & Position::PosMode::R_MASK) == 0)  // not set
         {
             SetRollRelative(relative_.dr);
         }

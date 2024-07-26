@@ -94,7 +94,7 @@ set(ESMINI_BUILD_VERSION
 set(CMAKE_BUILD_TYPE
     "Debug"
     CACHE STRING
-           "build mode")
+          "build mode")
 
 # ############################### Setting project rules ############################################################
 

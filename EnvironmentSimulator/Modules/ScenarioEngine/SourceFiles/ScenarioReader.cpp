@@ -1070,10 +1070,10 @@ roadmanager::Route *ScenarioReader::parseOSCRoute(pugi::xml_node routeNode)
                 rs = roadmanager::Position::RouteStrategy::SHORTEST;
             }
 
-            OSCPosition* pos = parseOSCPosition(routeChild.first_child());
+            OSCPosition *pos = parseOSCPosition(routeChild.first_child());
             if (pos != nullptr)
             {
-                roadmanager::Position* p = pos->GetRMPos();
+                roadmanager::Position *p = pos->GetRMPos();
                 p->SetRouteStrategy(rs);
                 route->AddWaypoint(*p);
                 delete pos;
@@ -1828,9 +1828,9 @@ OSCPosition *ScenarioReader::parseOSCPosition(pugi::xml_node positionNode, OSCPo
     }
     else if (positionChildName == "RoutePosition")
     {
-        roadmanager::Route* route = nullptr;
-        OSCPositionRoute                   *pos         = new OSCPositionRoute;
-        OSCOrientation                     *orientation = 0;
+        roadmanager::Route *route       = nullptr;
+        OSCPositionRoute   *pos         = new OSCPositionRoute;
+        OSCOrientation     *orientation = 0;
 
         for (pugi::xml_node routeChild = positionChild.first_child(); routeChild; routeChild = routeChild.next_sibling())
         {
@@ -2864,8 +2864,8 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                         if (assignRouteChild.name() == std::string("Route"))
                         {
                             AssignRouteAction *action_follow_route = new AssignRouteAction(parent);
-                            action_follow_route->route_ = parseOSCRoute(assignRouteChild);
-                            action = action_follow_route;
+                            action_follow_route->route_            = parseOSCRoute(assignRouteChild);
+                            action                                 = action_follow_route;
                         }
                         else if (assignRouteChild.name() == std::string("CatalogReference"))
                         {
@@ -2883,7 +2883,7 @@ OSCPrivateAction *ScenarioReader::parseOSCPrivateAction(pugi::xml_node actionNod
                             {
                                 // Make a new instance from catalog entry
                                 action_assign_route->route_ = parseOSCRoute(entry->GetNode());
-                                action = action_assign_route;
+                                action                      = action_assign_route;
                                 break;
                             }
                             else

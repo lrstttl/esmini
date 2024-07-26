@@ -540,7 +540,7 @@ namespace scenarioengine
             TargetAbsolute() : Target(Target::Type::ABSOLUTE_LANE)
             {
             }
-            
+
             TargetAbsolute(const TargetAbsolute& target) : Target(target.type_)
             {
                 value_ = target.value_;
@@ -558,14 +558,14 @@ namespace scenarioengine
 
             TargetRelative(const TargetRelative& target) : Target(target.type_)
             {
-                value_ = target.value_;
+                value_  = target.value_;
                 object_ = target.object_;
             }
         };
 
-        Target* target_;
-        TransitionDynamics      transition_;
-        double                  target_lane_offset_;
+        Target*            target_;
+        TransitionDynamics transition_;
+        double             target_lane_offset_;
 
         LatLaneChangeAction(StoryBoardElement* parent, LatLaneChangeAction::DynamicsDimension timing_type = DynamicsDimension::TIME)
             : OSCPrivateAction(OSCPrivateAction::ActionType::LAT_LANE_CHANGE, parent, static_cast<unsigned int>(ControlDomains::DOMAIN_LAT)),
@@ -980,7 +980,8 @@ namespace scenarioengine
         }
 
         AssignRouteAction(const AssignRouteAction& action)
-            : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE)), route_(0)
+            : OSCPrivateAction(OSCPrivateAction::ActionType::ASSIGN_ROUTE, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_NONE)),
+              route_(0)
         {
             SetName(action.GetName());
             if (route_ == nullptr)
@@ -1081,9 +1082,9 @@ namespace scenarioengine
     class AcquirePositionAction : public OSCPrivateAction
     {
     public:
-        std::shared_ptr<OSCPosition>        target_position_OSCPosition_;
-        roadmanager::Position*              target_position_;
-        roadmanager::Route* route_;
+        std::shared_ptr<OSCPosition> target_position_OSCPosition_;
+        roadmanager::Position*       target_position_;
+        roadmanager::Route*          route_;
 
         ~AcquirePositionAction()
         {
@@ -1102,9 +1103,11 @@ namespace scenarioengine
         }
 
         AcquirePositionAction(const AcquirePositionAction& action)
-            : OSCPrivateAction(OSCPrivateAction::ActionType::Acquire_POSITION, action.parent_, static_cast<unsigned int>(ControlDomains::DOMAIN_LONG)),               
-            target_position_(0),
-            route_(0)
+            : OSCPrivateAction(OSCPrivateAction::ActionType::Acquire_POSITION,
+                               action.parent_,
+                               static_cast<unsigned int>(ControlDomains::DOMAIN_LONG)),
+              target_position_(0),
+              route_(0)
         {
             SetName(action.GetName());
             target_position_OSCPosition_ = action.target_position_OSCPosition_;

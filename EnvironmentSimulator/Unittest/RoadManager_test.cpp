@@ -1818,9 +1818,9 @@ TEST(Route, TestAssignRoute)
     ASSERT_NE(odr, nullptr);
     EXPECT_EQ(odr->GetNumOfRoads(), 16);
 
-    const int              nrWaypoints = 6;
-    Route* route = new Route;
-    Position               routepos[nrWaypoints];
+    const int nrWaypoints = 6;
+    Route    *route       = new Route;
+    Position  routepos[nrWaypoints];
     routepos[0].SetLanePos(0, 1, 10.0, 0);
     routepos[0].SetHeadingRelative(M_PI);
     routepos[1].SetLanePos(0, 1, 7.0, 0);  // Add extra waypoint on first road - should be removed

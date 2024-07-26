@@ -3048,13 +3048,13 @@ namespace roadmanager
         explicit Position(int track_id, int lane_id, double s, double offset);
         explicit Position(double x, double y, double z, double h, double p, double r);
         explicit Position(double x, double y, double z, double h, double p, double r, bool calculateTrackPosition);
-        Position(const Position& other);
-        Position(Position&& other);
-        Position& operator=(const Position& other);
-        Position& operator=(Position&& other);
+        Position(const Position &other);
+        Position(Position &&other);
+        Position &operator=(const Position &other);
+        Position &operator=(Position &&other);
         ~Position();
-        void Duplicate(const Position& other);
-        void CopyLocation(const Position& from);
+        void Duplicate(const Position &other);
+        void CopyLocation(const Position &from);
 
         void              Init();
         static bool       LoadOpenDrive(const char *filename);
@@ -3228,7 +3228,7 @@ namespace roadmanager
 
         void EvaluateRelation(bool release = false);
 
-        int          SetRoute(Route* route);
+        int          SetRoute(Route *route);
         int          CalcRoutePosition();
         const Route *GetRoute() const
         {
@@ -3238,7 +3238,7 @@ namespace roadmanager
         {
             return route_;
         }
-        void CopyRoute(const Position& position);
+        void CopyRoute(const Position &position);
 
         RMTrajectory *GetTrajectory()
         {
@@ -3859,16 +3859,29 @@ namespace roadmanager
         }
 
         /**
-        Specify if and how position object will align to the road. This version
-        sets same mode for all components: Heading, Pitch, Roll and Z (elevation)
-        @param id Id of the object
+        Specify if and how position object will align to the road. This variant
+        sets specified mode for specified mode type(s).
         @param mode Bitmask combining values from roadmanager::PosMode enum
         example: To set relative z and absolute roll: (Z_REL | R_ABS) or (7 | 12288) = (7 + 12288) = 12295
-        @param type 0=Set (for all explicit set-functions), 1=Update (when object is updated by any controller)
+        @param type SET, UPDATE, INIT, ALL. See enum class PosModeType.
         */
         void SetMode(PosModeType type, int mode);
 
+        /**
+        Specify if and how position object will align to the road. This variant
+        specify type(s) as bitmask, allowing for any combination of SET, UPDATE and/or INIT
+        @param mode Bitmask combining values from roadmanager::PosMode enum
+        example: To set relative z and absolute roll: (Z_REL | R_ABS) or (7 | 12288) = (7 + 12288) = 12295
+        @param type SET, UPDATE, INIT, ALL. See enum class PosModeType.
+        */
         void SetModes(int types, int mode);
+
+        /**
+        Specify if and how position object will align to the road. This variant
+        allows specifying mode as raw bitmask for specified mode type(s).
+        @param type SET, UPDATE, INIT, ALL. See enum class PosModeType.
+        */
+        void SetModeBits(PosModeType type, int bits);
 
         int GetMode(PosModeType type);
 
@@ -3972,8 +3985,7 @@ namespace roadmanager
         } relative_;
 
         // route reference
-        Route* route_;  // if pointer set, the position corresponds to a point along (s) the route
-
+        Route *route_;  // if pointer set, the position corresponds to a point along (s) the route
 
     protected:
         void       Track2Lane();
@@ -4085,7 +4097,7 @@ namespace roadmanager
         @param position A regular position created with road, lane or world coordinates
         @return Non zero return value indicates error of some kind
         */
-        int AddWaypoint(const Position& position);
+        int AddWaypoint(const Position &position);
 
         /**
         Return direction Adds a waypoint to the route. One waypoint per road. At most one junction between waypoints.
